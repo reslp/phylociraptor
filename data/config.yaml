@@ -1,0 +1,4 @@
+species: data/data2.csv
+busco:
+    set: "fungi_odb9"
+    threads: 8
