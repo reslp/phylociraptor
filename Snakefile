@@ -22,7 +22,8 @@ rule all:
 		"results/checkpoints/download_genomes.done",
 		"results/checkpoints/download_busco_set.done",
 		"results/checkpoints/prepare_augustus.done",
-		expand("results/checkpoints/busco_{sp}.done", sp=samples)
+		expand("results/checkpoints/busco_{sp}.done", sp=samples),
+		"results/checkpoints/busco_table.done"
 
 # needs to be run first before other rules can be run.
 rule download_genomes:
@@ -74,20 +75,34 @@ rule run_busco:
 		augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
 		busco_set = rules.download_busco_set.output.busco_set,
 	output:
-		checkpoint = "results/checkpoints/busco_{species}.done",	
+		busco_dir = directory("results/busco/{species}"),
+		checkpoint = "results/checkpoints/busco_{species}.done"
 	threads: config["busco"]["threads"]
 	params:
-		wd = os.getcwd(),
-		busco_dir = directory("results/busco/{species}")
+		wd = os.getcwd()
 	singularity:
 		"docker://reslp/busco:3.0.2"
 	shell:
 		"""
-		if [ ! -d {params.busco_dir} ]; then mkdir {params.busco_dir}; fi
-		cd {params.busco_dir}
+		if [ ! -d {output.busco_dir} ]; then mkdir {output.busco_dir}; fi
+		cd {output.busco_dir}
 		export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
 		echo $AUGUSTUS_CONFIG_PATH
 		run_busco -i ../../../{input.assembly} --out busco -c {threads} --lineage_path ../../../{input.busco_set} -m genome
 		cd ../../../
 		touch {output.checkpoint}		
 		"""
+		
+rule extract_hmms:
+	input:
+		busco_set = rules.download_busco_set.output.busco_set,
+		busco_dir = directory("results/busco/")
+	output:
+		busco_table = "results/busco_table/busco_table.txt",
+		checkpoint = "results/checkpoints/busco_table.done"
+	shell:
+		"""
+		python bin/get_busco_table.py --hmm {input.busco_set}/hmms --busco_results {input.busco_dir} > {output.busco_table}
+		touch {output.checkpoint}
+		"""
+		
