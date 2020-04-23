@@ -19,10 +19,14 @@ hmms = [hmm.strip(".hmm") for hmm in hmms]
 
 genomes = os.listdir(args.busco_results)
 
-string = "species" + "\t".join(hmms)
+string = "species\t"
+string += "\t".join(hmms)
+string += "\tpercent_complete" 
 print(string)
+ones = 0
+zeros = 0
 for species in genomes:
-	outstring = species +"\t"
+	outstring = species
 	print("Extracting HMMs for", species, file=sys.stderr)
 	try:
 		for hmm in hmms:
@@ -30,9 +34,14 @@ for species in genomes:
 			if hmm+".fna" in buscos:
 				outstring += "\t"
 				outstring += "1"
+				ones +=1
 			else:
 				outstring += "\t"
 				outstring += "0"
+				zeros +=1
+		percent = ones / (ones+zeros)
+		outstring += "\t"
+		outstring += str(percent)
 		print(outstring)
 	except:
 		out = species + " not found. Skipped.\n"

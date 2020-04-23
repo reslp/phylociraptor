@@ -8,7 +8,7 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
-print(samples)
+#print(samples)
 	
 def get_species_names(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data["species"].to_list()]
@@ -23,7 +23,8 @@ rule all:
 		"results/checkpoints/download_busco_set.done",
 		"results/checkpoints/prepare_augustus.done",
 		expand("results/checkpoints/busco_{sp}.done", sp=samples),
-		"results/checkpoints/busco_table.done"
+		"results/checkpoints/busco_table.done",
+		"results/checkpoints/create_sequence_files.done"
 
 # needs to be run first before other rules can be run.
 rule download_genomes:
@@ -93,16 +94,39 @@ rule run_busco:
 		touch {output.checkpoint}		
 		"""
 		
-rule extract_hmms:
+rule extract_busco_table:
 	input:
 		busco_set = rules.download_busco_set.output.busco_set,
-		busco_dir = directory("results/busco/")
+		busco_dir = "results/busco/"
 	output:
 		busco_table = "results/busco_table/busco_table.txt",
 		checkpoint = "results/checkpoints/busco_table.done"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
 	shell:
 		"""
-		python bin/get_busco_table.py --hmm {input.busco_set}/hmms --busco_results {input.busco_dir} > {output.busco_table}
+		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {input.busco_dir} > {output.busco_table}
 		touch {output.checkpoint}
 		"""
 		
+rule create_sequence_files:
+	input:
+		busco_table = rules.extract_busco_table.output.busco_table,
+		busco_dir = "results/busco/"
+	output:
+		sequence_dir = directory("results/busco_sequences"),
+		checkpoint = "results/checkpoints/create_sequence_files.done"
+	params:
+		cutoff=0.8
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"envs/biopython.yml"
+	shell:
+		"""
+		mkdir -p {output.sequence_dir}
+		python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {input.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir}
+		touch {output.checkpoint}
+		"""
+rule align:
+	
