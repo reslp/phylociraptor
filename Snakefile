@@ -200,9 +200,10 @@ rule iqtree:
 	shell:
 		"""
 		rm -rf results/phylogeny/concatenated/algn
+		mkdir -p results/phylogeny/concatenated/
         cd results/phylogeny/concatenated/
         mkdir algn
-        cp {params.wd}/results/trimmed_alignments algn
+        cp {params.wd}/results/trimmed_alignments/* algn
         iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
         rm -r algn
         cd {params.wd}
