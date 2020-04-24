@@ -2,3 +2,6 @@ species: data/data2.csv
 busco:
     set: "fungi_odb9"
     threads: 8
+mafft:
+    threads: 8
+    parameters: --quiet --auto

@@ -22,9 +22,10 @@ rule all:
 		"results/checkpoints/download_genomes.done",
 		"results/checkpoints/download_busco_set.done",
 		"results/checkpoints/prepare_augustus.done",
-		expand("results/checkpoints/busco_{sp}.done", sp=samples),
 		"results/checkpoints/busco_table.done",
-		"results/checkpoints/create_sequence_files.done"
+		"results/checkpoints/create_sequence_files.done",
+		"results/checkpoints/get_all_trimmed_files.done",
+		"results/checkpoints/iqtree.done"
 
 # needs to be run first before other rules can be run.
 rule download_genomes:
@@ -109,7 +110,7 @@ rule extract_busco_table:
 		touch {output.checkpoint}
 		"""
 		
-rule create_sequence_files:
+checkpoint create_sequence_files:
 	input:
 		busco_table = rules.extract_busco_table.output.busco_table,
 		busco_dir = "results/busco/"
@@ -128,5 +129,82 @@ rule create_sequence_files:
 		python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {input.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir}
 		touch {output.checkpoint}
 		"""
+
 rule align:
-	
+	input:
+		checkpoint = rules.create_sequence_files.output.checkpoint,
+		sequence_file = "results/busco_sequences/{busco}_all.fas"
+	output:
+		alignment = "results/alignments/{busco}_aligned.fas",
+		checkpoint = "results/checkpoints/mafft/{busco}_aligned.done"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"envs/mafft.yml"
+	threads:
+		config["mafft"]["threads"]
+	params:
+		config["mafft"]["parameters"]
+	shell:
+		"""
+		mafft {params} {input.sequence_file} > {output.alignment}
+		touch {output.checkpoint}
+		"""
+
+checkpoint trim:
+	input:
+		rules.align.output.alignment
+	output:
+		trimmed_alignment = "results/trimmed_alignments/{busco}_aligned_trimmed.fas",
+		checkpoint = "results/checkpoints/trimmed/{busco}_trimmed.done"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"envs/trimal.yml"
+	shell:
+		"""
+		trimal -gappyout -in {input} -out {output.trimmed_alignment}
+		touch {output.checkpoint}
+		"""
+
+def aggregate_trimmed_alignments(wildcards):
+    checkpoint_output = checkpoints.create_sequence_files.get(**wildcards).output[0]  
+    file_names = expand("results/trimmed_alignments/{busco}_aligned_trimmed.fas", busco = glob_wildcards(os.path.join(checkpoint_output, "{busco}_all.fas")).busco)
+    return file_names
+
+
+rule get_all_trimmed_files:
+	input:
+		aggregate_trimmed_alignments
+	output:
+		checkpoint = "results/checkpoints/get_all_trimmed_files.done"
+	shell:
+		"""
+		touch {output.checkpoint}
+		"""
+
+rule iqtree:
+	input:
+		rules.get_all_trimmed_files.output.checkpoint
+	output:
+		checkpoint = "results/checkpoints/iqtree.done"
+	singularity:
+		"docker://reslp/iqtree:2.0rc2"
+	params:
+		wd = os.getcwd(),
+		nt = "AUTO",
+		bb = "1000",
+		m = "WAG"
+	threads:
+		8
+	shell:
+		"""
+		rm -rf results/phylogeny/concatenated/algn
+        cd results/phylogeny/concatenated/
+        mkdir algn
+        cp {params.wd}/results/trimmed_alignments algn
+        iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
+        rm -r algn
+        cd {params.wd}
+        touch {output.checkpoint}
+		"""
