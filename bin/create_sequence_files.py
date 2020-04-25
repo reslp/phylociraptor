@@ -16,6 +16,7 @@ pars.add_argument('--busco_table', dest="busco_table", required=True, help="Path
 pars.add_argument('--busco_results', dest="busco_results", required=True, help="Results directory containing all BUSCO runs.")
 pars.add_argument('--cutoff', dest="cutoff", required=True, help="Percent cutoff % for BUSCO presence. Species below this threshold will be excluded.")
 pars.add_argument('--outdir', dest="outdir", required=True, help="Path to output directory.")
+pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number of species which have to be present to keep the sequences.")
 args=pars.parse_args()
 
 busco_overview = pd.read_csv(args.busco_table, sep="\t")
@@ -40,17 +41,26 @@ buscos = list(busco_overview.columns.values)
 buscos.remove("percent_complete")
 for busco in buscos:
 	#print("Processing: " + busco)
-	outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
+	numseqs = 0
+	outstring = ""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
 			#print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+".faa")
 			if species in genome:
 				try:
-					seqfile = open(args.busco_results+genome+"/run_busco/single_copy_busco_sequences/"+busco+".faa", "r")
+					seqfile = open(args.busco_results + genome + "/run_busco/single_copy_busco_sequences/" + busco + ".faa", "r")
 					for seq_record in SeqIO.parse(seqfile, "fasta"):
 						name = ">" +species+"\n"
-						outfile.write(name)
-						outfile.write(str(seq_record.seq)+"\n")
+						#outfile.write(name)
+						#outfile.write(str(seq_record.seq)+"\n")
+						outstring = outstring + name
+						outstring = outstring + str(seq_record.seq) + "\n"
+					seqfile.close()
 				except: # skip missing buscos
 					continue
-	outfile.close()
+	if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+		outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
+		outfile.write(outstring)
+		outfile.close()
+	else:
+		print("Too few sequences for %s. Will be skipped." % busco)
