@@ -1,7 +1,4 @@
 import pandas as pd
-#from pathlib import Path
-
-
 configfile: "data/config.yaml"
 
 wd = os.getcwd()
@@ -25,7 +22,9 @@ rule all:
 		"results/checkpoints/busco_table.done",
 		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/get_all_trimmed_files.done",
-		"results/checkpoints/iqtree.done"
+		"results/checkpoints/iqtree.done",
+		"results/checkpoints/iqtree_gene_trees.done"
+		
 
 # needs to be run first before other rules can be run.
 rule download_genomes:
@@ -183,30 +182,71 @@ rule get_all_trimmed_files:
 		"""
 		touch {output.checkpoint}
 		"""
+		
+if config["phylogeny"]["concat"] == "yes":
+	rule iqtree:
+		input:
+			rules.get_all_trimmed_files.output.checkpoint
+		output:
+			checkpoint = "results/checkpoints/iqtree.done"
+		singularity:
+			"docker://reslp/iqtree:2.0rc2"
+		params:
+			wd = os.getcwd(),
+			nt = "AUTO",
+			bb = "1000",
+			m = "WAG"
+		threads:
+			config["iqtree"]["threads"]
+		shell:
+			"""
+			rm -rf results/phylogeny/concatenated/algn
+			mkdir -p results/phylogeny/concatenated/
+			cd results/phylogeny/concatenated/
+			mkdir algn
+			cp {params.wd}/results/trimmed_alignments/* algn
+			iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
+			rm -r algn
+			cd {params.wd}
+			touch {output.checkpoint}
+			"""
+else:
+	rule iqtree:
+		output:
+			checkpoint = "results/checkpoints/iqtree.done"
+		shell:
+			"""
+			touch {output.checkpoint}
+			"""
 
-rule iqtree:
-	input:
-		rules.get_all_trimmed_files.output.checkpoint
-	output:
-		checkpoint = "results/checkpoints/iqtree.done"
-	singularity:
-		"docker://reslp/iqtree:2.0rc2"
-	params:
-		wd = os.getcwd(),
-		nt = "AUTO",
-		bb = "1000",
-		m = "WAG"
-	threads:
-		8
-	shell:
-		"""
-		rm -rf results/phylogeny/concatenated/algn
-		mkdir -p results/phylogeny/concatenated/
-        cd results/phylogeny/concatenated/
-        mkdir algn
-        cp {params.wd}/results/trimmed_alignments/* algn
-        iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
-        rm -r algn
-        cd {params.wd}
-        touch {output.checkpoint}
-		"""
+if config["phylogeny"]["species_tree"] == "yes":
+	rule iqtree_gene_trees:
+		input:
+			rules.get_all_trimmed_files.output.checkpoint,
+		output:
+			checkpoint = "results/checkpoints/iqtree_gene_trees.done",
+			trees = "results/phylogeny/gene_trees/loci.treefile"
+		params:
+			wd = os.getcwd(),
+		threads:
+			config["iqtree"]["threads"]
+		singularity:
+			"docker://reslp/iqtree:2.0rc2"
+		shell:
+			"""
+			rm -rf results/phylogeny/gene_trees/algn
+			mkdir -p results/phylogeny/gene_trees/algn
+			cd results/phylogeny/gene_trees
+			cp {params.wd}/results/trimmed_alignments/* algn
+			iqtree -S algn --prefix loci -nt AUTO -m WAG -redo -T {threads}
+			cd {params.wd}
+			touch {output.checkpoint}
+			"""
+else:
+	rule iqtree_gene_trees:
+		output:
+			checkpoint = "results/checkpoints/iqtree_gene_trees.done"
+		shell:
+			"""
+			touch {output.checkpoint}
+			"""

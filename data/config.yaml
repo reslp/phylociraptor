@@ -8,3 +8,8 @@ mafft:
 extract_sequences:
     cutoff: 0.8
     minsp: 3
+iqtree:
+    threads: 8
+phylogeny:
+    concat: "no"
+    species_tree: "yes"
