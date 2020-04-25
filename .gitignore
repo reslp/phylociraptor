@@ -3,3 +3,4 @@
 .conda/
 .snakemake/
 results/
+.zhistory
