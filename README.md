@@ -1,4 +1,4 @@
-# smsi-ühylogenomics - A containerized pipeline to perform phylogenomics
+# smsi-phylogenomics - A containerized pipeline to perform phylogenomics
 
 This snakemake pipeline implements downloading a bunch of genomes for NCBI and performs phylogenomic reconstruction on them. It uses BUSCO to identify single copy orthologs and run iqtree and astral to infer phylogenies.
 
