@@ -5,3 +5,6 @@ busco:
 mafft:
     threads: 8
     parameters: --quiet --auto
+extract_sequences:
+    cutoff: 0.8
+    minsp: 3

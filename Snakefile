@@ -118,8 +118,8 @@ checkpoint create_sequence_files:
 		sequence_dir = directory("results/busco_sequences"),
 		checkpoint = "results/checkpoints/create_sequence_files.done"
 	params:
-		cutoff=0.8,
-		minsp=3
+		cutoff=config["extract_sequences"]["cutoff"],
+		minsp=config["extract_sequences"]["minsp"]
 	singularity:
 		"docker://continuumio/miniconda3:4.7.10"
 	conda:
