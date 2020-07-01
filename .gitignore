@@ -4,3 +4,4 @@
 .snakemake/
 results/
 .zhistory
+.phylogenomics_setup.done
