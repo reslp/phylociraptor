@@ -19,6 +19,16 @@ On a cluster:
 - globally installed singularity 3.4.1+
 - SGE or SLURM job scheduling system
 
+## Running the pipeline 
+
+First specified genomes need to be downloaded:
+
+```
+$ ./phylogenomics --setup
+```
+
+
+
 ## Rulegraph
 
 <img src="https://github.com/reslp/smsi-phylogenomics/blob/master/rulegraph.png" height="500">
