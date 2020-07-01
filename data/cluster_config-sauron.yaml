@@ -1,0 +1,120 @@
+__default__:
+   ntasks: 1
+   N: default
+   queue: mpi
+   mem: 96G
+   output: $(pwd)/log/sauron-%j.out
+   error: $(pwd)/log/sauron-%j.err
+clean:
+   hint: nomultithread
+   N: clean 
+sort:
+   N: sort
+mask:
+   N: mask
+   hint: multithread
+   ntasks: 16 
+predict:
+   N: pred
+   hint: multithread
+   ntasks: 16
+iprscan:
+   N: ipr
+   hint: multithread
+   ntasks: 16
+remote:
+   N: rem
+eggnog:
+   N: egg
+   hint: multithread
+   ntasks: 16
+annotate:
+   N: anno
+   hint: multithread
+   ntasks: 16
+compare:
+   N: compare
+   hint: multithread
+   ntasks: 16
+tarpredict:
+   N: tarpred
+split:
+   N: split
+busco:
+   N: busco
+   mem: 20G
+   ntasks: 16
+cegma:
+   N: cegma
+   mem: 20G
+   ntasks: 16
+repeatmodeler:
+   N: repmod
+   mem: 20G
+   ntasks: 16
+repeatmasker:
+   N: repmas
+   mem: 20G
+   ntasks: 16
+genemark:
+   N: genemark
+   mem: 20G
+   ntasks: 16
+snap_pass1:
+   N: snap1
+   mem: 4G
+prepare_protein_evidence:
+   N: CDH0
+#   ntasks: 8
+#   ntasks-per-node: 8
+   mem: 20G
+initiate_MAKER_PASS1:
+   N: iMP1
+#   ntasks: 2
+#   ntasks-per-node: 2
+run_MAKER_PASS1:
+   N: rMP1
+#   ntasks: 20
+#   ntasks-per-node: 20
+   mem: 20G
+cleanup_MAKER_PASS1:
+   N: cMP1
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+merge_MAKER_PASS1:
+   N: mMP1
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+snap_pass2:
+   N: SNA2
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+AUGUSTUS_PASS2:
+   N: AUG2
+#   ntasks: 2
+#   ntasks-per-node: 2
+   mem: 20G
+pick_augustus_training_set:
+   N: PAM
+initiate_MAKER_PASS2:
+   N: iMP2
+#   ntasks: 2
+#   ntasks-per-node: 2
+run_MAKER_PASS2:
+   N: rMP2
+#   ntasks: 20
+#   ntasks-per-node: 20
+   mem: 20G
+cleanup_MAKER_PASS2:
+   N: cMP2
+#   ntasks: 1
+#   ntasks-per-node: 1
+   mem: 4G
+merge_MAKER_PASS2:
+   N: mMP2
+#   ntasks: 2
+#   ntasks-per-node: 2
+   mem: 4G
