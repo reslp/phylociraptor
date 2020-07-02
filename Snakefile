@@ -53,26 +53,6 @@ include: "rules/setup.smk"
 include: "rules/part1.smk"
 
 		
-checkpoint create_sequence_files:
-	input:
-		busco_table = rules.extract_busco_table.output.busco_table,
-		busco_dir = "results/busco/"
-	output:
-		sequence_dir = directory("results/busco_sequences"),
-		checkpoint = "results/checkpoints/create_sequence_files.done"
-	params:
-		cutoff=config["extract_sequences"]["cutoff"],
-		minsp=config["extract_sequences"]["minsp"]
-	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
-	conda:
-		"envs/biopython.yml"
-	shell:
-		"""
-		mkdir -p {output.sequence_dir}
-		python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {input.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
-		touch {output.checkpoint}
-		"""
 
 rule align:
 	input:

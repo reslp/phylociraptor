@@ -1,6 +1,6 @@
-species: data/data2.csv
+species: data/fish.csv
 busco:
-    set: "fungi_odb9"
+    set: "actinopterygii_odb9"
     threads: 8
 mafft:
     threads: 8
