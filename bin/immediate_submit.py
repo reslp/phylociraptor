@@ -38,9 +38,9 @@ cmdline=[]
 # create list with command line arguments
 if subs == "slurm":
 	cmdline = ["sbatch"]
-	if "sample" in job_properties["wildcards"]:
-                job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["sample"]
-                prefix = job_properties["wildcards"]["sample"] + "-" + job_properties["rule"] + "-slurm"
+	if "species" in job_properties["wildcards"]:
+                job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["species"]
+                prefix = job_properties["wildcards"]["species"] + "-" + job_properties["rule"] + "-slurm"
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
 	
@@ -60,8 +60,8 @@ if subs == "slurm":
 		#print("Dep:", file=sys.stderr)
 		#print(dependencies, file=sys.stderr)
 elif subs == "sge":
-	if "sample" in job_properties["wildcards"]:
-		name = job_properties["wildcards"]["sample"] + "_" + job_properties["cluster"]["N"] 
+	if "species" in job_properties["wildcards"]:
+		name =  job_properties["cluster"]["N"] + "-" + job_properties["wildcards"]["species"]
 	else:
 		name = job_properties["cluster"]["N"]
 	job_properties["cluster"]["N"] = name
