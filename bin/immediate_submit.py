@@ -62,6 +62,8 @@ if subs == "slurm":
 elif subs == "sge":
 	if "species" in job_properties["wildcards"]:
 		name =  job_properties["cluster"]["N"] + "-" + job_properties["wildcards"]["species"]
+	elif "busco" in job_properties["wildcards"]:
+		name =  job_properties["cluster"]["N"] + "-" + job_properties["wildcards"]["busco"]
 	else:
 		name = job_properties["cluster"]["N"]
 	job_properties["cluster"]["N"] = name

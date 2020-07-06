@@ -17,3 +17,12 @@ extract_busco_table:
 create_sequence_files:
    N: exSeqfiles
    mem: 12G
+get_all_trimmed_files:
+   N: gettrimfiles
+   mem: 12G
+align:
+   N: align
+   mem: 10G
+trim:
+   N: trim
+   mem: 10G
