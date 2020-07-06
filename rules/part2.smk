@@ -51,7 +51,7 @@ rule get_all_trimmed_files:
                 "results/trimmed_alignments/busco_list.txt"
 	shell:
                 """
-		for (file in {input}); do
+		for file in {input}; do
                 	echo $(basename $file) >> {output}
 		done
                 """
