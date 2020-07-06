@@ -11,5 +11,5 @@ extract_sequences:
 iqtree:
     threads: 8
 phylogeny:
-    concat: "no"
+    concat: "yes"
     species_tree: "yes"

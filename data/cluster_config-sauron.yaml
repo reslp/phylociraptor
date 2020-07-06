@@ -26,3 +26,15 @@ align:
 trim:
    N: trim
    mem: 10G
+iqtree:
+   N: iqtree
+   mem: 64G
+part1:
+   N: part1
+   mem: 4G
+part2:
+   N: part2
+   mem: 4G
+part3:
+   N: part3
+   mem: 4G

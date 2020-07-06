@@ -57,10 +57,20 @@ rule part2:
 		touch {output}	
 		"""
 
+rule part3:
+	input:
+		"results/checkpoints/iqtree.done"	
+	output:
+		"checkpoints/part3.done"
+	shell:
+		"""
+		touch {output}
+		"""
+
 include: "rules/setup.smk"
 include: "rules/part1.smk"
 include: "rules/part2.smk"
-
+include: "rules/part3.smk"
 
 #if config["phylogeny"]["concat"] == "yes":
 #	rule iqtree:
