@@ -6,3 +6,4 @@ results/
 .zhistory
 .phylogenomics_setup.done
 log/
+checkpoints/

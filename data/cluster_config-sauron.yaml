@@ -11,3 +11,9 @@ run_busco:
    N: rBUSCO
    ntasks: 16
    mem: 24G
+extract_busco_table:
+   N: exBUSCO
+   mem: 12G
+create_sequence_files:
+   N: exSeqfiles
+   mem: 12G

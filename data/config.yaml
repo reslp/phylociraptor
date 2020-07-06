@@ -6,7 +6,7 @@ mafft:
     threads: 8
     parameters: --quiet --auto
 extract_sequences:
-    cutoff: 0.8
+    cutoff: 0.5
     minsp: 3
 iqtree:
     threads: 8

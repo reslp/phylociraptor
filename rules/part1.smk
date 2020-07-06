@@ -39,7 +39,7 @@ rule extract_busco_table:
                 busco = rules.busco.output
         output:
                 busco_table = "results/busco_table/busco_table.txt",
-                checkpoint = "results/checkpoints/busco_table.done"
+                checkpoint = "results/checkpoints/extract_busco_table.done"
         singularity:
                 "docker://continuumio/miniconda3:4.7.10"
         params:
@@ -53,21 +53,22 @@ rule extract_busco_table:
 rule create_sequence_files:
         input:
                 busco_table = rules.extract_busco_table.output.busco_table,
-                busco_dir = rules.busco.output
+                checkpoint = rules.busco.output
         output:
                 sequence_dir = directory("results/busco_sequences"),
                 checkpoint = "results/checkpoints/create_sequence_files.done"
         params:
                 cutoff=config["extract_sequences"]["cutoff"],
-                minsp=config["extract_sequences"]["minsp"]
+                minsp=config["extract_sequences"]["minsp"],
+		busco_dir = "results/busco"
         singularity:
                 "docker://continuumio/miniconda3:4.7.10"
         conda:
-                "envs/biopython.yml"
+                "../envs/biopython.yml"
         shell:
                 """
-                mkdir -p {output.sequence_dir}
-                python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {input.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
-                touch {output.checkpoint}
+		mkdir -p {output.sequence_dir}
+                python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
+		touch {output.checkpoint}
                 """
 

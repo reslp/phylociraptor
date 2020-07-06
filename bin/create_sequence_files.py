@@ -31,7 +31,7 @@ busco_overview = busco_overview.set_index("species")
 for sp in species_list:
 	if busco_overview.loc[sp, "percent_complete"] < float(args.cutoff):
 		busco_overview = busco_overview.drop([sp])
-		out = sp + "too few BUSCOs, will be removed"
+		out = sp + " has too few BUSCOs, will be removed"
 		print(out)
 species_list =  list(busco_overview.index)
 print("Species remaining after applying cutoff:", len(species_list))
@@ -45,10 +45,10 @@ for busco in buscos:
 	outstring = ""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
-			#print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+".faa")
+			print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+".faa")
 			if species in genome:
 				try:
-					seqfile = open(args.busco_results + genome + "/run_busco/single_copy_busco_sequences/" + busco + ".faa", "r")
+					seqfile = open(args.busco_results + "/" + genome + "/run_busco/single_copy_busco_sequences/" + busco + ".faa", "r")
 					for seq_record in SeqIO.parse(seqfile, "fasta"):
 						name = ">" +species+"\n"
 						#outfile.write(name)

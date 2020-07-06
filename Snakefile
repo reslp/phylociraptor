@@ -39,7 +39,7 @@ rule setup:
 		"""
 rule part1:
 	input:
-		"results/checkpoints/create_busco_table.done",
+		"results/checkpoints/extract_busco_table.done",
 		"results/checkpoints/create_sequence_files.done"
 	output:
 		"checkpoints/part1.done"
