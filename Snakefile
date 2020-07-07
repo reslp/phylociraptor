@@ -49,7 +49,7 @@ rule part1:
 		"""
 rule part2:
 	input:
-		"results/trimmed_alignments/busco_list.txt"
+		"results/checkpoints/get_all_trimmed_files.done"
 	output:
 		"checkpoints/part2.done"
 	shell:

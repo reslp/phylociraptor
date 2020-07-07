@@ -48,9 +48,20 @@ rule get_all_trimmed_files:
         input:
                 expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
         output:
-                "results/trimmed_alignments/busco_list.txt"
+                checkpoint = "results/checkpoints/get_all_trimmed_files.done"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"../envs/biopython.yml"
+	params:
+		wd = os.getcwd()
 	shell:
                 """
-               	touch {output}
+		mkdir -p results/filtered_alignments
+		for file in results/trimmed_alignments/*.fas;
+		do
+			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments"
+		done
+		touch {output.checkpoint}
                 """
 

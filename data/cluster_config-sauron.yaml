@@ -28,7 +28,8 @@ trim:
    mem: 10G
 iqtree:
    N: iqtree
-   mem: 64G
+   mem: 96G
+   ntasks: 16
 part1:
    N: part1
    mem: 4G
@@ -43,4 +44,5 @@ astral_species_tree:
    mem: 48G
 iqtree_gene_trees:
    N: iqtgenetrees
-   mem: 24G
+   mem: 96G
+   ntasks: 16

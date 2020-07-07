@@ -19,7 +19,7 @@ if config["phylogeny"]["concat"] == "yes":
                        mkdir -p results/phylogeny/concatenated/
                        cd results/phylogeny/concatenated/
                        mkdir algn
-                       cp {params.wd}/results/trimmed_alignments/*.fas algn
+                       cp {params.wd}/results/filtered_alignments/*.fas algn
                        iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
                        rm -r algn
                        cd {params.wd}
@@ -52,8 +52,8 @@ if config["phylogeny"]["species_tree"] == "yes":
 			rm -rf results/phylogeny/gene_trees/algn
 			mkdir -p results/phylogeny/gene_trees/algn
 			cd results/phylogeny/gene_trees
-			cp {params.wd}/results/trimmed_alignments/*.fas algn
-			iqtree -S algn --prefix loci -nt AUTO -m WAG -redo -T {threads}
+			cp {params.wd}/results/filtered_alignments/*.fas algn
+			iqtree -S algn/ --prefix loci -nt AUTO -m WAG -redo -T {threads}
 			rm -r algn
 			cd {params.wd}
 			touch {output.checkpoint}
