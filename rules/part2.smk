@@ -1,7 +1,7 @@
 import subprocess
 
 BUSCOS, = glob_wildcards("results/busco_sequences/{busco}_all.fas")
-BUSCOS = BUSCOS[1:10]
+#BUSCOS = BUSCOS[1:10]
 rule align:
         input:
                 checkpoint = rules.create_sequence_files.output.checkpoint,
@@ -51,8 +51,6 @@ rule get_all_trimmed_files:
                 "results/trimmed_alignments/busco_list.txt"
 	shell:
                 """
-		for file in {input}; do
-                	echo $(basename $file) >> {output}
-		done
+               	touch {output}
                 """
 
