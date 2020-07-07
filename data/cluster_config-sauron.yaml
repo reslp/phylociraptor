@@ -38,3 +38,9 @@ part2:
 part3:
    N: part3
    mem: 4G
+astral_species_tree:
+   N: astral
+   mem: 48G
+iqtree_gene_trees:
+   N: iqtgenetrees
+   mem: 24G
