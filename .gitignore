@@ -9,3 +9,5 @@ log/
 checkpoints/
 hat3.seed
 pre
+data/assemblies/
+!data/assemblies/.gitkeep
