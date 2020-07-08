@@ -8,7 +8,9 @@ rule run_busco:
                 checkpoint = "results/checkpoints/busco_{species}.done"
         threads: config["busco"]["threads"]
         params:
-                wd = os.getcwd()
+                wd = os.getcwd(),
+		sp = config["busco"]["augustus_species"],
+		additional_params = config["busco"]["additional_parameters"]
         singularity:
                 "docker://reslp/busco:3.0.2"
         shell:
@@ -18,7 +20,7 @@ rule run_busco:
                 cd {output.busco_dir}
                 export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
                 echo $AUGUSTUS_CONFIG_PATH
-                run_busco -i ../../../{input.assembly} --out busco -c {threads} --lineage_path ../../../{input.busco_set} -m genome
+                run_busco -i ../../../{input.assembly} --out busco -c {threads} -sp {params.sp} --lineage_path ../../../{input.busco_set} -m genome {params.additional_params}
                 cd ../../../
                 touch {output.checkpoint}
                 """

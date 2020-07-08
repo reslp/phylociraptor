@@ -2,6 +2,8 @@ species: data/plath.csv
 busco:
     set: "metazoa_odb9"
     threads: 8
+    augustus_species: schistosoma
+    additional_parameters: 
 mafft:
     threads: 8
     parameters: --quiet --auto
