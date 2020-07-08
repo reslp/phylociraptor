@@ -5,10 +5,10 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
-#print(samples)
+print(sample_data)
 	
 def get_species_names(wildcards):
-	names = [name.replace(" ", "_") for name in sample_data["species"].to_list()]
+	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
 	names= ",".join(names)
 	print(names)
 	return names
