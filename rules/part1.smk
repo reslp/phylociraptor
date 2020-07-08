@@ -1,6 +1,6 @@
 rule run_busco:
         input:
-                assembly = "results/downloaded_genomes/{species}_genomic_genbank.fna",
+                assembly = "results/assemblies/{species}.fna",
                 augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
                 busco_set = rules.download_busco_set.output.busco_set,
         output:
@@ -13,7 +13,8 @@ rule run_busco:
                 "docker://reslp/busco:3.0.2"
         shell:
                 """
-                if [ ! -d {output.busco_dir} ]; then mkdir {output.busco_dir}; fi
+                mkdir -p log
+		if [ ! -d {output.busco_dir} ]; then mkdir {output.busco_dir}; fi
                 cd {output.busco_dir}
                 export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
                 echo $AUGUSTUS_CONFIG_PATH

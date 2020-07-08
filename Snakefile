@@ -5,11 +5,26 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
-print(sample_data)
+#print(sample_data)
 	
 def get_species_names(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
 	names= ",".join(names)
+	#print(names)
+	return names
+
+def get_species_names_rename(wildcards):
+        names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
+        names= " ".join(names)
+        #print(names)
+        return names
+
+
+def get_local_species_names_rename(wildcards):
+	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] != "web", "species"].to_list()]
+	assembly = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] != "web", "web_local"].to_list()]
+	name_asse_pair = [name + "," + ass for name, ass in zip(names,assembly)]
+	names= " ".join(name_asse_pair)
 	print(names)
 	return names
 
@@ -30,7 +45,8 @@ rule setup:
 	input:
 		"results/checkpoints/download_genomes.done",
 		"results/checkpoints/download_busco_set.done",
-		"results/checkpoints/prepare_augustus.done"
+		"results/checkpoints/prepare_augustus.done",
+		"results/checkpoints/rename_assemblies.done"
 	output:
 		".phylogenomics_setup.done"
 	shell:

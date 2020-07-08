@@ -41,8 +41,8 @@ Taenia solium,Eukaryota;Animals;Flatworms,129.811,0,0,0,3,web
 Trichobilharzia regenti,Eukaryota;Animals;Flatworms,701.762,0,0,0,1,web
 Echinococcus granulosus,Eukaryota;Animals;Flatworms,110.838,0,0,0,1,web
 Echinostoma caproni,Eukaryota;Animals;Flatworms,834.556,0,0,0,1,web
-Kapentagyrus tanganicanus,data/assemblies/Ktan.PLATANUS.min1000.fasta,,,,,,local
-Dictyocotyle coeliaca,data/assemblies/Dcoe_PLATANUS.scaffolds.min500.fasta,,,,,,local
-Leptocotyle minor,data/assemblies/Lmin.contigs.fasta,,,,,,local
-Diclidophora denticulata,data/assemblies/Dden.PLATANUS.min1000.filtered.fasta,,,,,,local
+Kapentagyrus tanganicanus,,,,,,,data/assemblies/Ktan.PLATANUS.min1000.fasta
+Dictyocotyle coeliaca,,,,,,,data/assemblies/Dcoe_PLATANUS.scaffolds.min500.fasta
+Leptocotyle minor,,,,,,,data/assemblies/Lmin.contigs.fasta
+Diclidophora denticulata,,,,,,,data/assemblies/Dden.PLATANUS.min1000.filtered.fasta
 
