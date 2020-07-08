@@ -27,7 +27,8 @@ rule run_busco:
 
 rule busco:
         input:
-                expand("results/checkpoints/busco_{sample}.done", sample=samples)
+                checks = expand("results/checkpoints/busco_{sample}.done", sample=samples),
+		dirs = expand("results/busco/{sample}", sample=samples)
         output:
                 "checkpoints/busco.done"
         shell:
