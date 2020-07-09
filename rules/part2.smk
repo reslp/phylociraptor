@@ -57,15 +57,18 @@ rule get_all_trimmed_files:
 		wd = os.getcwd()
 	shell:
                 """
-		mkdir -p results/filtered_alignments
+		if [[ -d results/filtered_alignments ]]; then
+			rm -rf results/filtered_alignments
+		fi
+		mkdir results/filtered_alignments
 		
 		for file in results/trimmed_alignments/*.fas;
 		do
 			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments"
 		done
-		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)"
-		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)"
-		echo "$(date) - Number of alignments without duplicated sequences: $(ls results/filtered_alignments/*.fas | wc -l)"
+		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)" >> results/report.txt
+		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/report.txt
+		echo "$(date) - Number of alignments without duplicated sequences: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/report.txt
 		touch {output.checkpoint}
 		"""
 
