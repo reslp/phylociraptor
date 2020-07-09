@@ -10,7 +10,8 @@ rule run_busco:
         params:
                 wd = os.getcwd(),
 		sp = config["busco"]["augustus_species"],
-		additional_params = config["busco"]["additional_parameters"]
+		additional_params = config["busco"]["additional_parameters"],
+		species = lambda wildcards: wildcards.species
         singularity:
                 "docker://reslp/busco:3.0.2"
         shell:
@@ -23,8 +24,8 @@ rule run_busco:
                 run_busco -i ../../../{input.assembly} --out busco -c {threads} -sp {params.sp} --lineage_path ../../../{input.busco_set} -m genome {params.additional_params}
                 cd ../../../
                 
-		buscos=$(tail -n +6 results/busco/{species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\n' ' ' | sed 's/ $/\n/g')
-		name={species}
+		buscos=$(tail -n +6 results/busco/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
+		name="{params.species}"
 		echo "$(date) $name $buscos" >> results/report.txt
 
 		touch {output.checkpoint}

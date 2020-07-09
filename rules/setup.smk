@@ -25,7 +25,7 @@ rule rename_assemblies:
 	shell:
 		"""
 		#have to first remove this folder
-		rm -r results/assemblies
+		rm -rf results/assemblies
 		mkdir -p results/assemblies
 		for spe in {params.downloaded_species}; do
 			ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
