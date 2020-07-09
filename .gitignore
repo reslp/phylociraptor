@@ -7,8 +7,10 @@ results/
 .phylogenomics_setup.done
 log/
 !/log/.gitkeep
+.usr_tmp/
 checkpoints/
 hat3.seed
 pre
 data/assemblies/
 !data/assemblies/.gitkeep
+playground/

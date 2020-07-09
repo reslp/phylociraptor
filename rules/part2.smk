@@ -58,10 +58,11 @@ rule get_all_trimmed_files:
 	shell:
                 """
 		mkdir -p results/filtered_alignments
+		
 		for file in results/trimmed_alignments/*.fas;
 		do
 			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments"
 		done
 		touch {output.checkpoint}
-                """
+		"""
 

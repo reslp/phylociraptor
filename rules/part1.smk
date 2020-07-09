@@ -22,7 +22,12 @@ rule run_busco:
                 echo $AUGUSTUS_CONFIG_PATH
                 run_busco -i ../../../{input.assembly} --out busco -c {threads} -sp {params.sp} --lineage_path ../../../{input.busco_set} -m genome {params.additional_params}
                 cd ../../../
-                touch {output.checkpoint}
+                
+		buscos=$(tail -n +6 results/busco/{species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\n' ' ' | sed 's/ $/\n/g')
+		name={species}
+		echo "$(date) $name $buscos" >> results/report.txt
+
+		touch {output.checkpoint}
                 """
 
 rule busco:
@@ -74,5 +79,6 @@ rule create_sequence_files:
 		mkdir -p {output.sequence_dir}
                 python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
 		touch {output.checkpoint}
-                """
+                
+		"""
 

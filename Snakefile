@@ -52,6 +52,8 @@ rule setup:
 	shell:
 		"""
 		touch {output}
+		touch "results/report.txt"
+		echo "$(date) - Pipeline setup done." >> results/report.txt
 		"""
 rule part1:
 	input:
@@ -62,6 +64,7 @@ rule part1:
 	shell:
 		"""
 		touch {output}
+		echo "$(date) - Pipeline part 1 (busco) done." >> results/report.txt
 		"""
 rule part2:
 	input:
@@ -71,6 +74,7 @@ rule part2:
 	shell:
 		"""
 		touch {output}	
+		echo "$(date) - Pipeline part 2 (align) done." >> results/report.txt
 		"""
 
 rule part3:
@@ -83,6 +87,7 @@ rule part3:
 	shell:
 		"""
 		touch {output}
+		echo "$(date) - Pipeline part 3 (tree) done." >> results/report.txt
 		"""
 
 include: "rules/setup.smk"
