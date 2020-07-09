@@ -63,6 +63,9 @@ rule get_all_trimmed_files:
 		do
 			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments"
 		done
+		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)"
+		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)"
+		echo "$(date) - Number of alignments without duplicated sequences: $(ls results/filtered_alignments/*.fas | wc -l)"
 		touch {output.checkpoint}
 		"""
 
