@@ -25,14 +25,22 @@ rule rename_assemblies:
 	shell:
 		"""
 		#have to first remove this folder
-		rm -rf results/assemblies
+		#rm -rf results/assemblies
 		mkdir -p results/assemblies
 		for spe in {params.downloaded_species}; do
-			ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
+			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
+				continue
+			else
+				ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
+			fi
 		done	
 		for spe in  {params.local_species}; do
 			sparr=(${{spe//,/ }})
-			ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
+			if [[ -f {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
+				continue
+			else
+				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
+			fi
 		done
 		touch {output}
 		
