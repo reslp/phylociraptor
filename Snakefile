@@ -27,6 +27,12 @@ def get_local_species_names_rename(wildcards):
 	#print(names)
 	return names
 
+def get_all_species_names(wildcards):
+	print("All species names:")
+	names = [name for name in sample_data.loc["species"].to_list()]
+	print(names)
+	return names
+
 rule all:
 	input:
 		#expand("results/checkpoints/download_genome_{sample}.done", sample=samples)
@@ -45,7 +51,8 @@ rule setup:
 		"results/checkpoints/download_genomes.done",
 		"results/checkpoints/download_busco_set.done",
 		"results/checkpoints/prepare_augustus.done",
-		"results/checkpoints/rename_assemblies.done"
+		"results/checkpoints/rename_assemblies.done",
+		expand("results/assemblies/{species}.fna", species=samples)
 	output:
 		".phylogenomics_setup.done"
 	shell:

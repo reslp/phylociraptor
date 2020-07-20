@@ -17,7 +17,8 @@ rule rename_assemblies:
 	input:
 		rules.download_genomes.output
 	output:
-		"results/checkpoints/rename_assemblies.done"
+		checkpoint = "results/checkpoints/rename_assemblies.done",
+		files = expand("results/assemblies/{sample}.fna", sample=samples)
 	params:
 		downloaded_species = get_species_names_rename,
 		local_species = get_local_species_names_rename,
@@ -42,7 +43,7 @@ rule rename_assemblies:
 				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
 			fi
 		done
-		touch {output}
+		touch {output.checkpoint}
 		
 
 		"""
