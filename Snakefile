@@ -10,22 +10,21 @@ print(samples)
 def get_species_names(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
 	names= ",".join(names)
-	#print(names)
 	return names
 
 def get_species_names_rename(wildcards):
         names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
         names= " ".join(names)
-        #print(names)
         return names
 
 
 def get_local_species_names_rename(wildcards):
-	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] != "web", "species"].to_list()]
-	assembly = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] != "web", "web_local"].to_list()]
+	names = [name.replace(" ","_") for name in sample_data.loc[sample_data["web_local"] != "web", "species"].to_list()]
+	assembly = [name for name in sample_data.loc[sample_data["web_local"] != "web", "web_local"].to_list()]
+	assembly = [name for name in assembly if str(name) != "nan"]
 	name_asse_pair = [name + "," + ass for name, ass in zip(names,assembly)]
 	names= " ".join(name_asse_pair)
-	print(names)
+	#print(names)
 	return names
 
 rule all:

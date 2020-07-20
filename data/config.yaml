@@ -1,8 +1,8 @@
-species: data/data.csv
+species: data/fish.csv
 busco:
-    set: "fungi_odb9"
+    set: "actinopterygii_odb9"
     threads: 8
-    augustus_species: anidulans
+    augustus_species: human
     additional_parameters: ""
 mafft:
     threads: 8
