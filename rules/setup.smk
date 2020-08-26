@@ -34,6 +34,7 @@ rule rename_assemblies:
 			else
 				if [[ ! -f {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna ]]; then
 					echo "Species not found: $spe. Maybe it was not downloaded."
+					continue
 				else
 					ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
 				fi
