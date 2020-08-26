@@ -51,7 +51,7 @@ while getopts ":v:t:c:s:m:-:" option;
                 esac
         done
 if [ $OPTIND -eq 1 ]; then usage; fi
-
+echo $SETUP
 if [[ $REMOVE == "TRUE" ]]; then
 	echo "WARNING: This command will delete all previously generated results."
 	read -r -p "Are you sure [y/n]? " yn
@@ -79,6 +79,10 @@ if [[ $SETUP == "TRUE" ]]; then
 			echo "Will not run setup."
 			exit 0
 		fi
+	else
+		echo "Will run setup of pipeline"
+		snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp --latency-wait 600 -r setup --cores 1
+		exit 0
 	fi
 fi
 
