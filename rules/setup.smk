@@ -32,7 +32,11 @@ rule rename_assemblies:
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
 			else
-				ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
+				if [[ ! -f {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna ]]; then
+					echo "Species not found: $spe. Maybe it was not downloaded."
+				else
+					ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
+				fi
 			fi
 		done	
 		for spe in  {params.local_species}; do
@@ -44,8 +48,6 @@ rule rename_assemblies:
 			fi
 		done
 		touch {output.checkpoint}
-		
-
 		"""
 
 
