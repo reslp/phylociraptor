@@ -6,7 +6,7 @@ results/
 .zhistory
 .phylogenomics_setup.done
 log/
-!/log/.gitkeep
+!log/.gitkeep
 .usr_tmp/
 checkpoints/
 hat3.seed
