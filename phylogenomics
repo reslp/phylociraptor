@@ -72,6 +72,7 @@ if [[ $SETUP == "TRUE" ]]; then
 	if [[ -f .phylogenomics_setup.done ]]; then
 		read -r -p "Setup has been run previously. Ar you sure you want to rerun this step? [y/n]? " yn
 		if [[ $yn == "y" ]]; then
+			rm .phylogenomics_setup.done
 			echo "Will run setup of pipeline"
 			snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp --latency-wait 600 -r setup --cores 1
 			exit 0
