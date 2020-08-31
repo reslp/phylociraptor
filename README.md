@@ -93,11 +93,18 @@ $ ./phylogenomics -t sge -c data/cluster_config-sauron.yaml -m align
 $ ./phylogenomics -t sge -c data/cluster_config-sauron.yaml -m tree
 ```
 
+5. Create a report of the run:
+
+```
+$ ./phylogenomics --report
+```
+
+
 After this step, your results directory should look like this:
 
 ```
 $ ls results/
-alignments  assemblies  augustus_config_path  busco  busco_sequences  busco_set  busco_table  checkpoints  downloaded_genomes  filtered_alignments  phylogeny  report.txt  trimmed_alignments
+alignments  assemblies  augustus_config_path  busco  busco_sequences  busco_set  busco_table  checkpoints  downloaded_genomes  filtered_alignments  phylogeny  report  report.txt  trimmed_alignments
 ```
 
 
