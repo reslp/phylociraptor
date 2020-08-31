@@ -1,8 +1,8 @@
-species: data/fish.csv
+species: data/plath.csv
 busco:
-    set: "actinopterygii_odb9"
+    set: "metazoa_odb9"
     threads: 8
-    augustus_species: human
+    augustus_species: fly
     additional_parameters: ""
 mafft:
     threads: 8
@@ -15,3 +15,5 @@ iqtree:
 phylogeny:
     concat: "yes"
     species_tree: "yes"
+report:
+    width: 80

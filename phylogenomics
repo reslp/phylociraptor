@@ -15,6 +15,7 @@ usage() {
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
         echo "  -m <mode> Specify runmode, separated by comma. Options: busco, tree, speciestree."
 	echo
+	echo "  --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run"
 	echo "  --setup This flag will download the genomes and prepare the pipeline to run."
 	echo "  --remove Resets the pipeline. Will delete all results, logs and checkpoints."
 	echo
@@ -29,6 +30,7 @@ CLUSTER_CONFIg=""
 SETUP=""
 RUNMODE=""
 REMOVE="FALSE"
+REPORT=""
 while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
@@ -43,6 +45,7 @@ while getopts ":v:t:c:s:m:-:" option;
 				case $OPTARG in
 					setup) SETUP="TRUE" ;;
 					remove) REMOVE="TRUE" ;;
+					report) REPORT="TRUE" ;;
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
@@ -109,6 +112,11 @@ else
   fi
 fi
 
+# create report if flag is set
+if [[ $REPORT == "TRUE" ]]; then
+	snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --cores 1 --notemp -r report $SM_ARGS
+	exit 0
+fi
 
 # these if cases are still crude and do not cover all possible combinations!
 if [[ $RUNMODE == *"busco"* ]]; then

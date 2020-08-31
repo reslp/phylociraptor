@@ -41,6 +41,21 @@ Taenia solium,Eukaryota;Animals;Flatworms,129.811,0,0,0,3,web
 Trichobilharzia regenti,Eukaryota;Animals;Flatworms,701.762,0,0,0,1,web
 Echinococcus granulosus,Eukaryota;Animals;Flatworms,110.838,0,0,0,1,web
 Echinostoma caproni,Eukaryota;Animals;Flatworms,834.556,0,0,0,1,web
+Amynthas corticis,Eukaryota;Animals;Other Animals,1017.22,0,0,0,2,web
+Capitella teleta,Eukaryota;Animals;Other Animals,333.283,0,0,0,1,web
+Helobdella robusta,Eukaryota;Animals;Other Animals,235.376,0,0,0,1,web
+Hirudo medicinalis,Eukaryota;Animals;Other Animals,187.547,0,0,0,2,web
+Hydroides elegans,Eukaryota;Animals;Other Animals,1026.05,0,0,0,1,web
+Eisenia fetida,Eukaryota;Animals;Other Animals,1471.98,0,0,0,2,web
+Lamellibrachia luymesi,Eukaryota;Animals;Other Animals,687.706,0,0,0,1,web
+Lottia gigantea,Eukaryota;Animals;Other Animals,359.506,0,0,0,1,web
+Lymnaea stagnalis,Eukaryota;Animals;Other Animals,833.229,0,0,0,1,web
+Rotaria macrura,Eukaryota;Animals;Other Animals,234.715,0,0,0,2,web
+Adineta ricciae,Eukaryota;Animals;Other Animals,174.494,0,0,0,2,web
+Daphnia pulex,Eukaryota;Animals;Other Animals,189.551,0,0,0,2,web
+Drosophila melanogaster,Eukaryota;Animals;Insects,143.726,7,1,0,26,web
+Tribolium castaneum,Eukaryota;Animals;Insects,165.944,10,1,0,1,web
+Brachionus plicatilis,Eukaryota;Animals;Other Animals,106.939,0,0,0,3,web
 Kapentagyrus tanganicanus,,,,,,,data/assemblies/Ktan.PLATANUS.min1000.fasta
 Dictyocotyle coeliaca,,,,,,,data/assemblies/Dcoe_PLATANUS.scaffolds.min500.fasta
 Leptocotyle minor,,,,,,,data/assemblies/Lmin.contigs.fasta

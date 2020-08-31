@@ -100,4 +100,4 @@ include: "rules/setup.smk"
 include: "rules/part1.smk"
 include: "rules/part2.smk"
 include: "rules/part3.smk"
-
+include: "rules/report.smk"
