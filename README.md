@@ -1,6 +1,6 @@
-# smsi-phylogenomics - A containerized pipeline to perform phylogenomics
+# phylociraptor - Rapid phylogenomic tree generator
 
-This snakemake pipeline implements downloading a bunch of genomes for NCBI and performs phylogenomic reconstruction on them. It uses BUSCO to identify single copy orthologs and run iqtree and astral to infer phylogenies.
+This pipeline helps to create phylogenomica trees based on genomes available on NCBI and newly sequenced genomes. Its current implementation it helps to download a bunch of genomes for NCBI combines tehm with newly sequenced genomes and performs phylogenomic reconstruction on them. It uses BUSCO to identify single copy orthologs and run iqtree and astral to infer phylogenies.
 
 ## Prerequisites
 The pipline was designed in such a way that it can run desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. As a result, needed requirements depend.
