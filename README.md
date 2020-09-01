@@ -1,27 +1,46 @@
-# phylociraptor - Rapid phylogenomic tree generator
+# phylociraptor - Rapid phylogenomic tree calculator 
 
-This pipeline helps to create phylogenomica trees based on genomes available on NCBI and newly sequenced genomes. Its current implementation it helps to download a bunch of genomes for NCBI combines tehm with newly sequenced genomes and performs phylogenomic reconstruction on them. It uses BUSCO to identify single copy orthologs and run iqtree and astral to infer phylogenies.
+This pipeline helps to create phylogenomic trees using different alignment, trimming and tree reconstruction methods. It is very scalable and runs single machines and linux clusters. It allows to automatically download user-specified genomes available on NCBI and combines them with newly sequenced genomes. It uses BUSCO to identify single copy orthologs, which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
 ## Prerequisites
-The pipline was designed in such a way that it can run desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. As a result, needed requirements depend.
+The pipline was designed in such a way that it can run desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
 
 Local computer or solitary server:
 
 - Linux or MacOS operating system
-- Docker (with the possibility to run in privileged mode)
-If Docker is not available:
 - globally installed singularity 3.4.1+ 
-- installed snakemake 5.10.0+ (eg. in an anaconda environment)
+- Miniconda or Aanaconda 
+- installed snakemake 5.18.3+ (eg. in an anaconda environment)
 
 On a cluster:
 
-- installed snakemake 5.10.0+ (eg. in an anaconda environment)
+- installed snakemake 5.18.3+ (eg. in an anaconda environment)
 - globally installed singularity 3.4.1+
+- Miniconda or Anaconda
 - SGE or SLURM job scheduling system
 
-## Running the pipeline 
+## Getting phylociraptor
 
-**You can customize the behavior of the pipeline by editing the `config.yaml` file in the `data/` folder. Two things are mandatory:**
+1. Clone the repository:
+
+```
+$ git clone https://github.com/reslp/smsi-phylogenomics.git
+$ cd smsi-phylogenomics
+```
+
+2. Create a conda environment with snakemake:
+If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
+
+```
+$ conda create -c conda-forge -c bioconda -n snakemake snakemake=5.19.3
+$ conda activate snakemake
+```
+
+Additional information on how to install snakemake can be found [here](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html).
+
+## Running phylociraptor 
+
+**To customize the behavior of the pipeline to fit your needs you can edit the `config.yaml` file in the `data/` folder. Two things are mandatory:**
 
 1. You need to enter the correct name for the data.csv containing the species which should be included in the tree:
 
@@ -37,7 +56,7 @@ busco:
    ausgustus_species: anidulans
 ```
 
-**Edit your data.csv file**
+**You will also need to provide a list of genomes which should be used in your analysis. To do this, edit your data.csv file**
 
 The data.csv file should look something like this:
 

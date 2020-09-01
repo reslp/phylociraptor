@@ -4,7 +4,7 @@
 set -e
 
 usage() {
-        echo "Welcome to phylogenomics. This pipeline will create phylogenomic trees using singularity and snakemake."
+        echo "Welcome to phylociraptor. The rapid pyhlogenomic tree calculator pipeline."
         echo
         echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
         echo
