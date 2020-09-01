@@ -26,6 +26,21 @@ On a cluster:
 ```
 $ git clone https://github.com/reslp/smsi-phylogenomics.git
 $ cd smsi-phylogenomics
+$ ./phylociraptor
+Welcome to phylociraptor. The rapid pyhlogenomic tree calculator pipeline.
+
+Usage: ./phylociraptor [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]
+
+Options:
+  -t <submission_system> Specify available submission system. Options: sge, slurm, serial (no submission system). Default: Automatic detection.
+  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). 
+  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default.
+  -i "<singularity_args>" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default.
+  -m <mode> Specify runmode, separated by comma. Options: busco, tree, speciestree.
+
+  --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run
+  --setup This flag will download the genomes and prepare the pipeline to run.
+  --remove Resets the pipeline. Will delete all results, logs and checkpoints.
 ```
 
 2. Create a conda environment with snakemake:
@@ -85,37 +100,37 @@ The basis of this file can be a CSV file directly downloaded from the [NCBI Geno
 
 
 
-**A typical run of the pipeline would look like this:**
+**A typical run of phylociraptor would look like this:**
 
 
 1. Setup the pipeline:
 
 ```
-$ ./phylogenomics --setup
+$ ./phylociraptor --setup
 ```
 
 2. Run BUSCO for all the genomes:
 
 ```
-$ ./phylogenomics -t sge -c data/cluster_config-sauron.yaml -m busco
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m busco
 ```
 
 3. Create alignments and trim them:
 
 ```
-$ ./phylogenomics -t sge -c data/cluster_config-sauron.yaml -m align
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m align
 ```
 
 4. Reconstruct a phylogeny:
 
 ```
-$ ./phylogenomics -t sge -c data/cluster_config-sauron.yaml -m tree
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m tree
 ```
 
 5. Create a report of the run:
 
 ```
-$ ./phylogenomics --report
+$ ./phylociraptor --report
 ```
 
 
