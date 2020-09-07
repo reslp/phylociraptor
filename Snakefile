@@ -64,7 +64,8 @@ rule setup:
 rule part1:
 	input:
 		"results/checkpoints/extract_busco_table.done",
-		"results/checkpoints/create_sequence_files.done"
+		"results/checkpoints/create_sequence_files.done",
+		"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
 		"checkpoints/part1.done"
 	shell:

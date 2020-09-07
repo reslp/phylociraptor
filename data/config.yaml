@@ -10,6 +10,11 @@ mafft:
 extract_sequences:
     cutoff: 0.5
     minsp: 3
+
+# possible trimming options: trimal, aliscore
+trimming: 
+    method: aliscore
+    parameters: -N -r 200000000000000000
 iqtree:
     threads: 16
 phylogeny:
@@ -17,3 +22,4 @@ phylogeny:
     species_tree: "yes"
 report:
     width: 80
+    height: 10

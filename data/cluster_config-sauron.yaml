@@ -17,6 +17,9 @@ extract_busco_table:
 create_sequence_files:
    N: exSeqfiles
    mem: 12G
+remove_duplicated_sequence_files:
+   N: remdupseq
+   mem: 12G
 get_all_trimmed_files:
    N: gettrimfiles
    mem: 12G

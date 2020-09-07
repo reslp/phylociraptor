@@ -83,3 +83,29 @@ rule create_sequence_files:
                 
 		"""
 
+rule remove_duplicated_sequence_files:
+        input:
+                checkpoint = rules.create_sequence_files.output.checkpoint
+        output:
+                checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done"
+        singularity:
+                "docker://continuumio/miniconda3:4.7.10"
+        conda:
+                "../envs/biopython.yml"
+        params:
+                wd = os.getcwd()
+        shell:
+                """
+                if [[ -d results/busco_sequences_deduplicated ]]; then
+                        rm -rf results/busco_sequences_deduplicated
+                fi
+                mkdir results/busco_sequences_deduplicated
+
+                for file in results/busco_sequences/*.fas;
+                do
+                        python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated"
+                done
+                echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/report.txt
+                echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/report.txt
+                touch {output.checkpoint}
+                """
