@@ -17,6 +17,10 @@ trimming:
     parameters: -N -r 200000000000000000
 iqtree:
     threads: 16
+raxmlng:
+    threads: 16
+    bootstrap: 1000
+    model: LG
 phylogeny:
     concat: "yes"
     species_tree: "yes"

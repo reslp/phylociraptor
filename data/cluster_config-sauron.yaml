@@ -33,6 +33,13 @@ iqtree:
    N: iqtree
    mem: 96G
    ntasks: 16
+concatenate:
+   N: concat
+   mem: 8G
+raxmlng:
+   N: raxmlng
+   mem: 96G
+   ntasks: 16
 part1:
    N: part1
    mem: 4G

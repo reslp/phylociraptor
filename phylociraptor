@@ -180,7 +180,7 @@ if [[ $RUNMODE == *"tree"* ]]; then
         exit 0
   fi
 
-  echo "Runmode set to: tree. Will run tree reconstruction with IQTREE and ASTRAL.."
+  echo "Runmode set to: tree. Will run tree reconstruction with IQTREE, RAXMLNG and ASTRAL.."
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
           mkdir -p .conda_pkg_tmp
