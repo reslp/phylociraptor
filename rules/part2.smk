@@ -64,11 +64,16 @@ elif config["trimming"]["method"] == "aliscore":
 			
 			# this check is included because alicut very rarely does not  produce an output file.
 			# in this case an empty file will be touched. This is necessary so the rule does not fail
-			# The empty file will later bex exluded again.
-			if [[ ! -f ults/trimmed_alignments/{params.busco}/LICUT_{params.busco}_aligned.fas ]]; then
+			# The empty file will later be exluded again in the next rule.
+			if [[ ! -f {params.wd}/results/trimmed_alignments/{params.busco}/ALICUT_{params.busco}_aligned.fas ]]; then
 				echo "$(date) - Something went wrong with ALICUT. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
 				touch {params.wd}/{output.trimmed_alignment}
 			else
+				if [[ "$(cat ALICUT_{params.busco}_aligned.fas | grep -v ">" | sed 's/-//g' | grep "^$" | wc -l)" -gt 0 ]]; then
+					echo "$(date) - Alignment of BUSCO: {params.busco} contains empty sequence after aliscore/alicut. This sequence will be removed." >> {params.wd}/results/report.txt
+					cp ALICUT_{params.busco}_aligned.fas ALICUT_{params.busco}_aligned.fas_tmp
+					cat ALICUT_{params.busco}_aligned.fas_tmp | perl -ne 'chomp; $h=$_; $s=<>; chomp($s); $check=$s; $check=~s/-//g; if (length($check) > 0){{print "$h\n$s\n"}}' > ALICUT_{params.busco}_aligned.fas
+				fi
 				mv ALICUT_{params.busco}_aligned.fas {params.wd}/{output.trimmed_alignment}
 			fi
 			touch {params.wd}/{output.checkpoint}
