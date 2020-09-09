@@ -25,6 +25,38 @@ if config["phylogeny"]["concat"] == "yes":
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""
+	rule modeltest:
+		input:
+			rules.part2.output
+		output:
+			checkpoint = "results/checkpoints/modeltest.done"
+		params:
+			wd = os.getcwd()
+		singularity:
+			"docker://reslp/iqtree:2.0rc2"
+		threads: 16
+		shell:
+			"""
+			mkdir -p results/modeltest
+			echo "name\tmodel\tnseq\tnsites\tconstsites\tinvsites\tparssites\tdistpatt" > {params.wd}/results/modeltest/best_models.txt
+			for file in $(ls results/filtered_alignments/*.fas);
+			do
+				outname=$(basename $file)
+				iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -T 16
+				printf "$outname\t" >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $4)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of constant sites" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of invariant" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of parsimony" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of distinct" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {params.wd}/results/modeltest/best_models.txt
+				# currently iqtree output will be removed and only the best model is saved.
+				rm {params.wd}/results/modeltest/$outname.*
+			done
+			touch {output.checkpoint}
+			"""
+
 	rule concatenate:
 		input:
 			rules.part2.output

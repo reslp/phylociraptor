@@ -36,6 +36,10 @@ iqtree:
 concatenate:
    N: concat
    mem: 8G
+modeltest:
+   N: modeltest
+   mem: 32G
+   ntasks: 16
 raxmlng:
    N: raxmlng
    mem: 96G
