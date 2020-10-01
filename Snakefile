@@ -99,7 +99,7 @@ rule part3:
 		"""
 
 include: "rules/setup.smk"
-include: "rules/part1.smk"
-include: "rules/part2.smk"
-include: "rules/part3.smk"
+include: "rules/busco.smk"
+include: "rules/align_trim.smk"
+include: "rules/tree.smk"
 include: "rules/report.smk"
