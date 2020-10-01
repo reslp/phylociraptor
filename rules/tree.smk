@@ -1,3 +1,37 @@
+
+rule modeltest:
+	input:
+		rules.part2.output
+	output:
+		models = "results/modeltest/best_models.txt",
+		checkpoint = "results/checkpoints/modeltest.done"
+	params:
+		wd = os.getcwd()
+	singularity:
+		"docker://reslp/iqtree:2.0rc2"
+	threads: 16
+	shell:
+		"""
+		mkdir -p results/modeltest
+		echo "name\tmodel\tnseq\tnsites\tconstsites\tinvsites\tparssites\tdistpatt" > {params.wd}/results/modeltest/best_models.txt
+		for file in $(ls results/filtered_alignments/*.fas);
+		do
+			outname=$(basename $file)
+			iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -T 16
+			printf "$outname\t" >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $4)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of constant sites" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of invariant" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of parsimony" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
+			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of distinct" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {params.wd}/results/modeltest/best_models.txt
+			# currently iqtree output will be removed and only the best model is saved.
+			rm {params.wd}/results/modeltest/$outname.*
+		done
+		touch {output.checkpoint}
+		"""
+
 if config["phylogeny"]["concat"] == "yes":
 	rule iqtree:
 		input:
@@ -25,44 +59,15 @@ if config["phylogeny"]["concat"] == "yes":
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""
-	rule modeltest:
-		input:
-			rules.part2.output
-		output:
-			checkpoint = "results/checkpoints/modeltest.done"
-		params:
-			wd = os.getcwd()
-		singularity:
-			"docker://reslp/iqtree:2.0rc2"
-		threads: 16
-		shell:
-			"""
-			mkdir -p results/modeltest
-			echo "name\tmodel\tnseq\tnsites\tconstsites\tinvsites\tparssites\tdistpatt" > {params.wd}/results/modeltest/best_models.txt
-			for file in $(ls results/filtered_alignments/*.fas);
-			do
-				outname=$(basename $file)
-				iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -T 16
-				printf "$outname\t" >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $4)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of constant sites" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of invariant" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of parsimony" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-				cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of distinct" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {params.wd}/results/modeltest/best_models.txt
-				# currently iqtree output will be removed and only the best model is saved.
-				rm {params.wd}/results/modeltest/$outname.*
-			done
-			touch {output.checkpoint}
-			"""
 
 	rule concatenate:
 		input:
-			rules.part2.output
+			checkpoint = rules.part2.output,
+			models = rules.modeltest.output.models
 		output:
 			checkpoint = "results/checkpoints/concatenate.done",
-			alignment = "results/phylogeny/raxmlng/concat.fas"
+			alignment = "results/phylogeny/raxmlng/concat.fas",
+			partitions = "results/phylogeny/raxmlng/partitions.txt"
 		params:
 			wd = os.getcwd(),
 			ids = config["species"]
@@ -71,12 +76,17 @@ if config["phylogeny"]["concat"] == "yes":
 		shell:
 			"""
 			tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/ /_/g' > results/phylogeny/raxmlng/ids.txt	
-			concat.py -d results/filtered_alignments/ -t results/phylogeny/raxmlng/ids.txt --runmode concat -o results/phylogeny/raxmlng/
+			concat.py -d results/filtered_alignments/ -t results/phylogeny/raxmlng/ids.txt --runmode concat -o results/phylogeny/raxmlng/ --biopython --statistics
+			awk 'FNR==NR{{a[$1]=$2;next}}{{print $0"\\t"a[$1]}}' {input.models} results/phylogeny/raxmlng/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/raxmlng/partitions_unformated.txt
+			# correct some model names to make them raxml compatible:
+			# it is not quite clear which models are compatible. During more extensive tests additional problems should show up
+			cat results/phylogeny/raxmlng/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
 			touch {output.checkpoint}
 			"""	
 	rule raxmlng:
 		input:
-			rules.concatenate.output.alignment
+			rules.concatenate.output.alignment,
+			rules.concatenate.output.partitions
 		output:
 			checkpoint = "results/checkpoints/raxmlng.done"
 		singularity:
@@ -85,11 +95,10 @@ if config["phylogeny"]["concat"] == "yes":
 			threads = config["raxmlng"]["threads"],
 			bs = config["raxmlng"]["bootstrap"],
 			wd = os.getcwd(),
-			model = config["raxmlng"]["model"]
 		shell:
 			"""
 			cd results/phylogeny/raxmlng
-			raxml-ng --msa concat.fas --prefix raxmlng -threads {params.threads} --bs-trees {params.bs} --model {params.model} --all
+			raxml-ng --msa concat.fas --prefix raxmlng -threads {params.threads} --bs-trees {params.bs} --model partitions.txt --all
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""
