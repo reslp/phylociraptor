@@ -16,7 +16,7 @@ for (sp in all_species) {
   sp <- gsub("_", " ", sp)
   print(sp)
   getGenome(db="genbank", organism=sp, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
-  getGFF(db="genbank", organism=sp, path=file.path(wd, "results","downloaded_genomes"))
+  #getGFF(db="genbank", organism=sp, path=file.path(wd, "results","downloaded_genomes"))
 }
 #getGenome(db="genbank", organism=species1, path=file.path(wd, "results","downloaded_genomes"))
 #is.genome.available(db="genbank", organism="Ascobolus immersus")
