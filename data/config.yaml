@@ -21,6 +21,7 @@ trimming:
     parameters: -N -r 200000000000000000
 
 # settings related to phylogenetic inference
+# phylogenetic method options include iqtree raxmlng and astral
 phylogeny:
     method: "iqtree raxml astral"
     concat: "yes"
@@ -28,10 +29,13 @@ phylogeny:
     species_tree: "yes"
 iqtree:
     threads: 16
+    bootstrap: 1000
+    model: MFP
+    additional_params: ""
 raxmlng:
     threads: 16
     bootstrap: 1000
-    model: LG
+    additional_params: ""
 
 # setting realted to the analysis report
 report:

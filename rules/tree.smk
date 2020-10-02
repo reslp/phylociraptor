@@ -68,8 +68,8 @@ if config["phylogeny"]["concat"] == "yes":
 			params:
 				wd = os.getcwd(),
 				nt = "AUTO",
-				bb = "1000",
-				m = "WAG"
+				bb = config["iqtree"]["bootstrap"],
+				m = config["iqtree"]["model"]
 			threads:
 				config["iqtree"]["threads"]
 			shell:
@@ -154,7 +154,7 @@ if config["phylogeny"]["species_tree"] == "yes":
 			mkdir -p results/phylogeny/gene_trees/algn
 			cd results/phylogeny/gene_trees
 			cp {params.wd}/results/filtered_alignments/*.fas algn
-			iqtree -S algn/ --prefix loci -nt AUTO -m WAG -redo -T {threads}
+			iqtree -S algn/ --prefix loci -nt AUTO -m MFP -redo -T {threads}
 			rm -r algn
 			cd {params.wd}
 			touch {output.checkpoint}
