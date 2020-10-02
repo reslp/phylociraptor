@@ -96,7 +96,8 @@ rule part3:
 		"results/checkpoints/iqtree.done",
 		"results/checkpoints/iqtree_gene_trees.done",
 		"results/checkpoints/astral_species_tree.done",
-		"results/checkpoints/raxmlng.done"
+		"results/checkpoints/raxmlng.done",
+		"results/checkpoints/phylobayes.done"
 	output:
 		"checkpoints/part3.done"
 	shell:

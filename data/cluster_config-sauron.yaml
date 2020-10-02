@@ -45,6 +45,10 @@ raxmlng:
    N: raxmlng
    mem: 8G
    ntasks: 16
+phylobayes:
+   N: phylobayes
+   mem: 8G
+   ntasks: 16
 part1:
    N: part1
    mem: 4G

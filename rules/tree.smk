@@ -40,7 +40,8 @@ if config["phylogeny"]["concat"] == "yes":
 		output:
 			checkpoint = "results/checkpoints/concatenate.done",
 			alignment = "results/phylogeny/concat.fas",
-			partitions = "results/phylogeny/partitions.txt"
+			partitions = "results/phylogeny/partitions.txt",
+			phylip_alignment = "results/phylogeny/concat.phy"
 		params:
 			wd = os.getcwd(),
 			ids = config["species"]
@@ -55,8 +56,9 @@ if config["phylogeny"]["concat"] == "yes":
 			# it is not quite clear which models are compatible. During more extensive tests additional problems should show up
 			cat results/phylogeny/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
 			touch {output.checkpoint}
+			python -c "from Bio import AlignIO; alignment = AlignIO.read(open('{output.alignment}'), 'fasta'); print(' '+str(len(alignment))+' '+str(alignment.get_alignment_length())); print(''.join([str(seq.id)+'   '+str(seq.seq)+'\\n' for seq in alignment]));" > {output.phylip_alignment}
 			"""	
-
+		
 	if "iqtree" in config["phylogeny"]["method"]:
 		rule iqtree:
 			input:
@@ -84,6 +86,14 @@ if config["phylogeny"]["concat"] == "yes":
 				cd {params.wd}
 				touch {output.checkpoint}
 				"""
+	else:  #checkpoint files need to be created anyway
+        	rule iqtree:
+                	output:
+                        	checkpoint = "results/checkpoints/iqtree.done"
+                	shell:
+                        	"""
+                        	touch {output.checkpoint}
+				"""
 	
 	if "raxml" in config["phylogeny"]["method"]:
 		rule raxmlng:
@@ -109,31 +119,43 @@ if config["phylogeny"]["concat"] == "yes":
 				cd {params.wd}
 				touch {output.checkpoint}
 				"""
-
-else:  #checkpoint files need to be created anyway
-	rule iqtree:
-		output:
-			checkpoint = "results/checkpoints/iqtree.done"
-		shell:
-			"""
-			touch {output.checkpoint}
-			"""
-	rule concatenate:
-		output:
-			checkpoint = "results/checkpoints/concatenate.done",
-			alignment = "results/phylogeny/raxmlng/concat.fas"
-		shell:
-			"""
-			touch {output.checkpoint}
-			touch {output.alignment}
-			"""
-	rule raxmlng:
-		output: 
-			checkpoint = "results/checkpoints/raxmlng.done"
-		shell:
-			"""
-			touch {output.checkpoint}
-			"""
+	else:
+		rule raxmlng:
+			output: 
+				checkpoint = "results/checkpoints/raxmlng.done"
+			shell:
+				"""
+				touch {output.checkpoint}
+				"""
+	
+	if "phylobayes" in config["phylogeny"]["method"]:
+		rule phylobayes:
+			input:
+				alignment = rules.concatenate.output.phylip_alignment,
+			output:
+				checkpoint = "results/checkpoints/phylobayes.done",
+				alignment = "results/phylogeny/phylobayes/concat.phy",
+			singularity:
+				"docker://reslp/phylobayes:4.1c"
+			params:
+				model = config["phylobayes"]["model"],
+				wd = os.getcwd()
+			shell:
+				"""
+				cp {input.alignment} {output.alignment}
+				cd results/phylogeny/phylobayes
+				pb -d concat.phy {params.model} phylobayes
+				cd {params.wd}
+				touch {output.checkpoint}
+				"""
+	else:
+		rule phylobayes:
+			output:
+				checkpoint = "results/checkpoints/phylobayes.done"
+			shell:
+				"""
+				touch {output.checkpoint}
+				"""
 
 if config["phylogeny"]["species_tree"] == "yes":
 	rule iqtree_gene_trees:

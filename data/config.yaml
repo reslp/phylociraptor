@@ -23,7 +23,7 @@ trimming:
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree raxmlng and astral
 phylogeny:
-    method: "iqtree raxml astral"
+    method: "iqtree raxml astral phylobayes"
     concat: "yes"
     gene_trees: "yes"
     species_tree: "yes"
@@ -35,6 +35,9 @@ iqtree:
 raxmlng:
     threads: 16
     bootstrap: 1000
+    additional_params: ""
+phylobayes:
+    model: "-cat"
     additional_params: ""
 
 # setting realted to the analysis report
