@@ -5,6 +5,7 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
+print("Samples which will be analysed")
 print(samples)
 	
 def get_species_names(wildcards):
@@ -30,22 +31,26 @@ def get_local_species_names_rename(wildcards):
 def get_all_species_names(wildcards):
 	print("All species names:")
 	names = [name for name in sample_data.loc["species"].to_list()]
-	print(names)
+	#print(names)
 	return names
 
 rule all:
 	input:
 		#expand("results/checkpoints/download_genome_{sample}.done", sample=samples)
-		"results/checkpoints/download_genomes.done",
-		"results/checkpoints/download_busco_set.done",
-		"results/checkpoints/prepare_augustus.done",
+		#"results/checkpoints/download_genomes.done",
+		#"results/checkpoints/download_busco_set.done",
+		#"results/checkpoints/prepare_augustus.done",
 		#expand("results/checkpoints/busco_{sample}.done", sample=samples),
-		"results/checkpoints/busco_table.done",
-		"results/checkpoints/create_sequence_files.done",
-		"results/checkpoints/get_all_trimmed_files.done",
-		"results/checkpoints/iqtree.done",
-		"results/checkpoints/iqtree_gene_trees.done",
-		"results/checkpoints/astral_species_tree.done"	
+		#"results/checkpoints/busco_table.done",
+		#"results/checkpoints/create_sequence_files.done",
+		#"results/checkpoints/get_all_trimmed_files.done",
+		#"results/checkpoints/iqtree.done",
+		#"results/checkpoints/iqtree_gene_trees.done",
+		#"results/checkpoints/astral_species_tree.done"
+		".phylogenomics_setup.done",
+		"checkpoints/part1.done",
+		"checkpoints/part2.done",
+		"checkpoints/part3.done"
 rule setup:
 	input:
 		"results/checkpoints/download_genomes.done",
@@ -55,6 +60,7 @@ rule setup:
 		expand("results/assemblies/{species}.fna", species=samples)
 	output:
 		".phylogenomics_setup.done"
+
 	shell:
 		"""
 		touch {output}
@@ -63,6 +69,7 @@ rule setup:
 		"""
 rule part1:
 	input:
+		expand("results/checkpoints/busco_{species}.done", species=samples),
 		"results/checkpoints/extract_busco_table.done",
 		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/remove_duplicated_sequence_files.done"
