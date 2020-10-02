@@ -136,7 +136,7 @@ else:  #checkpoint files need to be created anyway
 			"""
 
 if config["phylogeny"]["species_tree"] == "yes":
-	rule gene_trees:
+	rule iqtree_gene_trees:
 		input:
 			rules.part2.output,
 		output:
