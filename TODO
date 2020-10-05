@@ -1,0 +1,17 @@
+This is an (incomplete) list of todos for the Pipeline:
+
+general:
+- change submission system to cluster profiles instead of cluster config files.
+
+setup:
+- sometimes genome downloads fail (time-out etc.) meaning that the --setup step has to be run again. This should be avoided.
+- be more clear which genome (sometimes there are multiple assemblies) should be downloaded.
+
+busco:
+- currently busco 3 is used. Providing the possibility to use busco4 would be good.
+
+tree:
+- switch phylobayes to MPI version
+- At the moment iqtree is run to create models for different genes which are used in raxml. Not all model names are the same in iqtree and raxml. This needs to be better tested so that it works in all cases with raxml.
+- It would be nice to avoid recalculating models for gene trees and conatenated trees with iqtree. This is already done before for raxml, however not used for iqtree. This would save computation time.
+
