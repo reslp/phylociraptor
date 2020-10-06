@@ -37,6 +37,7 @@ raxmlng:
     bootstrap: 1000
     additional_params: ""
 phylobayes:
+    threads: 16
     model: "-cat"
     additional_params: ""
 

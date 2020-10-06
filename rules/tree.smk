@@ -136,15 +136,17 @@ if config["phylogeny"]["concat"] == "yes":
 				checkpoint = "results/checkpoints/phylobayes.done",
 				alignment = "results/phylogeny/phylobayes/concat.phy",
 			singularity:
-				"docker://reslp/phylobayes:4.1c"
+				"docker://reslp/phylobayes-mpi:1.8b"
 			params:
 				model = config["phylobayes"]["model"],
+				threads = config["phylobayes"]["threads"],
 				wd = os.getcwd()
 			shell:
 				"""
 				cp {input.alignment} {output.alignment}
 				cd results/phylogeny/phylobayes
-				pb -d concat.phy {params.model} phylobayes
+				unset PE_HOSTFILE
+				mpirun -np {params.threads} pb_mpi -d concat.phy {params.model} phylobayes
 				cd {params.wd}
 				touch {output.checkpoint}
 				"""
