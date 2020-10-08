@@ -142,6 +142,8 @@ if config["phylogeny"]["concat"] == "yes":
 			params:
 				model = config["phylobayes"]["model"],
 				threads = config["phylobayes"]["threads"],
+				ngens = config["phylobayes"]["ngens"],
+				additional_params = config["phylobayes"]["additional_params"],
 				chain = "{chain}",
 				wd = os.getcwd()
 			shell:
@@ -150,7 +152,7 @@ if config["phylogeny"]["concat"] == "yes":
 				cp -n {input.alignment} results/phylogeny/phylobayes/concat.phy
 				cd results/phylogeny/phylobayes
 				unset PE_HOSTFILE
-				mpirun -np {params.threads} pb_mpi -d concat.phy {params.model} phylobayes_chain{params.chain}
+				mpirun -np {params.threads} pb_mpi -d concat.phy {params.model} -x 1 {params.ngens} {params.additional_params} phylobayes_chain{params.chain}
 				cd {params.wd}
 				touch {output.checkpoint}
 				"""

@@ -37,9 +37,10 @@ raxmlng:
     bootstrap: 1000
     additional_params: ""
 phylobayes:
-    threads: 16
+    threads: 30
     model: ""
-    additional_params: ""
+    ngens: 100
+    additional_params: "-f"
     nchains: 4
 
 # setting realted to the analysis report
