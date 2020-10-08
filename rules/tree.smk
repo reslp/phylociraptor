@@ -129,35 +129,59 @@ if config["phylogeny"]["concat"] == "yes":
 				"""
 	
 	if "phylobayes" in config["phylogeny"]["method"]:
+		chains = [str(i) for i in range(1,int(config["phylobayes"]["nchains"])+1)]
 		rule phylobayes:
 			input:
-				alignment = rules.concatenate.output.phylip_alignment,
+				alignment = rules.concatenate.output.phylip_alignment
 			output:
-				checkpoint = "results/checkpoints/phylobayes.done",
-				alignment = "results/phylogeny/phylobayes/concat.phy",
+				checkpoint = "results/checkpoints/phylobayes_chain{chain}.done",
+				trace = "results/phylogeny/phylobayes/phylobayes_chain{chain}.trace",
+				treelist = "results/phylogeny/phylobayes/phylobayes_chain{chain}.treelist"
 			singularity:
-				"docker://reslp/phylobayes-mpi:1.8b"
+				"docker://reslp/phylobayes-mpi:git_dca7bdf"
 			params:
 				model = config["phylobayes"]["model"],
 				threads = config["phylobayes"]["threads"],
+				chain = "{chain}",
 				wd = os.getcwd()
 			shell:
 				"""
-				cp {input.alignment} {output.alignment}
+				#mkdir -p results/phylogeny/phylobayes
+				cp -n {input.alignment} results/phylogeny/phylobayes/concat.phy
 				cd results/phylogeny/phylobayes
 				unset PE_HOSTFILE
-				mpirun -np {params.threads} pb_mpi -d concat.phy {params.model} phylobayes
+				mpirun -np {params.threads} pb_mpi -d concat.phy {params.model} phylobayes_chain{params.chain}
 				cd {params.wd}
 				touch {output.checkpoint}
 				"""
-	else:
-		rule phylobayes:
+		rule merge_phylobayes_chains:
+			input:
+				expand("results/checkpoints/phylobayes_chain{chain}.done", chain = chains)	
 			output:
-				checkpoint = "results/checkpoints/phylobayes.done"
+				checkpoint = "results/checkpoints/merge_phylobayes_chains.dome"
 			shell:
 				"""
 				touch {output.checkpoint}
 				"""
+	else:
+		chains = [str(i) for i in range(1,int(config["phylobayes"]["nchains"])+1)]
+		rule phylobayes:
+			output:
+				checkpoint = "results/checkpoints/phylobayes_chain{chain}.done"
+			shell:
+				"""
+				touch {output.checkpoint}
+				"""
+		rule merge_phylobayes_chains:
+                        input:
+                                expand("results/checkpoints/phylobayes_chain{chain}.done", chain = chains)
+                        output:
+                                checkpoint = "results/checkpoints/merge_phylobayes_chains.dome"
+                        shell:
+                                """
+                                touch {output.checkpoint}
+                                """
+
 
 if config["phylogeny"]["species_tree"] == "yes":
 	rule iqtree_gene_trees:

@@ -47,8 +47,11 @@ raxmlng:
    ntasks: 16
 phylobayes:
    N: phylobayes
-   mem: 8G
+   mem: 16G
    ntasks: 16
+merge_phylobayes_chains:
+   N: merge_phylobayes
+   mem: 4G
 part1:
    N: part1
    mem: 4G
