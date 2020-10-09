@@ -49,7 +49,7 @@ if subs == "slurm":
 	job_properties["cluster"]["ntasks-per-node"] = job_properties["threads"]
 
 	# create string for slurm submit options for rule
-	slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -n {n} -J {J} --mem={mem} --reservation {reservation}".format(**job_properties["cluster"])
+	slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -n {n} -J {J} --mem={mem}".format(**job_properties["cluster"])
 	cmdline.append(slurm_args)
 	# now work on dependencies
 	if dependencies:
