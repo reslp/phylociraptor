@@ -6,124 +6,69 @@ __default__:
    hint: nomultithread
    mem: 4G
    partition: mem_0096 
-   reservation: p71312_11
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
-clean:
-   J: clean 
-   ntasks-per-node: 8
-sort:
-   J: sort
-   ntasks-per-node: 8
-mask:
-   J: mask
-   hint: multithread
-   ntasks-per-node: 96 
-predict:
-   J: pred
-   hint: multithread
-   ntasks-per-node: 48
-iprscan:
-   J: ipr
-   hint: multithread
-   ntasks-per-node: 48
-remote:
-   J: rem
-eggnog:
-   J: egg
-   hint: multithread
-   ntasks-per-node: 48
-annotate:
-   J: anno
-   hint: multithread
-   ntasks-per-node: 48
-compare:
-   J: compare
-   hint: multithread
-   ntasks-per-node: 48
-split:
-   J: split
 busco:
-   J: busco
-   mem: 20G
-cegma:
-   J: cegma
-   mem: 20G
-repeatmodeler:
-   J: repmod
-   mem: 20G
-repeatmasker:
-   J: repmas
-   mem: 20G
-genemark:
-   J: genemark
-   mem: 20G
-snap_pass1:
-   J: snap1
+   J: BUSCO 
+run_busco:
+   J: rBUSCO
+   ntasks: 16
+   mem: 32G
+extract_busco_table:
+   J: exBUSCO
+   mem: 12G
+create_sequence_files:
+   J: exSeqfiles
+   mem: 12G
+remove_duplicated_sequence_files:
+   J: remdupseq
+   mem: 12G
+get_all_trimmed_files:
+   J: gettrimfiles
+   mem: 12G
+align:
+   J: align
+   mem: 10G
+trim:
+   J: trim
+   mem: 10G
+iqtree:
+   J: iqtree
+   mem: 94G
+   ntasks: 16
+concatenate:
+   J: concat
+   mem: 8G
+modeltest:
+   J: modeltest
+   mem: 94G
+   ntasks: 16
+raxmlng:
+   J: raxmlng
+   mem: 94G
+   ntasks: 16
+phylobayes:
+   J: phylobayes
+   mem: 16G
+   ntasks: 30
+merge_phylobayes_chains:
+   J: merge_phylobayes
    mem: 4G
-prepare_protein_evidence:
-   J: CDH0
-#   ntasks: 8
-#   ntasks-per-node: 8
-   mem: 20G
-   time: "01:00:00"
-initiate_MAKER_PASS1:
-   J: iMP1
-#   ntasks: 2
-#   ntasks-per-node: 2
-run_MAKER_PASS1:
-   J: rMP1
-#   ntasks: 20
-#   ntasks-per-node: 20
-   mem: 20G
-   time: "70:00:00"
-cleanup_MAKER_PASS1:
-   J: cMP1
-#   ntasks: 1
-#   ntasks-per-node: 1
+part1:
+   J: part1
    mem: 4G
-   time: "70:00:00"
-merge_MAKER_PASS1:
-   J: mMP1
-#   ntasks: 1
-#   ntasks-per-node: 1
+part2:
+   J: part2
    mem: 4G
-   time: "01:00:00"
-snap_pass2:
-   J: SNA2
-#   ntasks: 1
-#   ntasks-per-node: 1
+part3:
+   J: part3
    mem: 4G
-   time: "00:30:00"
-AUGUSTUS_PASS2:
-   J: AUG2
-#   ntasks: 2
-#   ntasks-per-node: 2
-   mem: 20G
-   time: "70:00:00"
-pick_augustus_training_set:
-   J: PAM
-initiate_MAKER_PASS2:
-   J: iMP2
-#   ntasks: 2
-#   ntasks-per-node: 2
-run_MAKER_PASS2:
-   J: rMP2
-#   ntasks: 20
-#   ntasks-per-node: 20
-   mem: 20G
-   time: "70:00:00"
-cleanup_MAKER_PASS2:
-   J: cMP2
-#   ntasks: 1
-#   ntasks-per-node: 1
-   mem: 4G
-   time: "70:00:00"
-merge_MAKER_PASS2:
-   J: mMP2
-#   ntasks: 2
-#   ntasks-per-node: 2
-   mem: 4G
-   time: "01:00:00"
+astral_species_tree:
+   J: astral
+   mem: 48G
+iqtree_gene_trees:
+   J: iqtgenetrees
+   mem: 94G
+   ntasks: 16
 
