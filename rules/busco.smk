@@ -22,8 +22,17 @@ rule run_busco:
                 export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
                 echo $AUGUSTUS_CONFIG_PATH
                 run_busco -i ../../../{input.assembly} --out busco -c {threads} -sp {params.sp} --lineage_path ../../../{input.busco_set} -m genome {params.additional_params}
-                cd ../../../
                 
+		# do some cleanup to save space
+		tar -zcvf run_busco/augustus_output.tar.gz run_busco/augustus_output
+		rm -rf run_busco/augustus_output
+		tar -zcvf run_busco/blast_output.tar.gz run_busco/blast_output
+		rm -rf run_busco/blast_output
+		tar -zcvf run_busco/hmmer_output.tar.gz run_busco/hmmer_output
+		rm -rf run_busco/hmmer_output
+
+		cd ../../../
+                 
 		buscos=$(tail -n +6 results/busco/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
 		name="{params.species}"
 		echo "$(date) $name $buscos" >> results/report.txt
