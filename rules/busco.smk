@@ -4,9 +4,16 @@ rule run_busco:
                 augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
                 busco_set = rules.download_busco_set.output.busco_set,
         output:
-                busco_dir = directory("results/busco/{species}"),
-                checkpoint = "results/checkpoints/busco_{species}.done"
+                checkpoint = "results/checkpoints/busco_{species}.done",
+		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
+		blast_output = "results/busco/{species}/run_busco/blast_output.tar.gz",
+		hmmer_output = "results/busco/{species}/run_busco/hmmer_output.tar.gz",
+		full_table = "results/busco/{species}/run_busco/full_table_busco.tsv",
+		short_summary ="results/busco/{species}/run_busco/short_summary_busco.txt",
+		missing_busco_list ="results/busco/{species}/run_busco/missing_busco_list_busco.tsv",
+		single_copy_buscos = directory("results/busco/{species}/run_busco/single_copy_busco_sequences")
         threads: config["busco"]["threads"]
+	shadow: "shallow"
         params:
                 wd = os.getcwd(),
 		sp = config["busco"]["augustus_species"],
@@ -17,33 +24,41 @@ rule run_busco:
         shell:
                 """
                 mkdir -p log
-		if [ ! -d {output.busco_dir} ]; then mkdir {output.busco_dir}; fi
-                cd {output.busco_dir}
+		dir=results/busco/{params.species}
+		#if [ ! -d $dir ]; then mkdir $dir; fi
+                #cd $dir
                 export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
                 echo $AUGUSTUS_CONFIG_PATH
-                run_busco -i ../../../{input.assembly} --out busco -c {threads} -sp {params.sp} --lineage_path ../../../{input.busco_set} -m genome {params.additional_params}
+                run_busco -i {input.assembly} -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
                 
 		# do some cleanup to save space
-		tar -zcvf run_busco/augustus_output.tar.gz run_busco/augustus_output
-		rm -rf run_busco/augustus_output
-		tar -zcvf run_busco/blast_output.tar.gz run_busco/blast_output
-		rm -rf run_busco/blast_output
-		tar -zcvf run_busco/hmmer_output.tar.gz run_busco/hmmer_output
-		rm -rf run_busco/hmmer_output
-
-		cd ../../../
+		tar -zcvf {output.augustus_output} run_busco/augustus_output
+		#rm -rf run_busco/augustus_output
+		tar -zcvf {output.blast_output} run_busco/blast_output
+		#rm -rf run_busco/blast_output
+		tar -zcvf {output.hmmer_output} run_busco/hmmer_output
+		#rm -rf run_busco/hmmer_output
                  
+		#move output files:
+		#mv run_busco/augustus_output.tar.gz {output.augustus_output}
+		#mv run_busco/blast_output.tar.gz {output.blast_output}
+		#mv run_busco/hmmer_output.tar.gz {output.hmmer_output}
+		mv run_busco/full_table_busco.tsv {output.full_table}
+		mv run_busco/short_summary_busco.txt {output.short_summary}
+		mv run_busco/missing_busco_list_busco.tsv {output.missing_busco_list}
+		mv run_busco/single_copy_busco_sequences {output.single_copy_buscos}
+		
 		buscos=$(tail -n +6 results/busco/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
 		name="{params.species}"
 		echo "$(date) $name $buscos" >> results/report.txt
-
+		
+		#touch checkpoint
 		touch {output.checkpoint}
                 """
 
 rule busco:
         input:
-                checks = expand("results/checkpoints/busco_{sample}.done", sample=samples),
-		dirs = expand("results/busco/{sample}", sample=samples)
+                checks = expand("results/checkpoints/busco_{sample}.done", sample=samples)
         output:
                 "checkpoints/busco.done"
         shell:
