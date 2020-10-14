@@ -1,7 +1,9 @@
 # needs to be run first before other rules can be run.
 rule download_genomes:
         output:
-                "results/checkpoints/download_genomes.done"
+                checkpoint = "results/checkpoints/download_genomes.done",
+		download_overview = "results/downloaded_genomes/download_overview.txt",
+		success = "results/downloaded_genomes/successfully_downloaded.txt"
         singularity:
                 "docker://reslp/biomartr:0.9.2"
         params:
@@ -15,12 +17,11 @@ rule download_genomes:
 
 rule rename_assemblies:
 	input:
-		rules.download_genomes.output
+		rules.download_genomes.output.success
 	output:
-		checkpoint = "results/checkpoints/rename_assemblies.done",
-		files = expand("results/assemblies/{sample}.fna", sample=samples)
+		checkpoint = "results/checkpoints/rename_assemblies.done"
 	params:
-		downloaded_species = get_species_names_rename,
+		#downloaded_species = get_species_names_rename,
 		local_species = get_local_species_names_rename,
 		wd = os.getcwd()
 	shell:
@@ -28,7 +29,7 @@ rule rename_assemblies:
 		#have to first remove this folder
 		#rm -rf results/assemblies
 		mkdir -p results/assemblies
-		for spe in {params.downloaded_species}; do
+		for spe in $(cat {input}); do
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
 			else
