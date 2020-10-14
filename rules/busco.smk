@@ -25,20 +25,31 @@ rule run_busco:
                 """
                 mkdir -p log
 		dir=results/busco/{params.species}
-		#if [ ! -d $dir ]; then mkdir $dir; fi
-                #cd $dir
-                export AUGUSTUS_CONFIG_PATH={params.wd}/{input.augustus_config_path}
+                # prepare stripped down version auf augustus config path.
+		# this is introduced to lower the number of files.
+		mkdir augustus
+		cp -R /opt/conda/config/cgp augustus
+		cp /opt/conda/config/config.ini augustus
+		cp -R /opt/conda/config/extrinsic augustus
+		cp -R /opt/conda/config/model augustus
+		cp -R /opt/conda/config/profile augustus
+		mkdir augustus/species
+		
+		if [ -d /opt/conda/config/species/{params.sp} ]
+		then
+			cp -R /opt/conda/config/species/{params.sp} augustus/species
+		fi		
+
+		export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
                 echo $AUGUSTUS_CONFIG_PATH
                 run_busco -i {input.assembly} -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
                 
 		# do some cleanup to save space
-		tar -zcvf {output.augustus_output} run_busco/augustus_output
-		#rm -rf run_busco/augustus_output
-		tar -zcvf {output.blast_output} run_busco/blast_output
-		#rm -rf run_busco/blast_output
-		tar -zcvf {output.hmmer_output} run_busco/hmmer_output
-		#rm -rf run_busco/hmmer_output
-                 
+		bin/tar_folder.sh {output.blast_output} run_busco/blast_output
+		bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output
+		bin/tar_folder.sh {output.augustus_output} run_busco/augustus_output
+
+		
 		#move output files:
 		#mv run_busco/augustus_output.tar.gz {output.augustus_output}
 		#mv run_busco/blast_output.tar.gz {output.blast_output}
