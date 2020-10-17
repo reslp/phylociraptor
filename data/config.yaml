@@ -1,12 +1,15 @@
-species: data/plath.csv
+species: data/all_fungi.csv
 
 # settings realted to busco
 busco:
-    set: "metazoa_odb9"
+    set: "fungi_odb9"
     threads: 8
-    augustus_species: fly
+    augustus_species: saccharomyces
     additional_parameters: ""
 
+# handling of duplicated sequences. use yes if only duplicated sequences should be removed before alignment
+# use no if the whole BUSCO should be ignored.
+perseq: "yes"
 
 # settings related to alignment and trimming
 mafft:
@@ -40,7 +43,8 @@ phylobayes:
     threads: 16
     model: "-cat"
     additional_params: ""
-
+    nchains: 4
+    ngens: 100
 # setting realted to the analysis report
 report:
     width: 80

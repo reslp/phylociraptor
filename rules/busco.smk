@@ -128,7 +128,8 @@ rule remove_duplicated_sequence_files:
         conda:
                 "../envs/biopython.yml"
         params:
-                wd = os.getcwd()
+                wd = os.getcwd(),
+		perseq=config["perseq"]
         shell:
                 """
                 if [[ -d results/busco_sequences_deduplicated ]]; then
@@ -138,8 +139,17 @@ rule remove_duplicated_sequence_files:
 
                 for file in results/busco_sequences/*.fas;
                 do
-                        python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated"
-                done
+			if [[ {params.perseq} == "yes" ]];
+			then
+				echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/report.txt
+				# per sequence filtering
+				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sequence
+			else
+				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/report.txt
+				# whole alignment filtering
+                        	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated"
+                	fi
+		done
                 echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/report.txt
                 echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/report.txt
                 touch {output.checkpoint}
