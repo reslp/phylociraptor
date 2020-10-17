@@ -9,6 +9,7 @@ setup:
 
 busco:
 - currently busco 3 is used. Providing the possibility to use busco4 would be good.
+- busco fails with Myriosclerotinia_sulcatula
 
 tree:
 - switch phylobayes to MPI version
