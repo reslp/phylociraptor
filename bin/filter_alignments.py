@@ -12,7 +12,7 @@ if sys.version_info[0] < 3:
 pars = argparse.ArgumentParser(prog="filter_alignments.py", description = """This script will remove alignments with duplicated sequences.""", epilog = """written by Philipp Resl""")
 pars.add_argument('--alignments', dest="align", required=True, help="alignment files")
 pars.add_argument('--outdir', dest="outdir", required=True, help="output directory")
-pars.add_argument('--per_sequence', dest="perseq", action='store_true', help="if set, only duplicated sequences will be removed. Else the whole alignment")
+pars.add_argument('--per_sample', dest="perseq", action='store_true', help="if set, only samples with duplicated sequences will be removed. Else the whole alignment")
 args=pars.parse_args()
 
 algn_list = args.align.split(" ")

@@ -103,8 +103,8 @@ rule create_sequence_files:
                 sequence_dir = directory("results/busco_sequences"),
                 checkpoint = "results/checkpoints/create_sequence_files.done"
         params:
-                cutoff=config["extract_sequences"]["cutoff"],
-                minsp=config["extract_sequences"]["minsp"],
+                cutoff=config["filtering"]["cutoff"],
+                minsp=config["filtering"]["minsp"],
 		busco_dir = "results/busco"
         singularity:
                 "docker://continuumio/miniconda3:4.7.10"
@@ -129,7 +129,7 @@ rule remove_duplicated_sequence_files:
                 "../envs/biopython.yml"
         params:
                 wd = os.getcwd(),
-		perseq=config["perseq"]
+		dupseq=config["filtering"]["dupseq"]
         shell:
                 """
                 if [[ -d results/busco_sequences_deduplicated ]]; then
@@ -137,15 +137,20 @@ rule remove_duplicated_sequence_files:
                 fi
                 mkdir results/busco_sequences_deduplicated
 
-                for file in results/busco_sequences/*.fas;
-                do
-			if [[ {params.perseq} == "yes" ]];
-			then
-				echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/report.txt
-				# per sequence filtering
-				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sequence
+		if [[ {params.dupseq} == "persample" ]];
+                	then
+                		echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/report.txt
 			else
 				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/report.txt
+		fi
+
+                for file in results/busco_sequences/*.fas;
+                do
+			if [[ {params.dupseq} == "persample" ]];
+			then
+				# per sequence filtering
+				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sample
+			else
 				# whole alignment filtering
                         	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated"
                 	fi

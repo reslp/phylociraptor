@@ -7,6 +7,14 @@ busco:
     augustus_species: fly
     additional_parameters: ""
 
+# Here different filtering options can be set for the busco sequence files:
+# dupseq: how occasionally found duplicated sequences should be handled: persample = for each busco filter out the samples with duplicated sequences. perfile = filter out complete busco sequence file.
+# cutoff: minimum proportion of busco completeness a species needs so that it is included in the analysis.
+# minsp: minimum number of species for which a busco was found so that it is included in the analysis.
+filtering:
+    dupseq: "persample"
+    cutoff: 0.5
+    minsp: 3
 
 # settings related to alignment and trimming
 mafft:
