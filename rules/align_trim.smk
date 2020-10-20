@@ -59,14 +59,21 @@ elif config["trimming"]["method"] == "aliscore":
 			mkdir -p results/trimmed_alignments/{params.busco}
 			cd "results/trimmed_alignments/{params.busco}"
 			ln -s -f  {params.wd}/{input} {params.busco}_aligned.fas 
-			Aliscore.pl {params.trimmer} -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log
-			ALICUT.pl -s &> alicut_{params.busco}.log
+			Aliscore.pl {params.trimmer} {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
+			
+			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
+				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+				if [[ $(cat {params.busco}_aligned.fas_List_random.txt | head -n 1 | grep '[0-9]' -c) != 0 ]]; then
+					echo "$(date) - The aliscore output appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+					ALICUT.pl -s &> alicut_{params.busco}.log
+				fi
+			fi
 			
 			# this check is included because alicut very rarely does not  produce an output file.
 			# in this case an empty file will be touched. This is necessary so the rule does not fail
 			# The empty file will later be exluded again in the next rule.
 			if [[ ! -f {params.wd}/results/trimmed_alignments/{params.busco}/ALICUT_{params.busco}_aligned.fas ]]; then
-				echo "$(date) - Something went wrong with ALICUT. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+				echo "$(date) - The ALICUT output appears to be empty. Will touch an empty file so the pipeline will continue. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
 				touch {params.wd}/{output.trimmed_alignment}
 			else
 				if [[ "$(cat ALICUT_{params.busco}_aligned.fas | grep -v ">" | sed 's/-//g' | grep "^$" | wc -l)" -gt 0 ]]; then
