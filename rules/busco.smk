@@ -69,14 +69,13 @@ rule run_busco:
 
 rule busco:
         input:
-                checks = expand("results/checkpoints/busco_{sample}.done", sample=samples)
+                checks = expand("results/checkpoints/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
         output:
                 "checkpoints/busco.done"
         shell:
                 """
                 touch {output}
                 """
-
 
 rule extract_busco_table:
         input:

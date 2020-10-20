@@ -68,8 +68,8 @@ rule setup:
 		echo "$(date) - Pipeline setup done." >> results/report.txt
 		"""
 rule part1:
-	input:
-		expand("results/checkpoints/busco_{species}.done", species=samples),
+	input:	
+                expand("results/checkpoints/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
 		"results/checkpoints/extract_busco_table.done",
 		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/remove_duplicated_sequence_files.done"
