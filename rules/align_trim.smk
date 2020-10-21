@@ -59,7 +59,7 @@ elif config["trimming"]["method"] == "aliscore":
 			mkdir -p results/trimmed_alignments/{params.busco}
 			cd "results/trimmed_alignments/{params.busco}"
 			ln -s -f  {params.wd}/{input} {params.busco}_aligned.fas 
-			Aliscore.pl {params.trimmer} {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
+			Aliscore.pl {params.trimmer} -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
 			
 			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
 				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
@@ -111,6 +111,10 @@ rule get_all_trimmed_files:
 		
 		for file in results/trimmed_alignments/*.fas;
 		do
+			if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt 3 ]]; then
+                                        echo "$(date) - File $file contains less than 3 sequences after trimming with aliscore/alicut. This file will not be used for tree reconstruction." >> {params.wd}/results/report.txt
+					continue
+			fi	
 			if [[ -s {params.wd}/$file ]]; then 
 				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments"
 			else #do nothing if file is empty (happens rarely when ALICUT fails)
