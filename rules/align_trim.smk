@@ -101,7 +101,8 @@ rule get_all_trimmed_files:
 	conda:
 		"../envs/biopython.yml"
 	params:
-		wd = os.getcwd()
+		wd = os.getcwd(),
+		trimming_method = config["trimming"]["method"]
 	shell:
                 """
 		if [[ -d results/filtered_alignments ]]; then
@@ -112,7 +113,7 @@ rule get_all_trimmed_files:
 		for file in results/trimmed_alignments/*.fas;
 		do
 			if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt 3 ]]; then
-                                        echo "$(date) - File $file contains less than 3 sequences after trimming with aliscore/alicut. This file will not be used for tree reconstruction." >> {params.wd}/results/report.txt
+                                        echo "$(date) - File $file contains less than 3 sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/report.txt
 					continue
 			fi	
 			if [[ -s {params.wd}/$file ]]; then 
