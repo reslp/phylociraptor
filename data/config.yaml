@@ -1,16 +1,21 @@
-species: data/all_fungi.csv
+species: data/fish_new.csv
 
 # settings realted to busco
 busco:
-    set: "fungi_odb9"
+    set: "actinopterygii_odb9"
     threads: 8
-    augustus_species: saccharomyces
+    augustus_species: fly
     additional_parameters: ""
 
-# handling of duplicated sequences. use yes if only duplicated sequences should be removed before alignment
-# use no if the whole BUSCO should be ignored.
-perseq: "yes"
-
+# Here different filtering options can be set for the busco sequence files:
+# dupseq: how occasionally found duplicated sequences should be handled: persample = for each busco filter out the samples with duplicated sequences. perfile = filter out complete busco sequence file.
+# cutoff: minimum proportion of busco completeness a species needs so that it is included in the analysis.
+# minsp: minimum number of species for which a busco was found so that it is included in the analysis.
+filtering:
+    dupseq: "persample"
+    cutoff: 0.5
+    minsp: 3
+    seq_type: "nu"
 # settings related to alignment and trimming
 mafft:
     threads: 8
@@ -20,13 +25,13 @@ extract_sequences:
     minsp: 3
 # possible trimming options: trimal, aliscore
 trimming: 
-    method: aliscore
-    parameters: -N -r 200000000000000000
+    method: trimal
+    parameters: -gappyout
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree raxmlng and astral
 phylogeny:
-    method: "iqtree raxml astral phylobayes"
+    method: "iqtree raxml astral"
     concat: "yes"
     gene_trees: "yes"
     species_tree: "yes"

@@ -104,7 +104,8 @@ rule create_sequence_files:
         params:
                 cutoff=config["filtering"]["cutoff"],
                 minsp=config["filtering"]["minsp"],
-		busco_dir = "results/busco"
+		busco_dir = "results/busco",
+		seqtype = config["filtering"]["seq_type"]
         singularity:
                 "docker://continuumio/miniconda3:4.7.10"
         conda:
@@ -112,7 +113,7 @@ rule create_sequence_files:
         shell:
                 """
 		mkdir -p {output.sequence_dir}
-                python bin/create_sequence_files.py --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
+                python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
 		touch {output.checkpoint}
                 
 		"""

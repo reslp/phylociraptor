@@ -17,7 +17,15 @@ pars.add_argument('--busco_results', dest="busco_results", required=True, help="
 pars.add_argument('--cutoff', dest="cutoff", required=True, help="Percent cutoff % for BUSCO presence. Species below this threshold will be excluded.")
 pars.add_argument('--outdir', dest="outdir", required=True, help="Path to output directory.")
 pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number of species which have to be present to keep the sequences.")
+pars.add_argument('--type' , dest="type", required=True, help="Type of sequences (aa or nu).")
 args=pars.parse_args()
+
+extension=""
+if args.type == "nu":
+	extension = ".fna"
+else:
+	extension = ".faa" 
+
 
 busco_overview = pd.read_csv(args.busco_table, sep="\t")
 genomes = os.listdir(args.busco_results)
@@ -45,10 +53,10 @@ for busco in buscos:
 	outstring = ""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
-			print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+".faa")
+			print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+extension)
 			if species in genome:
 				try:
-					seqfile = open(args.busco_results + "/" + genome + "/run_busco/single_copy_busco_sequences/" + busco + ".faa", "r")
+					seqfile = open(args.busco_results + "/" + genome + "/run_busco/single_copy_busco_sequences/" + busco + extension, "r")
 					for seq_record in SeqIO.parse(seqfile, "fasta"):
 						name = ">" +species+"\n"
 						#outfile.write(name)
