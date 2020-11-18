@@ -53,8 +53,8 @@ for busco in buscos:
 	outstring = ""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
-			print(args.busco_results+"/"+genome+"/single_copy_busco_sequences/"+busco+extension)
-			if species in genome:
+			print(args.busco_results+"/"+genome+"/run_busco/single_copy_busco_sequences/"+busco+extension)
+			if species == genome:
 				try:
 					seqfile = open(args.busco_results + "/" + genome + "/run_busco/single_copy_busco_sequences/" + busco + extension, "r")
 					for seq_record in SeqIO.parse(seqfile, "fasta"):
