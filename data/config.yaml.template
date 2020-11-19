@@ -15,7 +15,7 @@ filtering:
     dupseq: "persample"
     cutoff: 0.5
     minsp: 3
-
+    seq_type: "aa"
 # settings related to alignment and trimming
 mafft:
     threads: 8
