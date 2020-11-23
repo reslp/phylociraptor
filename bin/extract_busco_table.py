@@ -31,7 +31,7 @@ for species in genomes:
 	try:
 		for hmm in hmms:
 			buscos = os.listdir(args.busco_results + species + "/run_busco/single_copy_busco_sequences/")
-			if hmm+".fna" in buscos:
+			if hmm+".faa" in buscos:
 				outstring += "\t"
 				outstring += "1"
 				ones +=1
