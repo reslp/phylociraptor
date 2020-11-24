@@ -39,6 +39,7 @@ Tree inference:
 - iqtree 2.0rc2 (http://www.iqtree.org/)
 - raxml-ng 1.0 (https://github.com/amkozlov/raxml-ng)
 - astral 5.7.1 (https://github.com/smirarab/ASTRAL)
+- phylobayes-mpi git commit: dca7bdf (http://www.atgc-montpellier.fr/phylobayes/) (still experimental!)
 
 ## Getting phylociraptor
 
