@@ -1,6 +1,6 @@
 # phylociraptor - Rapid phylogenomic tree calculator 
 
-This pipeline helps to create phylogenomic trees using different alignment, trimming and tree reconstruction methods. It is very scalable and runs single machines and linux clusters. It allows to automatically download user-specified genomes available on NCBI and combines them with newly sequenced genomes. It uses BUSCO to identify single copy orthologs, which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
+This pipeline helps to create phylogenomic trees using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads user-specified genomes available on NCBI and combines them with newly sequenced genomes. It uses BUSCO to identify single-copy orthologs, which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
 ## Prerequisites
 The pipline was designed in such a way that it can run desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
@@ -10,14 +10,35 @@ Local computer or solitary server:
 - Linux or MacOS operating system
 - globally installed singularity 3.4.1+ 
 - Miniconda or Aanaconda 
-- installed snakemake 5.18.3+ (eg. in an anaconda environment)
+- installed snakemake 5.19.3+ (eg. in an anaconda environment)
 
 On a cluster:
 
-- installed snakemake 5.18.3+ (eg. in an anaconda environment)
+- installed snakemake 5.19.3+ (eg. in an anaconda environment)
 - globally installed singularity 3.4.1+
 - Miniconda or Anaconda
 - SGE or SLURM job scheduling system
+
+## Available tools:
+
+Orthology inference:
+
+- BUSCO 3.0.2 (https://busco.ezlab.org/)
+
+Alignment:
+
+- mafft 7.464 (https://mafft.cbrc.jp/alignment/software/)
+
+Trimming:
+
+- trimal 1.4.1 (http://trimal.cgenomics.org/)
+- Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
+
+Tree inference:
+
+- iqtree 2.0rc2 (http://www.iqtree.org/)
+- raxml-ng 1.0 (https://github.com/amkozlov/raxml-ng)
+- astral 5.7.1 (https://github.com/smirarab/ASTRAL)
 
 ## Getting phylociraptor
 
@@ -38,9 +59,11 @@ Options:
   -i "<singularity_args>" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default.
   -m <mode> Specify runmode, separated by comma. Options: busco, tree, speciestree.
 
+  --dry Invokes a dry-run. Corresponds to: snakemake -n
   --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run
   --setup This flag will download the genomes and prepare the pipeline to run.
   --remove Resets the pipeline. Will delete all results, logs and checkpoints.
+
 ```
 
 2. Create a conda environment with snakemake:
