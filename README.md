@@ -1,15 +1,15 @@
 # phylociraptor - Rapid phylogenomic tree calculator 
 
-This pipeline helps to create phylogenomic trees using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads user-specified genomes available on NCBI and combines them with newly sequenced genomes. It uses BUSCO to identify single-copy orthologs, which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
+This pipeline creates phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
 ## Prerequisites
-The pipline was designed in such a way that it can run desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
+Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
 
 Local computer or solitary server:
 
 - Linux or MacOS operating system
 - globally installed singularity 3.4.1+ 
-- Miniconda or Aanaconda 
+- Miniconda or Anaconda 
 - installed snakemake 5.19.3+ (eg. in an anaconda environment)
 
 On a cluster:
