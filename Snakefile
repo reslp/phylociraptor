@@ -5,8 +5,7 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
-print("Samples which will be analysed")
-print(samples)
+print("No. of samples: ", len(samples))
 	
 def get_species_names(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
@@ -96,8 +95,7 @@ rule part3:
 		"results/checkpoints/iqtree.done",
 		"results/checkpoints/iqtree_gene_trees.done",
 		"results/checkpoints/astral_species_tree.done",
-		"results/checkpoints/raxmlng.done",
-		"results/checkpoints/phylobayes.done"
+		"results/checkpoints/raxmlng.done"
 	output:
 		"checkpoints/part3.done"
 	shell:
