@@ -43,11 +43,16 @@ if subs == "slurm":
                 prefix = job_properties["wildcards"]["species"] + "-" + job_properties["rule"] + "-slurm"
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
+	else:		
+		#properly assign job names for rules which don't have a sample wildcard
+		job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", job_properties["rule"])
+		job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", job_properties["rule"])
 	
 	#determine threads from the Snakemake profile, i.e. as determined in the Snakefile and the main config file respectively
 	job_properties["cluster"]["ntasks"] = job_properties["threads"]
 	job_properties["cluster"]["ntasks-per-node"] = job_properties["threads"]
-
+	
+	
 	# create string for slurm submit options for rule
 	slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -n {n} -J {J} --mem={mem}".format(**job_properties["cluster"])
 	cmdline.append(slurm_args)
