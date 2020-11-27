@@ -40,6 +40,7 @@ iqtree:
     bootstrap: 1000
     model: MFP
     additional_params: ""
+    maxmem: "" #this flag limits ram usage for iqtree: eg. 64G, default (empty quotes is all available mem)
 raxmlng:
     threads: 16
     bootstrap: 1000

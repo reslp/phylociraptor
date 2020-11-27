@@ -71,7 +71,8 @@ if config["phylogeny"]["concat"] == "yes":
 				wd = os.getcwd(),
 				nt = "AUTO",
 				bb = config["iqtree"]["bootstrap"],
-				m = config["iqtree"]["model"]
+				m = config["iqtree"]["model"],
+				maxmem = config["iqtree"]["maxmem"]
 			threads:
 				config["iqtree"]["threads"]
 			shell:
@@ -81,7 +82,11 @@ if config["phylogeny"]["concat"] == "yes":
 				cd results/phylogeny/concatenated/
 				mkdir algn
 				cp {params.wd}/results/filtered_alignments/*.fas algn
-				iqtree -p algn/ --prefix concat -bb {params.bb} -nt {params.nt} -m {params.m} -redo -T {threads}
+				if [[ -z "{params.maxmem}" ]]; then
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt {threads} -m {params.m} -redo
+				else
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt {threads} -m {params.m} -redo -mem {params.maxmem}
+				fi
 				rm -r algn
 				cd {params.wd}
 				touch {output.checkpoint}
@@ -194,6 +199,7 @@ if config["phylogeny"]["species_tree"] == "yes":
 			trees = "results/phylogeny/gene_trees/loci.treefile"
 		params:
 			wd = os.getcwd(),
+			maxmem = config["iqtree"]["maxmem"]
 		threads:
 			config["iqtree"]["threads"]
 		singularity:
@@ -204,7 +210,11 @@ if config["phylogeny"]["species_tree"] == "yes":
 			mkdir -p results/phylogeny/gene_trees/algn
 			cd results/phylogeny/gene_trees
 			cp {params.wd}/results/filtered_alignments/*.fas algn
-			iqtree -S algn/ --prefix loci -nt AUTO -m MFP -redo -T {threads}
+			if [[ -z "{params.maxmem}" ]]; then
+				iqtree -S algn/ --prefix loci -nt {threads} -m MFP -redo
+			else
+				iqtree -S algn/ --prefix loci -nt {threads} -m MFP -redo -mem {params.maxmem}
+			fi
 			rm -r algn
 			cd {params.wd}
 			touch {output.checkpoint}
