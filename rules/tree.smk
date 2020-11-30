@@ -8,7 +8,7 @@ rule modeltest:
 	params:
 		wd = os.getcwd()
 	singularity:
-		"docker://reslp/iqtree:2.0rc2"
+		"docker://reslp/iqtree:2.0.7"
 	threads: 16
 	shell:
 		"""
@@ -17,7 +17,7 @@ rule modeltest:
 		for file in $(ls results/filtered_alignments/*.fas);
 		do
 			outname=$(basename $file)
-			iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -T 16
+			iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -nt AUTO -ntmax {threads}
 			printf "$outname\t" >> {params.wd}/results/modeltest/best_models.txt
 			cat {params.wd}/results/modeltest/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
 			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
@@ -66,7 +66,7 @@ if config["phylogeny"]["concat"] == "yes":
 			output:
 				checkpoint = "results/checkpoints/iqtree.done"
 			singularity:
-				"docker://reslp/iqtree:2.0rc2"
+				"docker://reslp/iqtree:2.0.7"
 			params:
 				wd = os.getcwd(),
 				nt = "AUTO",
@@ -83,9 +83,9 @@ if config["phylogeny"]["concat"] == "yes":
 				mkdir algn
 				cp {params.wd}/results/filtered_alignments/*.fas algn
 				if [[ -z "{params.maxmem}" ]]; then
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt {threads} -m {params.m} -redo
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo
 				else
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt {threads} -m {params.m} -redo -mem {params.maxmem}
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo -mem {params.maxmem}
 				fi
 				rm -r algn
 				cd {params.wd}
@@ -203,7 +203,7 @@ if config["phylogeny"]["species_tree"] == "yes":
 		threads:
 			config["iqtree"]["threads"]
 		singularity:
-			"docker://reslp/iqtree:2.0rc2"
+			"docker://reslp/iqtree:2.0.7"
 		shell:
 			"""
 			rm -rf results/phylogeny/gene_trees/algn
@@ -211,9 +211,9 @@ if config["phylogeny"]["species_tree"] == "yes":
 			cd results/phylogeny/gene_trees
 			cp {params.wd}/results/filtered_alignments/*.fas algn
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -S algn/ --prefix loci -nt {threads} -m MFP -redo
+				iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo
 			else
-				iqtree -S algn/ --prefix loci -nt {threads} -m MFP -redo -mem {params.maxmem}
+				iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem}
 			fi
 			rm -r algn
 			cd {params.wd}

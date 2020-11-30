@@ -36,7 +36,7 @@ phylogeny:
     gene_trees: "yes"
     species_tree: "yes"
 iqtree:
-    threads: 16
+    threads: 16 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
     bootstrap: 1000
     model: MFP
     additional_params: ""
