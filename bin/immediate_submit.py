@@ -54,7 +54,11 @@ if subs == "slurm":
 	
 	
 	# create string for slurm submit options for rule
-	slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -n {n} -J {J} --mem={mem}".format(**job_properties["cluster"])
+	# this accounts for -n (shared jobs) or -N (whole node jobs). -N overrules -n.
+	if "N" in job_properties["cluster"]:
+		slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -N {N} -J {J} --mem={mem}".format(**job_properties["cluster"])
+	else:
+		slurm_args = "--partition={partition} --time={time} --qos={qos} --ntasks={ntasks} --ntasks-per-node={ntasks-per-node} --hint={hint} --output={output} --error={error} -n {n} -J {J} --mem={mem}".format(**job_properties["cluster"])
 	cmdline.append(slurm_args)
 	# now work on dependencies
 	if dependencies:
