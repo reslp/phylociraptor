@@ -15,6 +15,7 @@ usage() {
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
         echo "  -m <mode> Specify runmode, separated by comma. Options: busco, tree, speciestree."
 	echo
+	echo "  --add-genomes will check for and add  additional genomes (in case they were added to the config files)." 
 	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
 	echo "  --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run"
 	echo "  --setup This flag will download the genomes and prepare the pipeline to run."
@@ -45,6 +46,7 @@ while getopts ":v:t:c:s:m:-:" option;
                         m) RUNMODE=${OPTARG};;
 			-) LONG_OPTARG="${OPTARG#*}"
 				case $OPTARG in
+					add-genomes) ADD="TRUE";;
 					setup) SETUP="TRUE" ;;
 					remove) REMOVE="TRUE" ;;
 					report) REPORT="TRUE" ;;
@@ -76,11 +78,11 @@ fi
 
 if [[ $SETUP == "TRUE" ]]; then
 	if [[ -f .phylogenomics_setup.done ]]; then
-		read -r -p "Setup has been run previously. Ar you sure you want to rerun this step? [y/n]? " yn
+		read -r -p "Setup has been run previously. Are you sure you want to rerun this step? [y/n]? " yn
 		if [[ $yn == "y" ]]; then
 			rm .phylogenomics_setup.done
 			echo "Will run setup of pipeline"
-			snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp --latency-wait 600 -r setup --cores 1
+			snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp --latency-wait 600 -r setup --cores 1 -f
 			exit 0
 		else
 			echo "Will not run setup."
@@ -92,6 +94,20 @@ if [[ $SETUP == "TRUE" ]]; then
 		exit 0
 	fi
 fi
+
+if [[ $ADD == "TRUE" ]]; then
+	echo "Will rerun part which downloades, copies and renames genomes to add additional ones."
+	
+	if [[ ! -f .phylogenomics_setup.done ]]; then
+		echo "Setup has not been run before. You have to run --setup first to be able to run this."
+		exit 1
+	fi
+	rm -f results/checkpoints/download_genomes.done
+	rm -f results/checkpoints/rename_assemblies.done
+	rm -f .add_genomes.done
+	snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp --latency-wait 600 -r add_genomes --cores 1
+	exit 0
+	fi
 
 
 # Testing warning

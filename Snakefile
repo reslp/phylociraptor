@@ -66,6 +66,18 @@ rule setup:
 		touch "results/report.txt"
 		echo "$(date) - Pipeline setup done." >> results/report.txt
 		"""
+
+rule add_genomes:
+	input:
+		"results/checkpoints/download_genomes.done",
+		"results/checkpoints/rename_assemblies.done"
+	output:
+		".add_genomes.done"
+	shell:
+		"""
+		touch {output}
+		"""
+
 rule part1:
 	input:	
                 expand("results/checkpoints/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
