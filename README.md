@@ -2,6 +2,8 @@
 
 This pipeline creates phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
+*One word of caution:* phylociraptor is currently under active development. Different features may change or won't work from time to time before everything is finalized.
+
 ## Prerequisites
 Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
 
@@ -36,7 +38,7 @@ Trimming:
 
 Tree inference:
 
-- iqtree 2.0rc2 (http://www.iqtree.org/)
+- iqtree 2.0.7 (http://www.iqtree.org/)
 - raxml-ng 1.0 (https://github.com/amkozlov/raxml-ng)
 - astral 5.7.1 (https://github.com/smirarab/ASTRAL)
 - phylobayes-mpi git commit: dca7bdf (http://www.atgc-montpellier.fr/phylobayes/) (still experimental!)
@@ -58,8 +60,9 @@ Options:
   -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). 
   -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default.
   -i "<singularity_args>" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default.
-  -m <mode> Specify runmode, separated by comma. Options: busco, tree, speciestree.
+  -m <mode> Specify runmode, separated by comma. Options: busco, align, model, tree.
 
+  --add-genomes will check for and add  additional genomes (in case they were added to the config files).
   --dry Invokes a dry-run. Corresponds to: snakemake -n
   --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run
   --setup This flag will download the genomes and prepare the pipeline to run.
@@ -143,6 +146,12 @@ $ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m busco
 
 ```
 $ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m align
+```
+
+Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
+
+```
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m model
 ```
 
 4. Reconstruct a phylogeny:
