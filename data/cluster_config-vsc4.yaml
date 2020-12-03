@@ -41,9 +41,12 @@ concatenate:
    J: concat
    mem: 8G
 modeltest:
-   J: modeltest
-   mem: 94G
+   J: mt
+   mem: 64G
    ntasks: 16
+aggregate_best_models:
+   J: aggmodels
+   mem: 10G
 raxmlng:
    J: raxmlng
    mem: 94G

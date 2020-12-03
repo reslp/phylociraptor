@@ -102,6 +102,17 @@ rule part2:
 		echo "$(date) - Pipeline part 2 (align) done." >> results/report.txt
 		"""
 
+rule part_modeltest:
+	input:
+		"results/checkpoints/modeltest/aggregate_best_models.done"
+	output:
+		"checkpoints/part_modeltest.done"
+	shell:
+		"""
+		touch {output}
+		echo "$(date) - Pipeline part modeltest (model) done." >> results/report.txt
+		"""
+
 rule part3:
 	input:
 		"results/checkpoints/iqtree.done",
@@ -119,5 +130,6 @@ rule part3:
 include: "rules/setup.smk"
 include: "rules/busco.smk"
 include: "rules/align_trim.smk"
+include: "rules/model.smk"
 include: "rules/tree.smk"
 include: "rules/report.smk"

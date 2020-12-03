@@ -1,42 +1,8 @@
-
-rule modeltest:
-	input:
-		rules.part2.output
-	output:
-		models = "results/modeltest/best_models.txt",
-		checkpoint = "results/checkpoints/modeltest.done"
-	params:
-		wd = os.getcwd()
-	singularity:
-		"docker://reslp/iqtree:2.0.7"
-	threads: 16
-	shell:
-		"""
-		mkdir -p results/modeltest
-		echo "name\tmodel\tnseq\tnsites\tconstsites\tinvsites\tparssites\tdistpatt" > {params.wd}/results/modeltest/best_models.txt
-		for file in $(ls results/filtered_alignments/*.fas);
-		do
-			outname=$(basename $file)
-			iqtree -m TESTONLY -s $file -msub nuclear -redo --prefix {params.wd}/results/modeltest/$outname -nt AUTO -ntmax {threads}
-			printf "$outname\t" >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Input data" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $4)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of constant sites" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of invariant" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of parsimony" | awk -F ":" '{{print $2}}' | awk -F " " '{{printf ("%s\t", $1)}}' >> {params.wd}/results/modeltest/best_models.txt
-			cat {params.wd}/results/modeltest/$outname.iqtree | grep "Number of distinct" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {params.wd}/results/modeltest/best_models.txt
-			# currently iqtree output will be removed and only the best model is saved.
-			rm {params.wd}/results/modeltest/$outname.*
-		done
-		touch {output.checkpoint}
-		"""
-
 if config["phylogeny"]["concat"] == "yes":
 	rule concatenate:
 		input:
 			checkpoint = rules.part2.output,
-			models = rules.modeltest.output.models
+			models = rules.aggregate_best_models.output.best_models
 		output:
 			checkpoint = "results/checkpoints/concatenate.done",
 			alignment = "results/phylogeny/concat.fas",
@@ -82,10 +48,31 @@ if config["phylogeny"]["concat"] == "yes":
 				cd results/phylogeny/concatenated/
 				mkdir algn
 				cp {params.wd}/results/filtered_alignments/*.fas algn
-				if [[ -z "{params.maxmem}" ]]; then
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo
+				
+				# here we decide how iqtree should be run. In case modetesting was run, this will not be repeated here.				
+				if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
+					echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/results/report.txt
+					echo "Will create NEXUS partition file with model information now."
+					echo "#nexus" > concat.nex
+					echo "begin sets;" >> concat.nex 
+					cat {params.wd}/results/modeltest/best_models.txt | awk '{{print "charset part"NR" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> concat.nex
+					printf "charpartition mine = " >> concat.nex
+					cat {params.wd}/results/modeltest/best_models.txt | awk '{{printf($2":part"NR", ")}}' | sed 's/\\(.*\\), /\\1;\\n/' >> concat.nex
+					echo "end;" >> concat.nex
+					echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/report.txt
+					if [[ -z "{params.maxmem}" ]]; then
+						iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo
+					else
+						iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
+					fi
 				else
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo -mem {params.maxmem}
+					echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/results/report.txt
+
+					if [[ -z "{params.maxmem}" ]]; then
+						iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo
+					else
+						iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo -mem {params.maxmem}
+					fi
 				fi
 				rm -r algn
 				cd {params.wd}
@@ -193,7 +180,7 @@ if config["phylogeny"]["concat"] == "yes":
 if config["phylogeny"]["species_tree"] == "yes":
 	rule iqtree_gene_trees:
 		input:
-			rules.part2.output,
+			rules.part2.output
 		output:
 			checkpoint = "results/checkpoints/iqtree_gene_trees.done",
 			trees = "results/phylogeny/gene_trees/loci.treefile"
@@ -210,10 +197,29 @@ if config["phylogeny"]["species_tree"] == "yes":
 			mkdir -p results/phylogeny/gene_trees/algn
 			cd results/phylogeny/gene_trees
 			cp {params.wd}/results/filtered_alignments/*.fas algn
-			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo
+			# here we decide how iqtree should be run. In case modetesting was run, this will not be repeated here.
+			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
+				echo "$(date) - phylociraptor was run with -model before. Will run iqtree gene trees with best models." >> {params.wd}/results/report.txt
+				echo "Will create NEXUS partition file for gene trees with model information now."
+				echo "#nexus" > loci.nex
+				echo "begin sets;" >> loci.nex
+				cat {params.wd}/results/modeltest/best_models.txt | awk '{{print "charset part"NR" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> loci.nex
+				printf "charpartition mine = " >> loci.nex
+				cat {params.wd}/results/modeltest/best_models.txt | awk '{{printf($2":part"NR", ")}}' | sed 's/\\(.*\\), /\\1;\\n/' >> loci.nex
+				echo "end;" >> loci.nex
+				echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/report.txt
+				if [[ -z "{params.maxmem}" ]]; then
+					iqtree -S loci.nex --prefix loci -nt AUTO -ntmax {threads} -redo
+				else
+					iqtree -S loci.nex --prefix loci -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
+				fi
 			else
-				iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem}
+				echo "$(date) - phylociraptor will run iqtree gene trees now, with model testing as specified in the config.yaml file" >> {params.wd}/results/report.txt
+				if [[ -z "{params.maxmem}" ]]; then
+					iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo
+				else
+					iqtree -S algn/ --prefix loci -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem}
+				fi
 			fi
 			rm -r algn
 			cd {params.wd}

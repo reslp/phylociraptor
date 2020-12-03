@@ -38,9 +38,13 @@ concatenate:
    N: concat
    mem: 8G
 modeltest:
-   N: modeltest
+   N: mt
    mem: 8G
-   ntasks: 16
+   ntasks: 8
+aggregate_best_models:
+   N: aggmodels
+part_modeltest:
+   N: part_modeltest
 raxmlng:
    N: raxmlng
    mem: 8G
