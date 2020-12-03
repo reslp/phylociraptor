@@ -25,8 +25,8 @@ extract_sequences:
     minsp: 3
 # possible trimming options: trimal, aliscore
 trimming: 
-    method: aliscore
-    parameters: -N -r 200000000000000000
+    method: trimal 
+    parameters: -gappyout
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree raxmlng and astral
