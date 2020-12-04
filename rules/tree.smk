@@ -24,9 +24,9 @@ if "raxml" in config["tree"]["method"]:
 				awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 			else
 				echo "$(date) - phylociraptor was run with -model before. Will run raxml with GTR or PTROTGTR according to input data type." >> {params.wd}/results/report.txt
-				if [[ {params.datatype} == "aa"]]; then 
+				if [[ {params.datatype} == "aa" ]]; then 
 					awk '{{print $0"\\tPROTGTR"}}' results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
-				else:
+				else
 					awk '{{print $0"\\tGTR"}}' results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 				fi
 			fi
