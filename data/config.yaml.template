@@ -29,12 +29,15 @@ trimming:
     parameters: -gappyout
 
 # settings related to phylogenetic inference
-# phylogenetic method options include iqtree raxmlng and astral
-phylogeny:
-    method: "iqtree raxml astral phylobayes"
-    concat: "yes"
-    gene_trees: "yes"
-    species_tree: "yes"
+# phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
+
+tree:
+    method: "iqtree raxml"
+
+speciestree:
+    method: "astral"
+
+# specific settings for individual tree reconstruction methods
 iqtree:
     threads: 16 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
     bootstrap: 1000

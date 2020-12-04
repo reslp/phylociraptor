@@ -116,8 +116,6 @@ rule part_modeltest:
 rule part3:
 	input:
 		"results/checkpoints/iqtree.done",
-		"results/checkpoints/iqtree_gene_trees.done",
-		"results/checkpoints/astral_species_tree.done",
 		"results/checkpoints/raxmlng.done"
 	output:
 		"checkpoints/part3.done"
@@ -127,9 +125,22 @@ rule part3:
 		echo "$(date) - Pipeline part 3 (tree) done." >> results/report.txt
 		"""
 
+rule speciestree:
+	input:
+		"results/checkpoints/iqtree_gene_trees.done",
+                "results/checkpoints/astral_species_tree.done"
+	output:
+		"checkpoints/speciestree.done"
+	shell:
+		"""
+		echo "$(date) - Speciestree reconstruction done." >> results/report.txt
+		touch {output}
+		"""
+
 include: "rules/setup.smk"
 include: "rules/busco.smk"
 include: "rules/align_trim.smk"
 include: "rules/model.smk"
 include: "rules/tree.smk"
+include: "rules/speciestree.smk"
 include: "rules/report.smk"

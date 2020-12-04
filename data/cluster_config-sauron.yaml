@@ -32,7 +32,7 @@ trim:
    mem: 10G
 iqtree:
    N: iqtree
-   mem: 8G
+   mem: 16G
    ntasks: 16
 concatenate:
    N: concat
@@ -70,5 +70,5 @@ astral_species_tree:
    mem: 48G
 iqtree_gene_trees:
    N: iqtgenetrees
-   mem: 8G
+   mem: 16G
    ntasks: 16
