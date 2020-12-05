@@ -80,7 +80,7 @@ rule add_genomes:
 
 rule part1:
 	input:	
-                expand("results/checkpoints/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
+                expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
 		"results/checkpoints/extract_busco_table.done",
 		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/remove_duplicated_sequence_files.done"
@@ -93,7 +93,8 @@ rule part1:
 		"""
 rule part2:
 	input:
-		"results/checkpoints/get_all_trimmed_files.done"
+		"results/checkpoints/get_all_trimmed_files.done",
+		"results/statistics/statistics_alignments.txt"
 	output:
 		"checkpoints/part2.done"
 	shell:

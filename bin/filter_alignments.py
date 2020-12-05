@@ -27,11 +27,11 @@ for al in algn_list:
 		print("Create symlink: ", args.outdir+"/"+al.split("/")[-1])
 		os.symlink(al, args.outdir+"/"+al.split("/")[-1])
 	else:
-		print("File %s contains duplicated sequence IDs!" % al)
+		print("Warning: File %s contains duplicated sequence IDs!" % al)
 		if (args.perseq == True):	
 			print("Duplicated sequences will be removed and copy of file will be made.")
 			dups = [name for name in names_list if names_list.count(name)>1]
-			print("Will remove %d sequences" % len(dups))
+			print("Warning: Will remove %d sequences" % len(dups))
 			dups = set(dups)
 			sequences = [sequence for sequence in sequences if sequence.id not in dups]
 			outfile = open(args.outdir+"/"+al.split("/")[-1], "w")
@@ -40,6 +40,6 @@ for al in algn_list:
 				print(sequence.seq, file=outfile)					
 			outfile.close()
 		else:
-			print("Alignment will be discarded")	
+			print("Warning: %s file will be discarded" % al)	
 
 

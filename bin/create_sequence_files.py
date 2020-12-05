@@ -39,7 +39,7 @@ busco_overview = busco_overview.set_index("species")
 for sp in species_list:
 	if busco_overview.loc[sp, "percent_complete"] < float(args.cutoff):
 		busco_overview = busco_overview.drop([sp])
-		out = sp + " has too few BUSCOs, will be removed"
+		out = "Warning(cutoff): " + sp + " has too few BUSCOs, will be removed"
 		print(out)
 species_list =  list(busco_overview.index)
 print("Species remaining after applying cutoff:", len(species_list))
@@ -53,7 +53,7 @@ for busco in buscos:
 	outstring = ""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
-			print(args.busco_results+"/"+genome+"/run_busco/single_copy_busco_sequences/"+busco+extension)
+			#print(args.busco_results+"/"+genome+"/run_busco/single_copy_busco_sequences/"+busco+extension)
 			if species == genome:
 				try:
 					seqfile = open(args.busco_results + "/" + genome + "/run_busco/single_copy_busco_sequences/" + busco + extension, "r")
@@ -71,4 +71,4 @@ for busco in buscos:
 		outfile.write(outstring)
 		outfile.close()
 	else:
-		print("Too few sequences for %s. Will be skipped." % busco)
+		print("Warning(minsp): %s has too few sequence.  Will be skipped." % busco)

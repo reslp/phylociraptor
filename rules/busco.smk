@@ -4,7 +4,7 @@ rule run_busco:
                 augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
                 busco_set = rules.download_busco_set.output.busco_set,
         output:
-                checkpoint = "results/checkpoints/busco_{species}.done",
+                checkpoint = "results/checkpoints/busco/busco_{species}.done",
 		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
 		blast_output = "results/busco/{species}/run_busco/blast_output.tar.gz",
 		hmmer_output = "results/busco/{species}/run_busco/hmmer_output.tar.gz",
@@ -69,7 +69,7 @@ rule run_busco:
 
 rule busco:
         input:
-                checks = expand("results/checkpoints/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
+                checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
         output:
                 "checkpoints/busco.done"
         shell:
@@ -100,7 +100,8 @@ rule create_sequence_files:
                 checkpoint = rules.busco.output
         output:
                 sequence_dir = directory("results/busco_sequences"),
-                checkpoint = "results/checkpoints/create_sequence_files.done"
+                checkpoint = "results/checkpoints/create_sequence_files.done",
+		statistics = "results/statistics/create_sequence_files.txt"
         params:
                 cutoff=config["filtering"]["cutoff"],
                 minsp=config["filtering"]["minsp"],
@@ -113,16 +114,16 @@ rule create_sequence_files:
         shell:
                 """
 		mkdir -p {output.sequence_dir}
-                python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp}
-		touch {output.checkpoint}
-                
+                python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} > {output.statistics}
+		touch {output.checkpoint}   
 		"""
 
 rule remove_duplicated_sequence_files:
         input:
                 checkpoint = rules.create_sequence_files.output.checkpoint
         output:
-                checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done"
+                checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
+		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
         singularity:
                 "docker://continuumio/miniconda3:4.7.10"
         conda:
@@ -136,23 +137,25 @@ rule remove_duplicated_sequence_files:
                         rm -rf results/busco_sequences_deduplicated
                 fi
                 mkdir results/busco_sequences_deduplicated
-
+		
+		rm -f {output.statistics}
+		
 		if [[ {params.dupseq} == "persample" ]];
                 	then
                 		echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/report.txt
 			else
 				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/report.txt
 		fi
-
+		
                 for file in results/busco_sequences/*.fas;
                 do
 			if [[ {params.dupseq} == "persample" ]];
 			then
 				# per sequence filtering
-				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sample
+				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sample >> {output.statistics}
 			else
 				# whole alignment filtering
-                        	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated"
+                        	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" >> {output.statistics}
                 	fi
 		done
                 echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/report.txt

@@ -27,6 +27,8 @@ get_all_trimmed_files:
 align:
    N: align
    mem: 10G
+get_alignment_statistics:
+   N: alignstats
 trim:
    N: trim
    mem: 10G

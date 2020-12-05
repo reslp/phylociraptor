@@ -91,6 +91,8 @@ elif config["trimming"]["method"] == "aliscore":
 #    file_names = expand("results/trimmed_alignments/{busco}_aligned_trimmed.fas", busco = glob_wildcards(os.path.join(checkpoint_output, "{busco}_all.fas")).busco)
 #    return file_names
 
+
+
 rule get_all_trimmed_files:
         input:
                 expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
@@ -128,3 +130,25 @@ rule get_all_trimmed_files:
 		touch {output.checkpoint}
 		"""
 
+rule get_alignment_statistics:
+        input:
+                rules.get_all_trimmed_files.output.checkpoint
+        output:
+                statistics_alignment = "results/statistics/statistics_alignments.txt",
+		statistics_trimmed = "results/statistics/statistics_trimmed.txt",
+		statistics_filtered = "results/statistics/statistics_filtered.txt"
+        params:
+                ids = config["species"],
+                datatype = config["filtering"]["seq_type"]
+        singularity: "docker://reslp/concat:0.21"
+        shell:
+                """
+                tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/ /_/g' > results/statistics/ids_alignments.txt
+                # here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
+		concat.py -d results/alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
+		mv results/statistics/statistics.txt {output.statistics_alignment}
+		concat.py -d results/trimmed_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
+                mv results/statistics/statistics.txt {output.statistics_trimmed}
+		concat.py -d results/filtered_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
+                mv results/statistics/statistics.txt {output.statistics_filtered}
+                """
