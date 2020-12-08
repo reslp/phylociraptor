@@ -30,6 +30,11 @@ else:
 busco_overview = pd.read_csv(args.busco_table, sep="\t")
 genomes = os.listdir(args.busco_results)
 #print(busco_overview)
+print("Settings:")
+print("cutoff: ", args.cutoff)
+print("minsp: ", args.minsp)
+print("type: ", args.type)
+print("outdir: ", args.outdir)
 
 species_list = busco_overview.species.tolist()
 print("Original number of species:", len(species_list))
@@ -39,7 +44,10 @@ busco_overview = busco_overview.set_index("species")
 for sp in species_list:
 	if busco_overview.loc[sp, "percent_complete"] < float(args.cutoff):
 		busco_overview = busco_overview.drop([sp])
-		out = "Warning(cutoff): " + sp + " has too few BUSCOs, will be removed"
+		out = "cutoff_check: " + sp + " has TOO FEW BUSCOs, will be removed"
+		print(out)
+	else:
+		out = "cutoff_check: " + sp + " has ENOUGH BUSCOs, will be included"
 		print(out)
 species_list =  list(busco_overview.index)
 print("Species remaining after applying cutoff:", len(species_list))
@@ -67,8 +75,9 @@ for busco in buscos:
 				except: # skip missing buscos
 					continue
 	if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+		print("minsp_check: %s has ENOUGH sequences. Will be included." % busco)
 		outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
 		outfile.write(outstring)
 		outfile.close()
 	else:
-		print("Warning(minsp): %s has too few sequence.  Will be skipped." % busco)
+		print("minsp_check: %s has TOO FEW sequences. Will be skipped." % busco)
