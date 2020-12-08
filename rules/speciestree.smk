@@ -4,7 +4,7 @@ rule iqtree_gene_trees:
 		busco = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
 	output:
 		checkpoint = "results/checkpoints/gene_trees/{busco}_genetree.done",
-		trees = "results/phylogeny/gene_trees/{busco}/{busco}.treefile"
+		trees = "results/phylogeny/gene_trees/{busco}/{busco}_gt.treefile"
 	params:
 		wd = os.getcwd(),
 		maxmem = config["iqtree"]["maxmem"],
@@ -41,7 +41,7 @@ BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fa
 
 rule aggregate_gene_trees:
 	input:
-		treefiles = expand("results/phylogeny/gene_trees/{busco}/{busco}.treefile", busco=BUSCOS),
+		treefiles = expand("results/phylogeny/gene_trees/{busco}/{busco}_gt.treefile", busco=BUSCOS),
 		checkpoint = expand("results/checkpoints/gene_trees/{busco}_genetree.done", busco=BUSCOS)	
 	output:
 		trees = "results/gene_trees/all_gene_trees.tre",
