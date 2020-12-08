@@ -128,7 +128,6 @@ rule part3:
 
 rule speciestree:
 	input:
-		"results/checkpoints/iqtree_gene_trees.done",
                 "results/checkpoints/astral_species_tree.done"
 	output:
 		"checkpoints/speciestree.done"

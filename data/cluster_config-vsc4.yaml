@@ -72,6 +72,7 @@ astral_species_tree:
    mem: 48G
 iqtree_gene_trees:
    J: iqtgenetrees
-   mem: 94G
+   mem: 32G
    ntasks: 16
-
+aggregate_gene_trees:
+   J: agg_genetrees

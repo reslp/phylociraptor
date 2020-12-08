@@ -92,7 +92,7 @@ if "iqtree" in config["tree"]["method"]:
 			mkdir algn
 			cp {params.wd}/results/filtered_alignments/*.fas algn
 			
-			# here we decide how iqtree should be run. In case modetesting was run, this will not be repeated here.				
+			# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.				
 			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
 				echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/results/report.txt
 				echo "Will create NEXUS partition file with model information now."
