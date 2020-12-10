@@ -91,7 +91,9 @@ rule extract_busco_table:
         shell:
                 """
                 python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} > {output.busco_table}
-                touch {output.checkpoint}
+                echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
+                for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
+		touch {output.checkpoint}
                 """
 
 rule create_sequence_files:
