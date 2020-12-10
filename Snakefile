@@ -64,8 +64,9 @@ rule setup:
 	shell:
 		"""
 		touch {output}
-		touch "results/report.txt"
-		echo "$(date) - Pipeline setup done." >> results/report.txt
+		mkdir -p results/statistics
+		touch "results/statistics/runlog.txt"
+		echo "$(date) - Pipeline setup done." >> results/statistics/runlog.txt
 		"""
 
 rule add_genomes:
@@ -90,7 +91,7 @@ rule part1:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 1 (busco) done." >> results/report.txt
+		echo "$(date) - Pipeline part 1 (busco) done." >> results/statistics/runlog.txt
 		"""
 rule part2:
 	input:
@@ -101,7 +102,7 @@ rule part2:
 	shell:
 		"""
 		touch {output}	
-		echo "$(date) - Pipeline part 2 (align) done." >> results/report.txt
+		echo "$(date) - Pipeline part 2 (align) done." >> results/statistics/runlog.txt
 		"""
 
 rule part_modeltest:
@@ -112,7 +113,7 @@ rule part_modeltest:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part modeltest (model) done." >> results/report.txt
+		echo "$(date) - Pipeline part modeltest (model) done." >> results/statistics/runlog.txt
 		"""
 
 rule part3:
@@ -124,7 +125,7 @@ rule part3:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 3 (tree) done." >> results/report.txt
+		echo "$(date) - Pipeline part 3 (tree) done." >> results/statistics/runlog.txt
 		"""
 
 rule speciestree:
@@ -134,7 +135,7 @@ rule speciestree:
 		"checkpoints/speciestree.done"
 	shell:
 		"""
-		echo "$(date) - Speciestree reconstruction done." >> results/report.txt
+		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt
 		touch {output}
 		"""
 

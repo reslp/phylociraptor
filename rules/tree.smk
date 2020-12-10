@@ -20,10 +20,10 @@ if "raxml" in config["tree"]["method"]:
 			concat.py -d results/filtered_alignments/ -t results/phylogeny/ids.txt --runmode concat -o results/phylogeny/ --biopython --statistics
 			
 			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
-				echo "$(date) - phylociraptor was run with -model before. Will run raxml with best models." >> {params.wd}/results/report.txt
+				echo "$(date) - phylociraptor was run with -model before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
 				awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 			else
-				echo "$(date) - phylociraptor was run with -model before. Will run raxml with GTR or PTROTGTR according to input data type." >> {params.wd}/results/report.txt
+				echo "$(date) - phylociraptor was run with -model before. Will run raxml with GTR or PTROTGTR according to input data type." >> {params.wd}/results/statistics/runlog.txt
 				if [[ {params.datatype} == "aa" ]]; then 
 					awk '{{print $0"\\tPROTGTR"}}' results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 				else
@@ -101,7 +101,7 @@ if "iqtree" in config["tree"]["method"]:
 			echo "Maxmem: {params.maxmem}" >> {params.wd}/{output.statistics}
 			# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.				
 			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
-				echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/statistics/runlog.txt
+				echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/results/statistics/runlog.txt
 				echo "Will create NEXUS partition file with model information now."
 				echo "#nexus" > concat.nex
 				echo "begin sets;" >> concat.nex 
@@ -109,7 +109,7 @@ if "iqtree" in config["tree"]["method"]:
 				printf "charpartition mine = " >> concat.nex
 				cat {params.wd}/results/modeltest/best_models.txt | awk '{{printf($2":part"NR", ")}}' | sed 's/\\(.*\\), /\\1;\\n/' >> concat.nex
 				echo "end;" >> concat.nex
-				echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/report.txt
+				echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 				if [[ -z "{params.maxmem}" ]]; then
 					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo
 				else
@@ -117,7 +117,7 @@ if "iqtree" in config["tree"]["method"]:
 				fi
 			else
 				echo "Model: {params.model}" >> {params.wd}/{output.statistics}
-				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/statistics/runlog.txt
+				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/results/statistics/runlog.txt
 
 				if [[ -z "{params.maxmem}" ]]; then
 					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo

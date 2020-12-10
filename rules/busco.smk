@@ -61,7 +61,7 @@ rule run_busco:
 		
 		buscos=$(tail -n +6 results/busco/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
 		name="{params.species}"
-		echo "$(date) $name $buscos" >> results/report.txt
+		echo "$(date) $name $buscos" >> results/statistics/runlog.txt
 		
 		#touch checkpoint
 		touch {output.checkpoint}
@@ -142,9 +142,9 @@ rule remove_duplicated_sequence_files:
 		
 		if [[ {params.dupseq} == "persample" ]];
                 	then
-                		echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/report.txt
+                		echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/statistics/runlog.txt
 			else
-				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/report.txt
+				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/statistics/runlog.txt
 		fi
 		
                 for file in results/busco_sequences/*.fas;
@@ -158,7 +158,7 @@ rule remove_duplicated_sequence_files:
                         	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" >> {output.statistics}
                 	fi
 		done
-                echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/report.txt
-                echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/report.txt
+                echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/statistics/runlog.txt
+                echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
                 touch {output.checkpoint}
                 """

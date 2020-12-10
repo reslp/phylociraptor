@@ -62,9 +62,9 @@ elif config["trimming"]["method"] == "aliscore":
 			Aliscore.pl {params.trimmer} -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
 			
 			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
-				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 				if [[ $(cat {params.busco}_aligned.fas_List_random.txt | head -n 1 | grep '[0-9]' -c) != 0 ]]; then
-					echo "$(date) - The aliscore output appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+					echo "$(date) - The aliscore output appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 					ALICUT.pl -s &> alicut_{params.busco}.log
 				fi
 			fi
@@ -73,11 +73,11 @@ elif config["trimming"]["method"] == "aliscore":
 			# in this case an empty file will be touched. This is necessary so the rule does not fail
 			# The empty file will later be exluded again in the next rule.
 			if [[ ! -f {params.wd}/results/trimmed_alignments/{params.busco}/ALICUT_{params.busco}_aligned.fas ]]; then
-				echo "$(date) - The ALICUT output appears to be empty. Will touch an empty file so the pipeline will continue. Check results for BUSCO: {params.busco}" >> {params.wd}/results/report.txt
+				echo "$(date) - The ALICUT output appears to be empty. Will touch an empty file so the pipeline will continue. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 				touch {params.wd}/{output.trimmed_alignment}
 			else
 				if [[ "$(cat ALICUT_{params.busco}_aligned.fas | grep -v ">" | sed 's/-//g' | grep "^$" | wc -l)" -gt 0 ]]; then
-					echo "$(date) - Alignment of BUSCO: {params.busco} contains empty sequence after aliscore/alicut. This sequence will be removed." >> {params.wd}/results/report.txt
+					echo "$(date) - Alignment of BUSCO: {params.busco} contains empty sequence after aliscore/alicut. This sequence will be removed." >> {params.wd}/results/statistics/runlog.txt
 					cp ALICUT_{params.busco}_aligned.fas ALICUT_{params.busco}_aligned.fas_tmp
 					cat ALICUT_{params.busco}_aligned.fas_tmp | perl -ne 'chomp; $h=$_; $s=<>; chomp($s); $check=$s; $check=~s/-//g; if (length($check) > 0){{print "$h\n$s\n"}}' > ALICUT_{params.busco}_aligned.fas
 				fi
@@ -115,7 +115,7 @@ rule get_all_trimmed_files:
 		for file in results/trimmed_alignments/*.fas;
 		do
 			if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt 3 ]]; then
-                                        echo "$(date) - File $file contains less than 3 sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/report.txt
+                                        echo "$(date) - File $file contains less than 3 sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/statistics/runlog.txt
 					continue
 			fi	
 			if [[ -s {params.wd}/$file ]]; then 
@@ -124,9 +124,9 @@ rule get_all_trimmed_files:
 				continue
 			fi
 		done
-		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)" >> results/report.txt
-		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/report.txt
-		echo "$(date) - Number of alignments after filtering: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/report.txt
+		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of alignments after filtering: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/statistics/runlog.txt
 		touch {output.checkpoint}
 		"""
 
