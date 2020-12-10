@@ -14,9 +14,9 @@ rule align:
         conda:
                 "../envs/mafft.yml"
         threads:
-                config["mafft"]["threads"]
+                config["alignment"]["threads"]
         params:
-                config["mafft"]["parameters"]
+                config["alignment"]["parameters"]
         shell:
                 """
                 mafft {params} {input.sequence_file} > {output.alignment}
@@ -136,10 +136,15 @@ rule get_alignment_statistics:
         output:
                 statistics_alignment = "results/statistics/statistics_alignments.txt",
 		statistics_trimmed = "results/statistics/statistics_trimmed.txt",
-		statistics_filtered = "results/statistics/statistics_filtered.txt"
+		statistics_filtered = "results/statistics/statistics_filtered.txt",
+		overview_statistics = "results/statistics/align_trim_overview_statistics.txt"
         params:
                 ids = config["species"],
-                datatype = config["filtering"]["seq_type"]
+                datatype = config["filtering"]["seq_type"],
+		alignment_method = config["alignment"]["method"],
+		alignment_params = config["alignment"]["parameters"],
+		trimming_method = config["trimming"]["method"],
+		trimming_params = config["trimming"]["parameters"]
         singularity: "docker://reslp/concat:0.21"
         shell:
                 """
@@ -151,4 +156,8 @@ rule get_alignment_statistics:
                 mv results/statistics/statistics.txt {output.statistics_trimmed}
 		concat.py -d results/filtered_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
                 mv results/statistics/statistics.txt {output.statistics_filtered}
-                """
+               	echo "Alignment method:\t{params.alignment_method}" > {output.overview_statistics}
+		echo "Alignment parameters:\t{params.alignment_params}" >> {output.overview_statistics}
+		echo "Trimming method:\t{params.trimming_method}" >> {output.overview_statistics}
+		echo "Trimming parameters:\t{params.trimming_params}" >> {output.overview_statistics}
+		"""

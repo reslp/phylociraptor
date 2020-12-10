@@ -17,7 +17,8 @@ filtering:
     minsp: 3
     seq_type: "aa"
 # settings related to alignment and trimming
-mafft:
+alignment:
+    method: mafft
     threads: 8
     parameters: --quiet --auto
 extract_sequences:
