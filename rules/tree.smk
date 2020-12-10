@@ -43,7 +43,8 @@ if "raxml" in config["tree"]["method"]:
 		output:
 			checkpoint = "results/checkpoints/raxmlng.done",
 			alignment = "results/phylogeny/raxmlng/concat.fas",
-			partitions = "results/phylogeny/raxmlng/partitions.txt"
+			partitions = "results/phylogeny/raxmlng/partitions.txt",
+			statistics = "results/statistics/raxml_statistics.txt"
 		singularity:
 			"docker://reslp/raxml-ng:1.0.0"
 		params:
@@ -55,6 +56,8 @@ if "raxml" in config["tree"]["method"]:
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
 			cd results/phylogeny/raxmlng
+			# this is just a placeholder:
+			echo "RAXML STATISTICS - STILL A PLACEHOLDER" > {params.wd}/{output.statistics}
 			raxml-ng --msa concat.fas --prefix raxmlng -threads {params.threads} --bs-trees {params.bs} --model partitions.txt --all
 			cd {params.wd}
 			touch {output.checkpoint}
@@ -73,7 +76,8 @@ if "iqtree" in config["tree"]["method"]:
 		input:
 			rules.part2.output
 		output:
-			checkpoint = "results/checkpoints/iqtree.done"
+			checkpoint = "results/checkpoints/iqtree.done",
+			statistics = "results/statistics/iqtree_statistics.txt"
 		singularity:
 			"docker://reslp/iqtree:2.0.7"
 		params:
@@ -91,10 +95,13 @@ if "iqtree" in config["tree"]["method"]:
 			cd results/phylogeny/concatenated/
 			mkdir algn
 			cp {params.wd}/results/filtered_alignments/*.fas algn
-			
+			echo "Parameters:" > {params.wd}/{output.statistics}
+			echo "Threads: {params.nt}" >> {params.wd}/{output.statistics}
+			echo "Bootstraping -bb: {params.bb}" >> {params.wd}/{output.statistics}
+			echo "Maxmem: {params.maxmem}" >> {params.wd}/{output.statistics}
 			# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.				
 			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
-				echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/results/report.txt
+				echo "$(date) - phylociraptor was run with -model before. Will run iqtree with best models." >> {params.wd}/statistics/runlog.txt
 				echo "Will create NEXUS partition file with model information now."
 				echo "#nexus" > concat.nex
 				echo "begin sets;" >> concat.nex 
@@ -109,7 +116,8 @@ if "iqtree" in config["tree"]["method"]:
 					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
 				fi
 			else
-				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/results/report.txt
+				echo "Model: {params.model}" >> {params.wd}/{output.statistics}
+				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/statistics/runlog.txt
 
 				if [[ -z "{params.maxmem}" ]]; then
 					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo
@@ -118,6 +126,12 @@ if "iqtree" in config["tree"]["method"]:
 				fi
 			fi
 			rm -r algn
+			echo "Consensus tree:"
+			cat concat.contree >> {params.wd}/{output.statistics}
+			echo "IQTREE run information:"
+			head -n 5 concat.iqtree >> {params.wd}/{output.statistics}
+			tail -n 30 concat.log >> {params.wd}/{output.statistics}
+			tail -n 6 concat.iqtree >> {params.wd}/{output.statistics}
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""
