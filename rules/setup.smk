@@ -19,7 +19,8 @@ rule rename_assemblies:
 	input:
 		rules.download_genomes.output.success
 	output:
-		checkpoint = "results/checkpoints/rename_assemblies.done"
+		checkpoint = "results/checkpoints/rename_assemblies.done",
+		statistics = "results/statistics/species_not_downloaded.txt"
 	params:
 		#downloaded_species = get_species_names_rename,
 		local_species = get_local_species_names_rename,
@@ -29,12 +30,13 @@ rule rename_assemblies:
 		#have to first remove this folder
 		#rm -rf results/assemblies
 		mkdir -p results/assemblies
+		rm -f {output.statistics}
 		for spe in $(cat {input}); do
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
 			else
 				if [[ ! -f {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna ]]; then
-					echo "Species not found: $spe. Maybe it was not downloaded."
+					echo "$spe" >> {output.statistics} 
 					continue
 				else
 					ln -s {params.wd}/results/downloaded_genomes/"$spe"_genomic_genbank.fna {params.wd}/results/assemblies/"$spe".fna
@@ -81,4 +83,20 @@ rule prepare_augustus:
                 """
                 cp -r /opt/conda/config {output.augustus_config_path}
                 touch {output.checkpoint}
+
                 """
+
+rule get_genome_download statistics:
+	input:
+		checkpoint = "results/checkpoints/download_genomes.done"
+	output:
+		statistics = "results/statistics/downloaded_genomes_statistics.txt"
+	shell:
+		"""
+		echo "file_name\torganism\turl\tdatabase\tpath\trefseq_category\tassembly_accession\tbioproject\tbiosample\ttaxid\tinfraspecific_name\tversion_status\trelease_type\tgenome_rep\tseq_rel_date\tsubmitter" > {output.statistics}	
+			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
+				do 
+					sed -n 2p $file >> {output.statistics}
+				done
+		"""
+
