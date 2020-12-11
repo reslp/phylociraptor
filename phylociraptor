@@ -135,7 +135,9 @@ fi
 
 # create report if flag is set
 if [[ $REPORT == "TRUE" ]]; then
-	snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --cores 1 --notemp -r report $SM_ARGS
+	#snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --cores 1 --notemp -r report $SM_ARGS
+	singularity exec docker://reslp/rmarkdown:4.0.3 Rscript -e "rmarkdown::render('./bin/report.Rmd')"
+	mv bin/report.html results/report.html
 	exit 0
 fi
 

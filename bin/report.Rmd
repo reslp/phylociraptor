@@ -1,0 +1,372 @@
+---
+title: "phylociraptor report"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+## {.tabset .tabset-fade}
+
+```{r setup, echo=FALSE, message=FALSE}
+library(kableExtra)
+#library(formattable)
+library(dplyr)
+library(knitr)
+#library(tidyverse)
+library(ggplot2)
+library(viridis)
+library(readr)
+
+library(reshape2)
+
+parsimony_cutoff <- 10
+```
+
+```{r checkinput_general, echo=FALSE}
+
+# set input file names:
+
+busco_overview_image <- ""
+
+busco_overview_file <- "../results/busco_set/dataset.cfg"
+busco_summary_file <- "../results/statistics/busco_summary.txt"
+alignment_statistics_file <- "../results/statistics/statistics_alignments.txt"
+trimmed_alignment_statistics_file <- "../results/statistics/statistics_trimmed.txt"
+filtered_alignment_statistics_file <- "../results/statistics/statistics_filtered.txt"
+align_trim_overview_statistics_file <- "../results/statistics/align_trim_overview_statistics.txt"
+
+downloaded_genomes_statistics_file <- "../results/statistics/downloaded_genomes_statistics.txt"
+failed_genome_downloads_file <- "../results/downloaded_genomes/not_downloaded.txt"
+successfull_genome_downloads_file <- "../results/downloaded_genomes/successfully_downloaded.txt"
+local_species_file <- "../results/statistics/local_species.txt"
+
+best_models_file <- "../results/modeltest/best_models.txt"
+
+tree_statistics_file <- "../results/statistics/tree_statistics.txt"
+speciestree_statistics_file <- "../results/statistics/speciestree_statistics.txt"
+runlog_file <- "../results/statistics/runlog.txt"
+```
+
+
+### Genomes
+
+```{r, echo=FALSE}
+if (file.exists(failed_genome_downloads_file))
+{
+  failed_sp <- read.table(failed_genome_downloads_file, header=F)
+  failed <- paste(failed_sp$V1, sep="\n")
+} else {
+  failed <- numeric()
+}
+
+if (file.exists(successfull_genome_downloads_file)){
+  success_sp <- read.table(successfull_genome_downloads_file, header=F)
+  success <- paste(success_sp$V1, sep="\n")
+} else {
+  success <- numeric()
+}
+
+if (file.exists(local_species_file)){
+  local_sp <- read.table(local_species_file, header=F)
+  local <- paste(local_sp$V1, sep="\n")
+} else {
+  local <- numeric()
+}
+
+total <- length(failed) + length(success) + length(local)
+
+```
+
+
+**Location of genomes files:** 
+
+```
+results/assemblies
+```
+
+**Total number of included genomes:** `r total`
+
+Number of locally provided genomes: `r length(local)`
+
+Number of successfully downloaded genomes: `r length(success)`
+
+Number of failed species downloads: `r length(failed)`
+
+**Information on successfully downloaded genomes:**
+```{r genome_stats, echo=FALSE, out.height=500}
+info <- ""
+if (file.exists(downloaded_genomes_statistics_file))
+{
+  data <- read.table(downloaded_genomes_statistics_file, sep="\t", header=T)
+  data$path <- NULL
+  data$file_name <- NULL
+  
+  #gsub(data$url, "(link)["data$url"]", data$url)
+  data %>% mutate(url = cell_spec("download", "html", link = url)) %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+} else {
+  info <- "*No information about downloaded genomes found. Did you run phylociraptor --setup ?*"
+}
+
+```
+`r info`
+
+
+### BUSCO
+
+```{r, echo=FALSE}
+
+if (file.exists(busco_overview_file)){
+  busco_overview <- read.table(busco_overview_file, sep="=", header=F)
+  busco_set <- busco_overview$V2[busco_overview$V1 == "name"]
+  nbuscos <- busco_overview$V2[busco_overview$V1 == "number_of_BUSCOs"]
+} else {
+  busco_set <- "unknown (maybe BUSCO set was not downloaded yet)"
+  nbuscos <- "unknown (maybe BUSCO set was not downloaded yet)"
+}
+
+```
+
+
+**Location of BUSCO results:** 
+
+```
+results/busco
+```
+
+**Used BUSCO set:** `r busco_set`
+
+**Number of BUSCO genes:** `r nbuscos`
+
+```{r busco_stats, echo=FALSE, out.height=500, message=F}
+#if (file.exists("../results/statistics/busco_summary.txt"))
+if (file.exists(busco_summary_file))
+{
+  data <- read.table(busco_summary_file, sep="\t", header=T)
+  
+  # tests to use the inline graphics functionality of kableExtra, this is not working yet.
+  #data2 <- data
+  #data2$total <- NULL
+  #data2$complete <- NULL
+  #mdata <- melt(as.matrix(data2))
+  
+  #pl <- list()
+  # get_busco_plot <- function(dat){
+  #   base_size=12
+  #   i=0
+  #   for (sp in dat) {
+  #   sp <- as.data.frame(sp)
+  #   colnames(sp) <- c("species", "single_copy", "duplicated", "fragmented", "missing")
+  #   sp <- melt(sp)
+  #   colnames(sp) <- c("species", "category", "genes")
+  #   #print(sp)
+  #   p2 <- ggplot(sp, aes_string(fill="category", x="genes", y="species")) +geom_bar(position="stack", stat="identity")+theme_void()+theme(legend.position = "none")
+  #   #print(p2)
+  #   #  theme(axis.ticks.x = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8,angle=-45, hjust = 0,vjust=1, colour = "grey50"))+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))
+  #   dat[i] <- p2
+  #   }
+  # return(dat)
+  # }
+  #data$overview <- ""
+  #s <- split(data2[2:5], data2$species)
+  #print(s)
+  
+  data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+} else {
+  cat("no information on BUSCO runs found. Did you run phylociraptor -m busco?")
+}
+
+```
+
+```{r, include=TRUE, fig.align="center", echo=F}
+#out.width="1.0\\linewidth"
+if (file.exists(busco_overview_image)) {
+  include_graphics(busco_overview_image)
+} 
+#else {
+#  print("Plot file not found.")
+#}
+
+```
+
+### Alignments
+
+**Location of alignment files:** 
+```
+results/alignments
+```
+
+```{r stats_alignments, echo=FALSE}
+if (file.exists(align_trim_overview_statistics_file) == TRUE) {
+  ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
+  al_method <- ov[1,2]
+  al_params <- ov[2,2]
+  tr_method <- ov[3,2]
+  tr_params <- ov[4,2]
+} else {
+  al_method <- "unknown (check if phylocraptor -m align has finished successfully)."
+  al_params <- ""
+}
+if (file.exists(alignment_statistics_file) == TRUE) {
+  data <- read.table(alignment_statistics_file, sep="\t", header=T)
+  few_npars <- data$alignment[data$nparsimony < parsimony_cutoff]
+} else {
+  few_npars <- ""
+}
+```
+
+**Alignment method:** `r al_method` `r al_params`
+
+There are **`r length(few_npars)`** alignments with less than `r parsimony_cutoff` parsimony informative sites.
+
+
+```{r stats_alignments2, echo=FALSE}
+
+#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
+#print(rows)
+if (file.exists(alignment_statistics_file) == TRUE) {
+    rows <- which(data$nparsimony < 10)
+    data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+} else {
+  print("Alignment statistics file not found. Did you run phylociraptor -m align?")
+}
+#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+  
+  
+  
+  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
+```
+
+### Trimming
+
+**Location of trimmed alignment files:** 
+```
+results/trimmed_alignments
+```
+
+```{r stats_trimmed, echo=FALSE}
+if (file.exists(align_trim_overview_statistics_file) == TRUE) {
+  ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
+  tr_method <- ov[3,2]
+  tr_params <- ov[4,2]
+} else {
+  tr_method <- "unknown (check if phylocraptor -m align has finished successfully)."
+  tr_params <- numeric()
+}
+
+if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
+  data <- read.table(trimmed_alignment_statistics_file, sep="\t", header=T)
+  few_npars <- data$alignment[data$nparsimony < parsimony_cutoff]
+} else {
+  few_npars <- numeric()
+}
+```
+
+**Trimming method:** `r tr_method` `r tr_params`
+
+There are **`r length(few_npars)`** trimmed alignments with less than `r parsimony_cutoff` parsimony informative sites.
+
+```{r stats_trimmed2, echo=FALSE}
+if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
+rows <- which(data$nparsimony < 10)
+#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
+#print(rows)
+data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+} else {
+  print("Trimming statistics file not found. Did you run phylociraptor -m align?")
+}
+#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+  
+  
+  
+  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
+```
+
+
+### Filtering
+
+```{r stats_filtered, echo=FALSE}
+if (file.exists(filtered_alignment_statistics_file) == TRUE) {
+  data <- read.table(filtered_alignment_statistics_file, sep="\t", header=T)
+  few_npars <- data$alignment[data$nparsimony < parsimony_cutoff]
+} else {
+  few_npars <- numeric()
+}
+```
+
+**Location of filtered alignment files:** 
+```
+results/filtered_alignments
+```
+
+There are `r length(few_npars)` filtered alignments with less than `r parsimony_cutoff` parsimony informative sites.
+
+```{r stats_filtered2, echo=FALSE}
+if (file.exists(filtered_alignment_statistics_file) == TRUE) {
+rows <- which(data$nparsimony < 10)
+#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
+#print(rows)
+data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red")%>% scroll_box(width = "100%", height = "600px")
+} else {
+  print("Filtering statistics file not found. Did you run phylociraptor -m align?")
+}
+#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+  
+  
+  
+  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
+```
+
+### Modeltesting
+
+```{r stats_modeltest, echo=FALSE}
+if (file.exists(best_models_file) == TRUE) {
+  data <- read.table(best_models_file, sep="\t", header=F)
+  colnames(data) <- c("busco", "model")
+  models <- table(data$model)
+  p <- ggplot(data, aes(x=factor(1), fill=factor(model))) +geom_bar(stat="count") + coord_polar(theta="y") +theme_void() + scale_fill_viridis(discrete=T, option="B")
+  print(p)
+  data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")
+}
+```
+
+
+
+### Tree
+
+```{r stats_tree, echo=FALSE}
+if (file.exists(tree_statistics_file) == TRUE) {
+  tree_stats <- TRUE
+  tree_log <- read_file(tree_statistics_file)
+  cat(tree_log)
+} else {
+  tree_stats <- FALSE
+}
+```
+
+`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor -m tree?**"}`
+
+### Speciestree
+
+```{r stats_speciestree, echo=FALSE}
+if (file.exists(speciestree_statistics_file) == TRUE) {
+  tree_stats <- TRUE
+} else {
+  tree_stats <- FALSE
+}
+```
+
+`r if(!tree_stats){"**Speciestree statistics not found. Did you run phylociraptor -m speciestree?**"}`
+
+### Log
+
+```{r, echo=FALSE}
+if (file.exists(runlog_file))
+{
+  runlog <- read_file(runlog_file)
+} else {
+  runlog <- "Information not found. Did you run phylociraptor?\n"
+}
+cat(runlog)
+```
+
