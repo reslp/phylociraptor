@@ -20,7 +20,8 @@ rule rename_assemblies:
 		rules.download_genomes.output.success
 	output:
 		checkpoint = "results/checkpoints/rename_assemblies.done",
-		statistics = "results/statistics/species_not_downloaded.txt"
+		statistics = "results/statistics/species_not_downloaded.txt",
+		statistics_local = "results/statistics/local_species.txt"
 	params:
 		#downloaded_species = get_species_names_rename,
 		local_species = get_local_species_names_rename,
@@ -31,6 +32,7 @@ rule rename_assemblies:
 		#rm -rf results/assemblies
 		mkdir -p results/assemblies
 		rm -f {output.statistics}
+		rm -f {output.statistics_local}
 		for spe in $(cat {input}); do
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
@@ -48,6 +50,7 @@ rule rename_assemblies:
 			if [[ -f {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
 				continue
 			else
+				echo "${{sparr[0]}}" >> {output.statistics_local}
 				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
 			fi
 		done
@@ -95,8 +98,11 @@ rule get_genome_download statistics:
 		"""
 		echo "file_name\torganism\turl\tdatabase\tpath\trefseq_category\tassembly_accession\tbioproject\tbiosample\ttaxid\tinfraspecific_name\tversion_status\trelease_type\tgenome_rep\tseq_rel_date\tsubmitter" > {output.statistics}	
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
-				do 
-					sed -n 2p $file >> {output.statistics}
+				do
+					species=$(echo $file | awk -F 'doc_' '{print $2}' | awk -F '_db' '{print $1}')
+					if [[ -f $species_genomic_genbank.fna ]]; then 
+						sed -n 2p $file >> {output.statistics}
+					fi
 				done
 		"""
 
