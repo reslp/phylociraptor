@@ -15,7 +15,7 @@ library(ggplot2)
 library(viridis)
 library(readr)
 
-library(reshape2)
+#library(reshape2)
 
 parsimony_cutoff <- 10
 ```
@@ -48,18 +48,23 @@ runlog_file <- "../results/statistics/runlog.txt"
 
 ### Genomes
 
-```{r, echo=FALSE}
+```{r genomes, echo=FALSE}
 if (file.exists(failed_genome_downloads_file))
 {
-  failed_sp <- read.table(failed_genome_downloads_file, header=F)
-  failed <- paste(failed_sp$V1, sep="\n")
+  if (file.size(failed_genome_downloads_file) > 0) {
+    failed_sp <- read.table(failed_genome_downloads_file, header=F)
+    failed <- paste(failed_sp$V1, sep="\n")
+  } else { failed <- numeric()}
 } else {
   failed <- numeric()
 }
 
 if (file.exists(successfull_genome_downloads_file)){
-  success_sp <- read.table(successfull_genome_downloads_file, header=F)
-  success <- paste(success_sp$V1, sep="\n")
+  #print(file.info(successfull_genome_downloads_file)$size)
+  if (file.size(successfull_genome_downloads_file) > 0) {
+    success_sp <- read.table(successfull_genome_downloads_file, header=F)
+    success <- paste(success_sp$V1, sep="\n")
+  } else {success <- numeric()}
 } else {
   success <- numeric()
 }
@@ -95,9 +100,14 @@ Number of failed species downloads: `r length(failed)`
 info <- ""
 if (file.exists(downloaded_genomes_statistics_file))
 {
-  data <- read.table(downloaded_genomes_statistics_file, sep="\t", header=T)
-  data$path <- NULL
-  data$file_name <- NULL
+  if (file.size(downloaded_genomes_statistics_file) != 0) {
+      data <- read.table(downloaded_genomes_statistics_file, sep="\t", header=T)
+      data$path <- NULL
+      data$file_name <- NULL
+  } else {
+    info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
+  }
+
   
   #gsub(data$url, "(link)["data$url"]", data$url)
   data %>% mutate(url = cell_spec("download", "html", link = url)) %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px")
