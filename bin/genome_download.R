@@ -58,6 +58,11 @@ for (sp in all_species) {
     species_data[nrow(species_data)+1, ] <- c(sp,"not_downloaded", "failed")
     failed <- c(sp, failed)
     next
+    } else if (!file.exists(file.path(wd, "results","downloaded_genomes",paste(sp,"_genomic_genbank.fna",sep="")))){
+	print(paste("It seems no assembly file exists for ", sp, sep=""))
+	species_data[nrow(species_data)+1, ] <- c(sp,"not_downloaded", "failed")
+	failed <- c(sp, failed)
+	next
     } else {
         print("Some other error occurred!")
 	species_data[nrow(species_data)+1, ] <- c(sp,"not_downloaded", "failed")
