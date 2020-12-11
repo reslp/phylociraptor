@@ -3,7 +3,8 @@ rule download_genomes:
         output:
                 checkpoint = "results/checkpoints/download_genomes.done",
 		download_overview = "results/downloaded_genomes/download_overview.txt",
-		success = "results/downloaded_genomes/successfully_downloaded.txt"
+		success = "results/downloaded_genomes/successfully_downloaded.txt",
+		runlog = "results/statistics/runlog.txt"
         singularity:
                 "docker://reslp/biomartr:0.9.2"
         params:
@@ -11,8 +12,14 @@ rule download_genomes:
                 wd = os.getcwd()
         shell:
                 """
-                Rscript bin/genome_download.R {params.species} {params.wd}
-                touch {output}
+		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
+		if [[ "{params.species}" != "" ]]; then
+                	echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
+			Rscript bin/genome_download.R {params.species} {params.wd}
+                else
+			echo "(date) - Setup: Now species to download." >> results/statistics/runlog.txt
+		fi
+		touch {output}
                 """
 
 rule rename_assemblies:
@@ -45,7 +52,7 @@ rule rename_assemblies:
 				fi
 			fi
 		done	
-		for spe in  {params.local_species}; do
+		for spe in {params.local_species}; do
 			sparr=(${{spe//,/ }})
 			if [[ -f {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
 				continue
@@ -54,6 +61,8 @@ rule rename_assemblies:
 				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
 			fi
 		done
+		if [[ ! -f {output.statistics} ]]; then touch {output.statistics}; fi
+		if [[ ! -f {output.statistics_local} ]]; then touch {output.statistics_local}; fi
 		touch {output.checkpoint}
 		"""
 
@@ -99,7 +108,7 @@ rule get_genome_download statistics:
 		echo "file_name\torganism\turl\tdatabase\tpath\trefseq_category\tassembly_accession\tbioproject\tbiosample\ttaxid\tinfraspecific_name\tversion_status\trelease_type\tgenome_rep\tseq_rel_date\tsubmitter" > {output.statistics}	
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
 				do
-					species=$(echo $file | awk -F 'doc_' '{print $2}' | awk -F '_db' '{print $1}')
+					species=$(echo $file | awk -F 'doc_' '{{print $2}}' | awk -F '_db' '{{print $1}}')
 					if [[ -f $species_genomic_genbank.fna ]]; then 
 						sed -n 2p $file >> {output.statistics}
 					fi
