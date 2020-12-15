@@ -27,6 +27,8 @@ remove_duplicated_sequence_files:
 get_all_trimmed_files:
    J: gettrimfiles
    mem: 12G
+get_alignment_statistics:
+   J: getalnstat
 align:
    J: align
    mem: 10G
