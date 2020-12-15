@@ -109,7 +109,7 @@ rule get_genome_download statistics:
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
 				do
 					species=$(echo $file | awk -F 'doc_' '{{print $2}}' | awk -F '_db' '{{print $1}}')
-					if [[ -f $species_genomic_genbank.fna ]]; then 
+					if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna" ]]; then 
 						sed -n 2p $file >> {output.statistics}
 					fi
 				done
