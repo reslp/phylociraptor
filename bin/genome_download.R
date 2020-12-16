@@ -35,10 +35,12 @@ warnings <- c()
 species_data <- data.frame(species=character(0), assembly= character(0), status= character(0), stringsAsFactors = F)
 
 for (sp in all_species) {
-  if (file.exists(file.path(wd,"results","downloaded_genomes",paste(sp,"_genomic_genbank.fna",sep="")))) {
+  path <- file.path(wd,"results","downloaded_genomes",paste(sp,"_genomic_genbank.fna",sep=""))
+  if (file.exists(path)) {
 	print(sp)
 	print("File exists, will skip")
 	successful <- c(sp, successful)
+	species_data[nrow(species_data)+1, ] <- c(sp, path, "successful")
 	next
 	}
   sp <- gsub("_", " ", sp)

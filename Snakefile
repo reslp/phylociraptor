@@ -72,7 +72,8 @@ rule setup:
 rule add_genomes:
 	input:
 		"results/checkpoints/download_genomes.done",
-		"results/checkpoints/rename_assemblies.done"
+		"results/checkpoints/rename_assemblies.done",
+		"results/statistics/downloaded_genomes_statistics.txt"
 	output:
 		".add_genomes.done"
 	shell:

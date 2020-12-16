@@ -70,8 +70,10 @@ if (file.exists(successfull_genome_downloads_file)){
 }
 
 if (file.exists(local_species_file)){
+  if (file.size(local_species_file) > 0) {
   local_sp <- read.table(local_species_file, header=F)
   local <- paste(local_sp$V1, sep="\n")
+  } else {local <- numeric()}
 } else {
   local <- numeric()
 }
