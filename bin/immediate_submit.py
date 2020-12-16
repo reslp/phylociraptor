@@ -44,7 +44,7 @@ if subs == "slurm":
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
 	elif "busco" in job_properties["wildcards"]:
-		job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["busco"]
+                job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["busco"]
                 prefix = job_properties["wildcards"]["busco"] + "-" + job_properties["rule"] + "-slurm"
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
