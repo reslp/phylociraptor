@@ -38,8 +38,8 @@ rule rename_assemblies:
 		#have to first remove this folder
 		#rm -rf results/assemblies
 		mkdir -p results/assemblies
-		rm -f {output.statistics}
-		rm -f {output.statistics_local}
+		#rm -f {output.statistics}
+		#rm -f {output.statistics_local}
 		for spe in $(cat {input}); do
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
