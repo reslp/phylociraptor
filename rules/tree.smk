@@ -116,7 +116,7 @@ if "iqtree" in config["tree"]["method"]:
 					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
 				fi
 			else
-				echo "Model: {params.model}" >> {params.wd}/{output.statistics}
+				echo "Model: {params.m}" >> {params.wd}/{output.statistics}
 				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/results/statistics/runlog.txt
 
 				if [[ -z "{params.maxmem}" ]]; then
