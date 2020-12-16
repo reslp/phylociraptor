@@ -43,6 +43,11 @@ if subs == "slurm":
                 prefix = job_properties["wildcards"]["species"] + "-" + job_properties["rule"] + "-slurm"
                 job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
                 job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
+	elif "busco" in job_properties["wildcards"]:
+		job_properties["cluster"]["J"] = job_properties["cluster"]["J"]+"-"+job_properties["wildcards"]["busco"]
+                prefix = job_properties["wildcards"]["busco"] + "-" + job_properties["rule"] + "-slurm"
+                job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", prefix)
+                job_properties["cluster"]["error"] = job_properties["cluster"]["error"].replace("slurm", prefix)
 	else:		
 		#properly assign job names for rules which don't have a sample wildcard
 		job_properties["cluster"]["output"] = job_properties["cluster"]["output"].replace("slurm", job_properties["rule"])
