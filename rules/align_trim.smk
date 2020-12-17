@@ -148,7 +148,7 @@ rule get_alignment_statistics:
         singularity: "docker://reslp/concat:0.21"
         shell:
                 """
-                tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/ /_/g' > results/statistics/ids_alignments.txt
+		tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/^"//g' | sed 's/"$//g' | sed 's/ /_/g' > results/statistics/ids_alignments.txt
                 # here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
 		concat.py -d results/alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
 		mv results/statistics/statistics.txt {output.statistics_alignment}
