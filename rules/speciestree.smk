@@ -8,7 +8,8 @@ rule iqtree_gene_trees:
 	params:
 		wd = os.getcwd(),
 		maxmem = config["iqtree"]["maxmem"],
-		busco = "{busco}"
+		busco = "{busco}",
+		additional_params = config["iqtree"]["additional_params"]
 	threads:
 		config["iqtree"]["threads"]
 	singularity:
@@ -23,16 +24,16 @@ rule iqtree_gene_trees:
 			model=$(cat {params.wd}/results/modeltest/best_models.txt | grep {params.busco} | awk '{{print $2}}')
 			echo "$(date) - phylociraptor was run with modeltesting before. Will run iqtree gene tree for {params.busco} with best model: $model" >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo {params.additional_params}
 			else
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} {params.additional_params}
 			fi
 		else
 			echo "$(date) - phylociraptor will run iqtree gene tree for {params.busco}  now, with automated model testing." >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo
+				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo {params.additional_params}
 			else
-				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem}
+				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem} {params.additional_params}
 			fi
 		fi
 		touch {params.wd}/{output.checkpoint}
