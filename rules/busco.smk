@@ -1,10 +1,10 @@
 rule run_busco:
-        input:
-                assembly = "results/assemblies/{species}.fna",
-                augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
-                busco_set = rules.download_busco_set.output.busco_set,
-        output:
-                checkpoint = "results/checkpoints/busco/busco_{species}.done",
+	input:
+		assembly = "results/assemblies/{species}.fna",
+		augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
+		busco_set = rules.download_busco_set.output.busco_set,
+	output:
+		checkpoint = "results/checkpoints/busco/busco_{species}.done",
 		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
 		blast_output = "results/busco/{species}/run_busco/blast_output.tar.gz",
 		hmmer_output = "results/busco/{species}/run_busco/hmmer_output.tar.gz",
@@ -12,20 +12,21 @@ rule run_busco:
 		short_summary ="results/busco/{species}/run_busco/short_summary_busco.txt",
 		missing_busco_list ="results/busco/{species}/run_busco/missing_busco_list_busco.tsv",
 		single_copy_buscos = directory("results/busco/{species}/run_busco/single_copy_busco_sequences")
-        threads: config["busco"]["threads"]
+	benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
+	threads: config["busco"]["threads"]
 	shadow: "shallow"
-        params:
-                wd = os.getcwd(),
+	params:
+		wd = os.getcwd(),
 		sp = config["busco"]["augustus_species"],
 		additional_params = config["busco"]["additional_parameters"],
 		species = lambda wildcards: wildcards.species
-        singularity:
-                "docker://reslp/busco:3.0.2"
-        shell:
-                """
-                mkdir -p log
+	singularity:
+		"docker://reslp/busco:3.0.2"
+	shell:
+		"""
+		mkdir -p log
 		dir=results/busco/{params.species}
-                # prepare stripped down version auf augustus config path.
+		# prepare stripped down version auf augustus config path.
 		# this is introduced to lower the number of files.
 		mkdir augustus
 		cp -R /opt/conda/config/cgp augustus
@@ -41,9 +42,8 @@ rule run_busco:
 		fi		
 
 		export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
-                echo $AUGUSTUS_CONFIG_PATH
-                run_busco -i {input.assembly} -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
-                
+		echo $AUGUSTUS_CONFIG_PATH
+		run_busco -i {input.assembly} -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
 		# do some cleanup to save space
 		bin/tar_folder.sh {output.blast_output} run_busco/blast_output
 		bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output
@@ -65,102 +65,108 @@ rule run_busco:
 		
 		#touch checkpoint
 		touch {output.checkpoint}
-                """
+		"""
 
 rule busco:
-        input:
-                checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
-        output:
-                "checkpoints/busco.done"
-        shell:
-                """
-                touch {output}
-                """
+	input:
+		checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
+	output:
+		"checkpoints/busco.done"
+	shell:
+		"""
+		touch {output}
+		"""
 
 rule extract_busco_table:
-        input:
-                busco_set = rules.download_busco_set.output.busco_set,
-                busco = rules.busco.output
-        output:
-                busco_table = "results/busco_table/busco_table.txt",
-                checkpoint = "results/checkpoints/extract_busco_table.done"
-        singularity:
-                "docker://continuumio/miniconda3:4.7.10"
-        params:
-                busco_dir = "results/busco/"
-        shell:
-                """
-                python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} > {output.busco_table}
-                echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
-                for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
+	input:
+		busco_set = rules.download_busco_set.output.busco_set,
+		busco = rules.busco.output
+	output:
+		busco_table = "results/busco_table/busco_table.txt",
+		checkpoint = "results/checkpoints/extract_busco_table.done"
+	benchmark:
+		"results/statistics/benchmarks/busco/extract_busco_table.txt"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	params:
+		busco_dir = "results/busco/"
+	shell:
+		"""
+		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} > {output.busco_table}
+		echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
+		for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		touch {output.checkpoint}
-                """
+		"""
 
 rule create_sequence_files:
-        input:
-                busco_table = rules.extract_busco_table.output.busco_table,
-                checkpoint = rules.busco.output
-        output:
-                sequence_dir = directory("results/busco_sequences"),
-                checkpoint = "results/checkpoints/create_sequence_files.done",
+	input:
+		busco_table = rules.extract_busco_table.output.busco_table,
+		checkpoint = rules.busco.output
+	output:
+		sequence_dir = directory("results/busco_sequences"),
+		checkpoint = "results/checkpoints/create_sequence_files.done",
 		statistics = "results/statistics/create_sequence_files.txt"
-        params:
-                cutoff=config["filtering"]["cutoff"],
-                minsp=config["filtering"]["minsp"],
+	benchmark:
+		"results/statistics/benchmarks/busco/create_sequence_files.txt"
+	params:
+		cutoff=config["filtering"]["cutoff"],
+		minsp=config["filtering"]["minsp"],
 		busco_dir = "results/busco",
 		seqtype = config["filtering"]["seq_type"]
-        singularity:
-                "docker://continuumio/miniconda3:4.7.10"
-        conda:
-                "../envs/biopython.yml"
-        shell:
-                """
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"../envs/biopython.yml"
+	shell:
+		"""
 		mkdir -p {output.sequence_dir}
-                python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} > {output.statistics}
+		python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} > {output.statistics}
 		touch {output.checkpoint}   
 		"""
 
 rule remove_duplicated_sequence_files:
-        input:
-                checkpoint = rules.create_sequence_files.output.checkpoint
-        output:
-                checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
+	input:
+		checkpoint = rules.create_sequence_files.output.checkpoint
+	output:
+		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
-        singularity:
-                "docker://continuumio/miniconda3:4.7.10"
-        conda:
-                "../envs/biopython.yml"
-        params:
-                wd = os.getcwd(),
+	benchmark:
+		"results/statistics/benchmarks/busco/remove_duplicated_sequence_files.txt"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"../envs/biopython.yml"
+	params:
+		wd = os.getcwd(),
 		dupseq=config["filtering"]["dupseq"]
-        shell:
-                """
-                if [[ -d results/busco_sequences_deduplicated ]]; then
-                        rm -rf results/busco_sequences_deduplicated
-                fi
-                mkdir results/busco_sequences_deduplicated
+	shell:
+		"""
+		if [[ -d results/busco_sequences_deduplicated ]]; then
+			rm -rf results/busco_sequences_deduplicated
+		fi
+		mkdir results/busco_sequences_deduplicated
 		
 		rm -f {output.statistics}
 		
 		if [[ {params.dupseq} == "persample" ]];
-                	then
-                		echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/statistics/runlog.txt
-			else
-				echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/statistics/runlog.txt
+		then
+			echo "$(date) - BUSCO files will be filtered on a per-sample basis. This could lower the number of species in the final tree." >> results/statistics/runlog.txt
+		else
+			echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/statistics/runlog.txt
 		fi
 		
-                for file in results/busco_sequences/*.fas;
-                do
+		for file in results/busco_sequences/*.fas;
+			do
 			if [[ {params.dupseq} == "persample" ]];
 			then
 				# per sequence filtering
 				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" --per_sample >> {output.statistics}
 			else
 				# whole alignment filtering
-                        	python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" >> {output.statistics}
-                	fi
+				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" >> {output.statistics}
+			fi
 		done
-                echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/statistics/runlog.txt
-                echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
-                touch {output.checkpoint}
-                """
+		echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
+		touch {output.checkpoint}
+		"""

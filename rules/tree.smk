@@ -7,6 +7,8 @@ if "raxml" in config["tree"]["method"]:
 			alignment = "results/phylogeny/concat.fas",
 			partitions = "results/phylogeny/partitions.txt",
 			phylip_alignment = "results/phylogeny/concat.phy"
+		benchmark:
+			"results/statistics/benchmarks/tree/concatenate.txt"
 		params:
 			wd = os.getcwd(),
 			ids = config["species"],
@@ -45,6 +47,8 @@ if "raxml" in config["tree"]["method"]:
 			alignment = "results/phylogeny/raxmlng/concat.fas",
 			partitions = "results/phylogeny/raxmlng/partitions.txt",
 			statistics = "results/statistics/raxml_statistics.txt"
+		benchmark:
+			"results/statistics/benchmarks/tree/raxmlng.txt"
 		singularity:
 			"docker://reslp/raxml-ng:1.0.0"
 		params:
@@ -64,12 +68,12 @@ if "raxml" in config["tree"]["method"]:
 			"""
 else:
 	rule raxmlng:
-                output:
-                        checkpoint = "results/checkpoints/raxmlng.done"
-                shell:
-                        """
-                        touch {output.checkpoint}
-                        """
+		output:
+			checkpoint = "results/checkpoints/raxmlng.done"
+		shell:
+			"""
+			touch {output.checkpoint}
+			"""
 
 if "iqtree" in config["tree"]["method"]:
 	rule iqtree:
@@ -78,6 +82,8 @@ if "iqtree" in config["tree"]["method"]:
 		output:
 			checkpoint = "results/checkpoints/iqtree.done",
 			statistics = "results/statistics/iqtree_statistics.txt"
+		benchmark:
+			"results/statistics/benchmarks/tree/iqtree.txt"
 		singularity:
 			"docker://reslp/iqtree:2.0.7"
 		params:
@@ -137,11 +143,11 @@ if "iqtree" in config["tree"]["method"]:
 			"""
 else:  #checkpoint files need to be created anyway
 	rule iqtree:
-        	output:
-                	checkpoint = "results/checkpoints/iqtree.done"
-        	shell:
-                	"""
-                	touch {output.checkpoint}
+		output:
+			checkpoint = "results/checkpoints/iqtree.done"
+		shell:
+			"""
+			touch {output.checkpoint}
 			"""
 
 if "phylobayes" in config["tree"]["method"]:
@@ -191,13 +197,12 @@ else:
 			touch {output.checkpoint}
 			"""
 	rule merge_phylobayes_chains:
-                input:
-                        expand("results/checkpoints/phylobayes_chain{chain}.done", chain = chains)
-                output:
-                        checkpoint = "results/checkpoints/merge_phylobayes_chains.dome"
-                shell:
-                        """
-                        touch {output.checkpoint}
-                        """
-
+		input:
+			expand("results/checkpoints/phylobayes_chain{chain}.done", chain = chains)
+		output:
+			checkpoint = "results/checkpoints/merge_phylobayes_chains.dome"
+		shell:
+			"""
+			touch {output.checkpoint}
+			"""
 

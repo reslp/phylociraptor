@@ -5,6 +5,8 @@ rule iqtree_gene_trees:
 	output:
 		checkpoint = "results/checkpoints/gene_trees/{busco}_genetree.done",
 		trees = "results/phylogeny/gene_trees/{busco}/{busco}_gt.treefile"
+	benchmark:
+		"results/statistics/benchmarks/speciestree/iqtree_gene_tree_{busco}.txt"
 	params:
 		wd = os.getcwd(),
 		maxmem = config["iqtree"]["maxmem"],
@@ -60,6 +62,8 @@ rule astral_species_tree:
 	output:
 		species_tree = "results/phylogeny/astral/species_tree.tre",
 		checkpoint = "results/checkpoints/astral_species_tree.done"
+	benchmark:
+		"results/statistics/benchmarks/speciestree/astral_species_tree.txt"
 	params:
 		wd = os.getcwd()
 	singularity:

@@ -36,23 +36,25 @@ BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fa
 
 
 rule modeltest:
-        input:
-                rules.part2.output,
+	input:
+		rules.part2.output,
 		alignment = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
-        output:
-                logfile = "results/modeltest/{busco}/{busco}.log",
-                checkpoint = "results/checkpoints/modeltest/{busco}_modeltest.done"
-        params:
-                wd = os.getcwd(),
+	output:
+		logfile = "results/modeltest/{busco}/{busco}.log",
+		checkpoint = "results/checkpoints/modeltest/{busco}_modeltest.done"
+	benchmark:
+		"results/statistics/benchmarks/model/modeltest_{busco}.txt"
+	params:
+		wd = os.getcwd(),
 		busco = "{busco}"
-        singularity:
-                "docker://reslp/iqtree:2.0.7"
-        threads: config["iqtree"]["threads"]
-        shell:
-                """
-                iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{params.busco}/{params.busco} -nt AUTO -ntmax {threads}
-                touch {output.checkpoint}
-                """
+	singularity:
+		"docker://reslp/iqtree:2.0.7"
+	threads: config["iqtree"]["threads"]
+	shell:
+		"""
+		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{params.busco}/{params.busco} -nt AUTO -ntmax {threads}
+		touch {output.checkpoint}
+		"""
 
 rule aggregate_best_models:
 	input:
@@ -61,6 +63,8 @@ rule aggregate_best_models:
 	output:
 		best_models = "results/modeltest/best_models.txt",
 		checkpoint = "results/checkpoints/modeltest/aggregate_best_models.done"
+	benchmark:
+		"results/statistics/benchmarks/model/aggregate_best_models.txt"
 	params:
 		wd = os.getcwd()
 	shell:

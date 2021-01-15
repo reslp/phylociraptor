@@ -3,25 +3,27 @@ import subprocess
 BUSCOS, = glob_wildcards("results/busco_sequences_deduplicated/{busco}_all.fas")
 
 rule align:
-        input:
-                checkpoint = rules.remove_duplicated_sequence_files.output.checkpoint,
-                sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
-        output:
-                alignment = "results/alignments/{busco}_aligned.fas",
-                checkpoint = "results/checkpoints/mafft/{busco}_aligned.done"
-        singularity:
-                "docker://continuumio/miniconda3:4.7.10"
-        conda:
-                "../envs/mafft.yml"
-        threads:
-                config["alignment"]["threads"]
-        params:
-                config["alignment"]["parameters"]
-        shell:
-                """
-                mafft {params} {input.sequence_file} > {output.alignment}
-                touch {output.checkpoint}
-                """
+	input:
+		checkpoint = rules.remove_duplicated_sequence_files.output.checkpoint,
+		sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
+	output:
+		alignment = "results/alignments/{busco}_aligned.fas",
+		checkpoint = "results/checkpoints/mafft/{busco}_aligned.done"
+	benchmark:
+		"results/statistics/benchmarks/align/align_{busco}.txt"
+	singularity:
+		"docker://continuumio/miniconda3:4.7.10"
+	conda:
+		"../envs/mafft.yml"
+	threads:
+		config["alignment"]["threads"]
+	params:
+		config["alignment"]["parameters"]
+	shell:
+		"""
+		mafft {params} {input.sequence_file} > {output.alignment}
+		touch {output.checkpoint}
+		"""
 
 if config["trimming"]["method"] == "trimal":
 	rule trim:
@@ -30,6 +32,8 @@ if config["trimming"]["method"] == "trimal":
 		output:
 			trimmed_alignment = "results/trimmed_alignments/{busco}_aligned_trimmed.fas",
 			checkpoint = "results/checkpoints/trimmed/{busco}_trimmed.done"
+		benchmark:
+			"results/statistics/benchmarks/align/trim_{busco}.txt"
 		params:
 			trimmer = config["trimming"]["parameters"]
 		singularity:
@@ -48,6 +52,8 @@ elif config["trimming"]["method"] == "aliscore":
 		output:
 			trimmed_alignment = "results/trimmed_alignments/{busco}_aligned_trimmed.fas",
 			checkpoint = "results/checkpoints/trimmed/{busco}_trimmed.done"
+		benchmark:
+			"results/statistics/benchmarks/align/trim_{busco}.txt"
 		params:
 			trimmer = config["trimming"]["parameters"],
 			busco = "{busco}",
@@ -94,10 +100,12 @@ elif config["trimming"]["method"] == "aliscore":
 
 
 rule get_all_trimmed_files:
-        input:
-                expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
-        output:
-                checkpoint = "results/checkpoints/get_all_trimmed_files.done"
+	input:
+		expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
+	output:
+		checkpoint = "results/checkpoints/get_all_trimmed_files.done"
+	benchmark:
+		"results/statistics/benchmarks/align/get_all_trimmed_files.txt"
 	singularity:
 		"docker://continuumio/miniconda3:4.7.10"
 	conda:
@@ -106,7 +114,7 @@ rule get_all_trimmed_files:
 		wd = os.getcwd(),
 		trimming_method = config["trimming"]["method"]
 	shell:
-                """
+		"""
 		if [[ -d results/filtered_alignments ]]; then
 			rm -rf results/filtered_alignments
 		fi
@@ -115,7 +123,7 @@ rule get_all_trimmed_files:
 		for file in results/trimmed_alignments/*.fas;
 		do
 			if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt 3 ]]; then
-                                        echo "$(date) - File $file contains less than 3 sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/statistics/runlog.txt
+				echo "$(date) - File $file contains less than 3 sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/statistics/runlog.txt
 					continue
 			fi	
 			if [[ -s {params.wd}/$file ]]; then 
@@ -131,32 +139,32 @@ rule get_all_trimmed_files:
 		"""
 
 rule get_alignment_statistics:
-        input:
-                rules.get_all_trimmed_files.output.checkpoint
-        output:
-                statistics_alignment = "results/statistics/statistics_alignments.txt",
+	input:
+		rules.get_all_trimmed_files.output.checkpoint
+	output:
+		statistics_alignment = "results/statistics/statistics_alignments.txt",
 		statistics_trimmed = "results/statistics/statistics_trimmed.txt",
 		statistics_filtered = "results/statistics/statistics_filtered.txt",
 		overview_statistics = "results/statistics/align_trim_overview_statistics.txt"
-        params:
-                ids = config["species"],
-                datatype = config["filtering"]["seq_type"],
+	params:
+		ids = config["species"],
+		datatype = config["filtering"]["seq_type"],
 		alignment_method = config["alignment"]["method"],
 		alignment_params = config["alignment"]["parameters"],
 		trimming_method = config["trimming"]["method"],
 		trimming_params = config["trimming"]["parameters"]
-        singularity: "docker://reslp/concat:0.21"
-        shell:
-                """
+	singularity: "docker://reslp/concat:0.21"
+	shell:
+		"""
 		tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/^"//g' | sed 's/"$//g' | sed 's/ /_/g' > results/statistics/ids_alignments.txt
-                # here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
+		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
 		concat.py -d results/alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
 		mv results/statistics/statistics.txt {output.statistics_alignment}
 		concat.py -d results/trimmed_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
-                mv results/statistics/statistics.txt {output.statistics_trimmed}
+		mv results/statistics/statistics.txt {output.statistics_trimmed}
 		concat.py -d results/filtered_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
-                mv results/statistics/statistics.txt {output.statistics_filtered}
-               	echo "Alignment method:\t{params.alignment_method}" > {output.overview_statistics}
+		mv results/statistics/statistics.txt {output.statistics_filtered}
+		echo "Alignment method:\t{params.alignment_method}" > {output.overview_statistics}
 		echo "Alignment parameters:\t{params.alignment_params}" >> {output.overview_statistics}
 		echo "Trimming method:\t{params.trimming_method}" >> {output.overview_statistics}
 		echo "Trimming parameters:\t{params.trimming_params}" >> {output.overview_statistics}
