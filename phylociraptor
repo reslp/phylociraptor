@@ -4,7 +4,7 @@
 set -e
 
 usage() {
-        echo "Welcome to phylociraptor. The rapid pyhlogenomic tree calculator pipeline."
+        echo "Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline."
         echo
         echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
         echo
@@ -17,8 +17,8 @@ usage() {
 	echo
 	echo "  --add-genomes will check for and add  additional genomes (in case they were added to the config files)." 
 	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
-	echo "  --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run"
-	echo "  --setup This flag will download the genomes and prepare the pipeline to run."
+	echo "  --report This creates an overview report of the run."
+	echo "  --setup Will download the genomes and prepare the pipeline to run."
 	echo "  --remove Resets the pipeline. Will delete all results, logs and checkpoints."
 	echo
         1>&2; exit 1; }
