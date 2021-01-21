@@ -148,6 +148,6 @@ cmdline.append(jobscript)
 print("\nSubmission command:", file=sys.stderr)
 print(" ".join(cmdline), file=sys.stderr)
 print
-#os.system(" ".join(cmdline))
+os.system(" ".join(cmdline))
 
 print("---------------------------------------------------------------------", file=sys.stderr)
