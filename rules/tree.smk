@@ -51,8 +51,8 @@ if "raxml" in config["tree"]["method"]:
 			"results/statistics/benchmarks/tree/raxmlng.txt"
 		singularity:
 			"docker://reslp/raxml-ng:1.0.0"
+		threads: config["raxmlng"]["threads"]
 		params:
-			threads = config["raxmlng"]["threads"],
 			bs = config["raxmlng"]["bootstrap"],
 			wd = os.getcwd()
 		shell:
@@ -62,7 +62,7 @@ if "raxml" in config["tree"]["method"]:
 			cd results/phylogeny/raxmlng
 			# this is just a placeholder:
 			echo "RAXML STATISTICS - STILL A PLACEHOLDER" > {params.wd}/{output.statistics}
-			raxml-ng --msa concat.fas --prefix raxmlng -threads {params.threads} --bs-trees {params.bs} --model partitions.txt --all
+			raxml-ng --msa concat.fas --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model partitions.txt --all
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""

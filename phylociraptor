@@ -60,6 +60,7 @@ while getopts ":v:t:c:s:m:-:" option;
                         ?) echo "Illegal option --$OPTARG\n" >&2 usage;;
                 esac
         done
+#SM_ARGS="--quiet"
 if [ $OPTIND -eq 1 ]; then usage; fi
 echo $SETUP
 if [[ $REMOVE == "TRUE" ]]; then
