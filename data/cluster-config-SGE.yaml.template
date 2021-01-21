@@ -1,78 +1,72 @@
+# Configuration file for SGE (Sun Grid Engine) jobs shedulers. Make sure to set correctly according to your cluster configuration.
 __default__:
-   ntasks: 1
    N: default
-   queue: mpi
-   mem: 4G
-   output: $(pwd)/log/sauron-%j.out
-   error: $(pwd)/log/sauron-%j.err
-   pe: mpi1node
+   o: $(pwd)/log/sauron-%j.out
+   e: $(pwd)/log/sauron-%j.err
+   q: mpi # change this according to your cluster configuration
+   h_vmem: 4G # change this according to your cluster configuration. Make sure if you want to use h_vmem, mem, ... This has to be changed for all rules accordingly
+   pe: mpi1node # change this according your cluster configuration
 busco:
    N: BUSCO 
 run_busco:
    N: rBUSCO
-   ntasks: 16
-   mem: 2G
+   h_vmem: 2G
 extract_busco_table:
    N: exBUSCO
-   mem: 12G
+   h_vmem: 12G
 create_sequence_files:
    N: exSeqfiles
-   mem: 12G
+   h_vmem: 12G
 remove_duplicated_sequence_files:
    N: remdupseq
-   mem: 12G
+   h_vmem: 12G
 get_all_trimmed_files:
    N: gettrimfiles
-   mem: 12G
+   h_vmem: 12G
 align:
    N: align
-   mem: 10G
+   h_vmem: 10G
 get_alignment_statistics:
    N: alignstats
 trim:
    N: trim
-   mem: 10G
+   h_vmem: 10G
 iqtree:
    N: iqtree
-   mem: 16G
-   ntasks: 16
+   h_vmem: 16G
 concatenate:
    N: concat
-   mem: 8G
+   h_vmem: 8G
 modeltest:
    N: mt
-   mem: 8G
-   ntasks: 8
+   h_vmem: 8G
 aggregate_best_models:
    N: aggmodels
 part_modeltest:
    N: part_modeltest
 raxmlng:
    N: raxmlng
-   mem: 8G
-   ntasks: 16
+   h_vmem: 8G
 phylobayes:
    N: phylobayes
-   mem: 16G
-   ntasks: 30
+   h_vmem: 16G
 merge_phylobayes_chains:
    N: merge_phylobayes
-   mem: 4G
+   h_vmem: 4G
 part1:
    N: part1
-   mem: 4G
+   h_vmem: 4G
 part2:
    N: part2
-   mem: 4G
+   h_vmem: 4G
 part3:
    N: part3
-   mem: 4G
+   h_vmem: 4G
 astral_species_tree:
    N: astral
-   mem: 48G
+   h_vmem: 48G
 iqtree_gene_trees:
    N: iqtgt
-   mem: 2G
-   ntasks: 16
+   h_vmem: 2G
 aggregate_gene_trees:
    N: agg_genetrees
