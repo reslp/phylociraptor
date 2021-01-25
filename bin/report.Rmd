@@ -187,7 +187,7 @@ results/busco
 
 **Runtime Statistics:**
 
-|        Total (cumulative) runtime: `r dhms(sum(busco_bench_df$seconds))`
+|        Total (cumulative) runtime: `r if (busco_bench_df != "not_found") { dhms(sum(busco_bench_df$seconds)) }`
 
 ```{r, echo=F, message=F, warning=F, fig.width=8}
 if (busco_bench_df != "not_found") {

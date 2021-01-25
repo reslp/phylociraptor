@@ -166,6 +166,8 @@ rule remove_duplicated_sequence_files:
 				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/busco_sequences_deduplicated" >> {output.statistics}
 			fi
 		done
+		#gather runtime statistics
+		for file in $(ls results/statistics/benchmarks/busco/); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
 		echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
 		touch {output.checkpoint}
