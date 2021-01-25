@@ -14,10 +14,27 @@ library(knitr)
 library(ggplot2)
 library(viridis)
 library(readr)
-
-#library(reshape2)
+library(plotly)
+library(stringr)
+library(data.table)
+#library(ggpubr)
 
 parsimony_cutoff <- 10
+
+
+# function to convert seconds to better formated time:
+# from here: https://stackoverflow.com/a/51156986
+
+dhms <- function(t){
+    paste(t %/% (60*60*24), "days"
+         ,paste(formatC(t %/% (60*60) %% 24, width = 2, format = "d", flag = "0")
+               ,formatC(t %/% 60 %% 60, width = 2, format = "d", flag = "0")
+               ,formatC(t %% 60, width = 2, format = "d", flag = "0")
+               ,sep = ":"
+               )
+         ,sep=" ")
+}
+
 ```
 
 ```{r checkinput_general, echo=FALSE}
@@ -43,6 +60,15 @@ best_models_file <- "../results/modeltest/best_models.txt"
 tree_statistics_file <- "../results/statistics/tree_statistics.txt"
 speciestree_statistics_file <- "../results/statistics/speciestree_statistics.txt"
 runlog_file <- "../results/statistics/runlog.txt"
+
+#read benchmarking results
+
+benchmarkfile_run_busco <- "../results/statistics/benchmark_all_busco_runs.bench"
+
+
+# global variables:
+
+base_size <- 12
 ```
 
 
@@ -129,9 +155,21 @@ if (file.exists(busco_overview_file)){
   busco_overview <- read.table(busco_overview_file, sep="=", header=F)
   busco_set <- busco_overview$V2[busco_overview$V1 == "name"]
   nbuscos <- busco_overview$V2[busco_overview$V1 == "number_of_BUSCOs"]
+  
+  
 } else {
   busco_set <- "unknown (maybe BUSCO set was not downloaded yet)"
   nbuscos <- "unknown (maybe BUSCO set was not downloaded yet)"
+}
+
+if (file.exists(benchmarkfile_run_busco)) {
+  busco_bench_df <- read.table(benchmarkfile_run_busco, sep="\t", header=F)
+  colnames(busco_bench_df) <- c("job", "seconds", "time", "max_vss", "max_vms", "max_uss", "max_pss", "io_in", "io_out", "mean_load")
+  busco_bench_df$minutes <- busco_bench_df$seconds/60
+  busco_bench_df$job <- str_replace(busco_bench_df$job, "run_busco_", "")
+  busco_bench_df$job <- str_replace(busco_bench_df$job, ".txt", "")
+} else {
+  busco_bench_df <- "not_found"
 }
 
 ```
@@ -147,43 +185,48 @@ results/busco
 
 **Number of BUSCO genes:** `r nbuscos`
 
-```{r busco_stats, echo=FALSE, out.height=500, message=F}
+**Runtime Statistics:**
+
+|        Total (cumulative) runtime: `r dhms(sum(busco_bench_df$seconds))`
+
+```{r, echo=F, message=F, warning=F, fig.width=8}
+if (busco_bench_df != "not_found") {
+  nrows <- nrow(busco_bench_df)
+  busco_bench_df <- busco_bench_df[ order(row.names(busco_bench_df)), ]
+  p <- ggplot(busco_bench_df, aes(x=minutes, y=job)) +geom_bar(stat="identity") +theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
+  
+  #+theme_bw()+ theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())
+  
+  }
+
+```
+
+
+```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F}
 #if (file.exists("../results/statistics/busco_summary.txt"))
 if (file.exists(busco_summary_file))
 {
   data <- read.table(busco_summary_file, sep="\t", header=T)
+  data <- data[ order(row.names(data)), ]
+  data$total <- NULL
+  data$complete <- NULL
+  nrows <- nrow(data)
+  mdata <- reshape2::melt(data, id.vars="species")
+
+  colnames(mdata) <- c("species", "BUSCO category", "no. of genes")
+  p2 <- ggplot(mdata, aes_string(fill="`BUSCO category`", x="`no. of genes`", y="`species`")) +geom_bar(position="stack", stat="identity")+theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"),,axis.text.y=element_blank())+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))#+ggtitle(paste("Overview of BUSCO results (total genes=", 
+
+if (busco_bench_df != "not_found") {
+  subplot(ggplotly(p, height=15*nrows), ggplotly(p2, height=15*nrows))
+} else {
+  ggplotly(p2, height=15*nrows)
+}
   
-  # tests to use the inline graphics functionality of kableExtra, this is not working yet.
-  #data2 <- data
-  #data2$total <- NULL
-  #data2$complete <- NULL
-  #mdata <- melt(as.matrix(data2))
-  
-  #pl <- list()
-  # get_busco_plot <- function(dat){
-  #   base_size=12
-  #   i=0
-  #   for (sp in dat) {
-  #   sp <- as.data.frame(sp)
-  #   colnames(sp) <- c("species", "single_copy", "duplicated", "fragmented", "missing")
-  #   sp <- melt(sp)
-  #   colnames(sp) <- c("species", "category", "genes")
-  #   #print(sp)
-  #   p2 <- ggplot(sp, aes_string(fill="category", x="genes", y="species")) +geom_bar(position="stack", stat="identity")+theme_void()+theme(legend.position = "none")
-  #   #print(p2)
-  #   #  theme(axis.ticks.x = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8,angle=-45, hjust = 0,vjust=1, colour = "grey50"))+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))
-  #   dat[i] <- p2
-  #   }
-  # return(dat)
-  # }
-  #data$overview <- ""
-  #s <- split(data2[2:5], data2$species)
-  #print(s)
-  
-  data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+  #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 } else {
   cat("no information on BUSCO runs found. Did you run phylociraptor -m busco?")
 }
+
 
 ```
 
