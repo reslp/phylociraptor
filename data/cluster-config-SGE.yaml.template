@@ -1,0 +1,72 @@
+# Configuration file for SGE (Sun Grid Engine) jobs shedulers. Make sure to set correctly according to your cluster configuration.
+__default__:
+   N: default
+   o: $(pwd)/log/sauron-%j.out
+   e: $(pwd)/log/sauron-%j.err
+   q: mpi # change this according to your cluster configuration
+   h_vmem: 4G # change this according to your cluster configuration. Make sure if you want to use h_vmem, mem, ... This has to be changed for all rules accordingly
+   pe: mpi1node # change this according your cluster configuration
+busco:
+   N: BUSCO 
+run_busco:
+   N: rBUSCO
+   h_vmem: 2G
+extract_busco_table:
+   N: exBUSCO
+   h_vmem: 12G
+create_sequence_files:
+   N: exSeqfiles
+   h_vmem: 12G
+remove_duplicated_sequence_files:
+   N: remdupseq
+   h_vmem: 12G
+get_all_trimmed_files:
+   N: gettrimfiles
+   h_vmem: 12G
+align:
+   N: align
+   h_vmem: 10G
+get_alignment_statistics:
+   N: alignstats
+trim:
+   N: trim
+   h_vmem: 10G
+iqtree:
+   N: iqtree
+   h_vmem: 16G
+concatenate:
+   N: concat
+   h_vmem: 8G
+modeltest:
+   N: mt
+   h_vmem: 8G
+aggregate_best_models:
+   N: aggmodels
+part_modeltest:
+   N: part_modeltest
+raxmlng:
+   N: raxmlng
+   h_vmem: 8G
+phylobayes:
+   N: phylobayes
+   h_vmem: 16G
+merge_phylobayes_chains:
+   N: merge_phylobayes
+   h_vmem: 4G
+part1:
+   N: part1
+   h_vmem: 4G
+part2:
+   N: part2
+   h_vmem: 4G
+part3:
+   N: part3
+   h_vmem: 4G
+astral_species_tree:
+   N: astral
+   h_vmem: 48G
+iqtree_gene_trees:
+   N: iqtgt
+   h_vmem: 2G
+aggregate_gene_trees:
+   N: agg_genetrees
