@@ -8,7 +8,7 @@ species1 <- gsub("_", " ", species)
 print("GENOME DOWNLOAD: Localtion for genome downloads:")
 print(file.path(wd, "results", "downloaded_genomes"))
 cat("\n\n")
-
+delay <- 2 # delay in seconds to prevent hitting the NCBI API access limit
 all_species <- unlist(strsplit(species, ","))
 
 successful <- c()
@@ -89,11 +89,14 @@ for (sp in all_species) {
   print("GENOME DOWNLOAD: Checking genome availibility...")
   if (is.genome.available(db="genbank", organism=sp_subbed) == TRUE) {
     # get information on available genomes:
+    Sys.sleep(delay) # to second delay to prevent hitting the NCBI API access limit
     genome_data <- is.genome.available(db="genbank", organism=sp_subbed, details=TRUE)
     # check how many genomes:
+    Sys.sleep(delay) # to second delay to prevent hitting the NCBI API access limit
     if (nrow(genome_data)==1) {
        print(paste("GENOME DOWNLOAD: Found a single genome for ", sp, ". Will download this genome now.",sep=""))
        mess <- messagereader(getGenome ,db="genbank", organism=sp_subbed, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
+       Sys.sleep(delay) # to second delay to prevent hitting the NCBI API access limit
        my_message <- paste(mess$messages, collapse="\n")
        parse_download_message(my_message, sp_subbed, sp)
        #print(my_message)
