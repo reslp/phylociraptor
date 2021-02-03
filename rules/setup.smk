@@ -9,6 +9,8 @@ rule download_genomes:
 		"results/statistics/benchmarks/setup/download_genomes.txt"
 	singularity:
 		"docker://reslp/biomartr:0.9.2_exp"
+	log:
+		"log/download_genomes.log"
 	params:
 		species = get_species_names,
                 wd = os.getcwd()
@@ -17,7 +19,7 @@ rule download_genomes:
 		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
 		if [[ "{params.species}" != "" ]]; then
 			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
-			Rscript bin/genome_download.R {params.species} {params.wd}
+			Rscript bin/genome_download.R {params.species} {params.wd} 2>&1 | tee {log}
 		else
 			echo "(date) - Setup: Now species to download." >> results/statistics/runlog.txt
 		fi
