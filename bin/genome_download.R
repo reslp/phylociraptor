@@ -8,7 +8,7 @@ species1 <- gsub("_", " ", species)
 print("GENOME DOWNLOAD: Localtion for genome downloads:")
 print(file.path(wd, "results", "downloaded_genomes"))
 cat("\n\n")
-delay <- 2 # delay in seconds to prevent hitting the NCBI API access limit
+delay <- 1 # delay in seconds to prevent hitting the NCBI API access limit
 all_species <- unlist(strsplit(species, ","))
 
 successful <- c()
@@ -43,18 +43,18 @@ sp_name <- gsub(" ", "_", sp_name)
 #print(sp_sub)
 #print(sp)
 if (grepl("Unzipping downloaded file", my_message, fixed=T)) {
-         print(paste("GENOME DOWNLOAD: Download for ", sp, "  was successfull", sep=""))
+         print(paste("GENOME DOWNLOAD: Download for ", sp, " was successfull", sep=""))
          path <- file.path(wd, "results","downloaded_genomes",paste(sp_sub,"_genomic_genbank.fna",sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name, path, "successful")
          successful <<- c(sp_name, successful)
          return
        } else if (grepl("no genome file could be found", my_message, fixed=T) == TRUE) {
-         print(paste("GENOME DOWNLOAD: Download for ", sp, "failed", sep=""))
+         print(paste("GENOME DOWNLOAD: Download for ", sp, " failed", sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
          return
        } else if (!file.exists(file.path(wd, "results","downloaded_genomes",paste(sp_sub,"_genomic_genbank.fna",sep="")))){
-         print(paste("GENOME DOWNLOAD: It seems no assembly for ", sp, "  exists.", sep=""))
+         print(paste("GENOME DOWNLOAD: It seems no assembly for ", sp, " exists.", sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
          return
@@ -105,10 +105,26 @@ for (sp in all_species) {
            print("GENOME DOWNLOAD: All available genomes have the same taxid. Will search for available reference genome...")
            if ("reference genome" %in% genome_data$refseq_category) { # reference genome found
               print(paste("GENOME DOWNLOAD: Reference genome is available for ", sp, ". Will download this", sep=""))
-              # add code here
-           } else {
+              accession <- genome_data[genome_data$refseq_category=="reference genome",]$assembly_accession[1]
+              mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
+              my_message <- paste(mess$messages, collapse="\n")
+              parse_download_message(my_message, accession, sp)
+              next
+           } else if ("representative genome" %in% genome_data$refseq_category) {
+              print("GENOME DOWNLOAD: Representative genome found. Will download genome.")
+              accession <- genome_data[genome_data$refseq_category=="representative genome",]$assembly_accession[1]
+              mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
+              my_message <- paste(mess$messages, collapse="\n")
+              parse_download_message(my_message, sp_subbed, sp)
+              next
+           }
+           else {
               print(paste("GENOME DOWNLOAD: No genome is labeled as reference genome for ", sp, ". Will download the newest one.",sep=""))
-              # add code here
+              accession <- genome_data$assembly_accession[length(genome_data$seq_rel_date)][1]
+              mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
+              my_message <- paste(mess$messages, collapse="\n")
+              parse_download_message(my_message, sp_subbed, sp)
+              next
            }  
         } else { # if there are multiple taxids proceed here
           print("GENOME DOWNLOAD: Multple taxids are present. Will try to resolve this...")
@@ -117,7 +133,7 @@ for (sp in all_species) {
           taxid <- class[[1]][class[[1]]$name == sp_subbed,]$id
           #print(taxid)
           for (x in 1:length(unique(genome_data$taxid))) {
-               print(toString(unique(genome_data$taxid)[x]))
+               #print(toString(unique(genome_data$taxid)[x]))
                if (taxid == toString(unique(genome_data$taxid)[x])) {
                   print(paste("GENOME DOWNLOAD: Correct taxid for ",sp, " seems to be ", taxid,". Will search for reference genome now", sep=""))
                   genome_data2 <- genome_data[genome_data$taxid==unique(genome_data$taxid)[x],]
@@ -149,6 +165,8 @@ for (sp in all_species) {
     }
   } else {
   print(paste("GENOME DOWNLOAD:Genome for ", sp, " is not available on NCBI genbank and could therefore not be downloaded.", sep=""))
+  species_data[nrow(species_data)+1, ] <<- c(sp,"not_downloaded", "failed")
+  failed <- c(sp, failed)
   }
 cat("\n\n")
 }
