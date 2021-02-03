@@ -127,21 +127,21 @@ for (sp in all_species) {
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
                      parse_download_message(my_message, accession, sp)  
-                     next
+                     break 
                   } else if (is.na(genome_data2[genome_data2$refseq_category=="representative genome",]$assembly_accession[1]) == FALSE) {
                      print("GENOME DOWNLOAD: Representative genome found. Will download genome.")
                      accession <- genome_data2[genome_data2$refseq_category=="representative genome",]$assembly_accession[1] 
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
                      parse_download_message(my_message, sp_subbed, sp)
-                     next
+                     break
                   } else {
                      print("GENOME DOWNLOAD: Will download genome latest genome.")
                      accession <- genome_data2$assembly_accession[length(genome_data2$seq_rel_date)][1]
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
                      parse_download_message(my_message, sp_subbed, sp)
-                     next
+                     break
                   }
                }
 	  }
