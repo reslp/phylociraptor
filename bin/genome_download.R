@@ -8,7 +8,7 @@ species1 <- gsub("_", " ", species)
 print("GENOME DOWNLOAD: Localtion for genome downloads:")
 print(file.path(wd, "results", "downloaded_genomes"))
 cat("\n\n")
-delay <- 1 # delay in seconds to prevent hitting the NCBI API access limit
+delay <- 2 # delay in seconds to prevent hitting the NCBI API access limit
 all_species <- unlist(strsplit(species, ","))
 
 successful <- c()
@@ -52,16 +52,22 @@ if (grepl("Unzipping downloaded file", my_message, fixed=T)) {
          print(paste("GENOME DOWNLOAD: Download for ", sp, " failed", sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
+         print("GENOME DOWNLOAD: Message from biomartr:")
+         print(my_message)
          return
        } else if (!file.exists(file.path(wd, "results","downloaded_genomes",paste(sp_sub,"_genomic_genbank.fna",sep="")))){
          print(paste("GENOME DOWNLOAD: It seems no assembly for ", sp, " exists.", sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
+         print("GENOME DOWNLOAD: Message from biomartr:")
+         print(my_message)
          return
        } else {
          print(paste("GENOME DOWNLOAD: An unknown error occurred during genome download for ", sp, sep=""))
          species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
+         print("GENOME DOWNLOAD: Message from biomartr:")
+         print(my_message)
          return
        }
 }
@@ -129,7 +135,7 @@ for (sp in all_species) {
               }
               mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
               my_message <- paste(mess$messages, collapse="\n")
-              parse_download_message(my_message, sp_subbed, sp)
+              parse_download_message(my_message, accession, sp)
               next
            }
            else {
@@ -140,7 +146,7 @@ for (sp in all_species) {
               }
               mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
               my_message <- paste(mess$messages, collapse="\n")
-              parse_download_message(my_message, sp_subbed, sp)
+              parse_download_message(my_message, accession, sp)
               next
            }  
         } else { # if there are multiple taxids proceed here
@@ -172,7 +178,7 @@ for (sp in all_species) {
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
-                     parse_download_message(my_message, sp_subbed, sp)
+                     parse_download_message(my_message, accession, sp)
                      break
                   } else {
                      print("GENOME DOWNLOAD: Will download genome latest genome.")
@@ -182,7 +188,7 @@ for (sp in all_species) {
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
-                     parse_download_message(my_message, sp_subbed, sp)
+                     parse_download_message(my_message, accession, sp)
                      break
                   }
                }
