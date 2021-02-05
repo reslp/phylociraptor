@@ -48,7 +48,7 @@ rule rename_assemblies:
 			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
 				continue
 			else
-				link=$(tail -n +2 "{input.overview}" | grep "$spe" | awk -F',' '{{print $2}}')
+				link=$(tail -n +2 "{input.overview}" | grep "^$spe," | awk -F',' '{{print $2}}')
 				if [[ ! -f "$link" ]]; then
 					echo "$spe" >> {output.statistics} 
 					continue
