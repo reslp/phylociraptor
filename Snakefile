@@ -5,7 +5,7 @@ wd = os.getcwd()
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
-print("No. of samples: ", len(samples))
+#print("No. of samples: ", len(samples))
 	
 def get_species_names(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
@@ -53,8 +53,8 @@ rule all:
 rule setup:
 	input:
 		"results/checkpoints/download_genomes.done",
-		"results/checkpoints/download_busco_set.done",
-		"results/checkpoints/prepare_augustus.done",
+		#"results/checkpoints/download_busco_set.done",
+		#"results/checkpoints/prepare_augustus.done",
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)

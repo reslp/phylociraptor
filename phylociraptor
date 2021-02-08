@@ -4,7 +4,7 @@
 set -e
 
 usage() {
-        echo "Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline."
+        echo "Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline. Git commit: $commit"
         echo
         echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
         echo
@@ -15,7 +15,7 @@ usage() {
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
         echo "  -m <mode> Specify runmode, separated by comma. Options: busco, align, model, tree, speciestree"
 	echo
-	echo "  --add-genomes will check for and add  additional genomes (in case they were added to the config files)." 
+	echo "  --add-genomes will check for and add additional genomes (in case they were added to the config files)." 
 	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
 	echo "  --report This creates an overview report of the run."
 	echo "  --setup Will download the genomes and prepare the pipeline to run."
@@ -35,7 +35,7 @@ REMOVE="FALSE"
 REPORT=""
 DRY=""
 NJOBS="10001"
-
+commit=""
 while getopts ":v:t:c:s:m:-:" option;
         do
                 case "${option}"
@@ -61,7 +61,13 @@ while getopts ":v:t:c:s:m:-:" option;
                 esac
         done
 #SM_ARGS="--quiet"
+commit=$(git rev-parse --short HEAD)
 if [ $OPTIND -eq 1 ]; then usage; fi
+
+
+echo "Welcome to phylociraptor - the rapid phylogenomic tree calculator."
+echo "Git commit: "$commit
+
 echo $SETUP
 if [[ $REMOVE == "TRUE" ]]; then
 	echo "WARNING: This command will delete all previously generated results."
@@ -114,32 +120,38 @@ if [[ $ADD == "TRUE" ]]; then
 
 
 # Testing warning
-echo "WARNING: The submission script is still in testing mode! Check the snakemake command inside before moving into production!"
-
-# Determine submission system:
-if [[ $CLUSTER == "sge" ]]; then
-	echo "SGE (Sun Grid Engine) submission system specified. Will use qsub to submit jobs."
-elif [[ $CLUSTER == "slurm" ]]; then
-	echo "SLURM submission system specified. Will use sbatch to submit jobs."
-elif [[ $CLUSTER == "serial" ]]; then
-  echo "Serial execution without job submission specified."
-else
-	echo "No or unknown submission system specified, will try to detect the system automatically."
-	CLUSTER=""
-	command -v qsub >/dev/null 2>&1 && { echo >&2 "SGE detected, will use qsub to submit jobs."; CLUSTER="sge"; }
-	command -v sbatch >/dev/null 2>&1 && { echo >&2 "SLURM detected, will use sbatch to submit jobs."; CLUSTER="slurm"; }
-  if [[ $CLUSTER == "" ]]; then
-    echo "Submission system could not be detected. You may be able to run the pipeline without job submission."
-    exit 1
-  fi
-fi
+#echo "WARNING: The submission script is still in testing mode! Check the snakemake command inside before moving into production!"
 
 # create report if flag is set
 if [[ $REPORT == "TRUE" ]]; then
-	#snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --cores 1 --notemp -r report $SM_ARGS
-	singularity exec docker://reslp/rmarkdown:4.0.3 Rscript -e "rmarkdown::render('./bin/report.Rmd')"
-	mv bin/report.html results/report.html
+	echo "Creating phylociraptor report. This can take a few minutes..."
+	if singularity exec docker://reslp/rmarkdown:4.0.3 Rscript -e "rmarkdown::render('./bin/report.Rmd')" 2>&1 | tee .report.log > /dev/null; then
+		echo "...done."
+		echo "Phylociraptor report created in results/report.html"
+		mv bin/report.html results/report.html
+	else
+		cat .report.log
+		echo "An ERROR occured. Please review logfile above."
+	fi
 	exit 0
+fi
+
+# Determine submission system:
+if [[ $CLUSTER == "sge" ]]; then
+        echo "SGE (Sun Grid Engine) submission system specified. Will use qsub to submit jobs."
+elif [[ $CLUSTER == "slurm" ]]; then
+        echo "SLURM submission system specified. Will use sbatch to submit jobs."
+elif [[ $CLUSTER == "serial" ]]; then
+  echo "Serial execution without job submission specified."
+# comment out automated submission detection which is currently broken.
+#else
+#       echo "No or unknown submission system specified, will try to detect the system automatically."
+#       CLUSTER=""
+#       command -v qsub >/dev/null 2>&1 && { echo >&2 "SGE detected, will use qsub to submit jobs."; CLUSTER="sge"; }
+#       command -v sbatch >/dev/null 2>&1 && { echo >&2 "SLURM detected, will use sbatch to submit jobs."; CLUSTER="slurm"; }
+else
+	echo "Submission system not specified. Will default to serial execution without job submission."
+	CLUSTER="serial"
 fi
 
 # add runmode for single rules, this is for testing
