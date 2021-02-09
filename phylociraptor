@@ -24,7 +24,7 @@ usage() {
         1>&2; exit 1; }
 
 version() {
-        echo "$0 v0.1"
+        echo "$0 v0.1 - Git commit: $commit"
         exit 0
 }
 CLUSTER=""
@@ -35,8 +35,9 @@ REMOVE="FALSE"
 REPORT=""
 DRY=""
 NJOBS="10001"
-commit=""
-while getopts ":v:t:c:s:m:-:" option;
+commit=$(git rev-parse --short HEAD)
+
+while getopts ":vt:c:s:m:i:-:" option;
         do
                 case "${option}"
                 in
@@ -56,12 +57,11 @@ while getopts ":v:t:c:s:m:-:" option;
 					'' ) break ;;
 					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
 				esac ;;	
-                        *) echo "Illegal option --$OPTARG\n" >&2; usage;;
-                        ?) echo "Illegal option --$OPTARG\n" >&2 usage;;
+                        *) echo "Illegal option --$OPTARG" >&2; usage;;
+                        ?) echo "Illegal option --$OPTARG" >&2 usage;;
                 esac
         done
 #SM_ARGS="--quiet"
-commit=$(git rev-parse --short HEAD)
 if [ $OPTIND -eq 1 ]; then usage; fi
 
 
