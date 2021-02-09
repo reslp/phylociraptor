@@ -12,7 +12,8 @@ jobscript = sys.argv[-1]
 # last but one argument is the submission system
 subs = sys.argv[-2]
 #print("---------------------------------------------------------------------", file=sys.stderr)
-
+print("Command line arguments are: ", file=sys.stderr)
+print(sys.argv, file=sys.stderr)
 # check command-line arguments for dependencies
 dependencies = ""
 if subs == "slurm":
