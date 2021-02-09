@@ -1,0 +1,74 @@
+# Configuration file for TORQUE jobs shedulers. Make sure to set correctly according to your cluster configuration.
+# example works on Flamish Supercomputer Center
+__default__:
+   N: default
+   o: $(pwd)/log/sauron-%j.out
+   e: $(pwd)/log/sauron-%j.err
+   q: mpi # change this according to your cluster configuration
+   mem: 4gb
+   pe: mpi1node # change this according your cluster configuration
+   walltime: "12:00:00"
+busco:
+   N: BUSCO 
+run_busco:
+   N: rBUSCO
+   mem: 24gb
+extract_busco_table:
+   N: exBUSCO
+   mem: 12gb
+create_sequence_files:
+   N: exSeqfiles
+   mem: 12gb
+remove_duplicated_sequence_files:
+   N: remdupseq
+   mem: 12gb
+get_all_trimmed_files:
+   N: gettrimfiles
+   mem: 12gb
+align:
+   N: align
+   mem: 12gb
+get_alignment_statistics:
+   N: alignstats
+trim:
+   N: trim
+   mem: 12gb
+iqtree:
+   N: iqtree
+   mem: 64gb
+concatenate:
+   N: concat
+   mem: 8gb
+modeltest:
+   N: mt
+   mem: 8gb
+aggregate_best_models:
+   N: aggmodels
+part_modeltest:
+   N: part_modeltest
+raxmlng:
+   N: raxmlng
+   mem: 64gb
+phylobayes:
+   N: phylobayes
+   mem: 64gb
+merge_phylobayes_chains:
+   N: merge_phylobayes
+   mem: 4gb
+part1:
+   N: part1
+   mem: 4gb
+part2:
+   N: part2
+   mem: 4gb
+part3:
+   N: part3
+   mem: 4gb
+astral_species_tree:
+   N: astral
+   mem: 64gb
+iqtree_gene_trees:
+   N: iqtgt
+   mem: 16gb
+aggregate_gene_trees:
+   N: agg_genetrees
