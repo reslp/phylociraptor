@@ -19,6 +19,8 @@ if subs == "slurm":
 	dependencies = set(sys.argv[1:-2])
 elif subs == "sge":
 	dependencies = dependencies.join(sys.argv[1:-2])
+elif subs == "torque":
+	dependencies = dependencies.join(sys.argv[1:-2])
 else:
 	print("Cannot get dependencies for submission system")
 	sys.exit(1)
@@ -136,6 +138,59 @@ elif subs == "sge":
 		print("none", file=sys.stderr)	
 	# add @:
 	#cmdline.append("-@")
+elif subs == "torque":
+	#print("Job properties:", file=sys.stderr)
+	#print(job_properties["cluster"], file=sys.stderr)
+	# set informative job name:
+	if "species" in job_properties["wildcards"]:
+		name =  job_properties["cluster"]["N"] + "-" + job_properties["wildcards"]["species"]
+	elif "busco" in job_properties["wildcards"]:
+		name =  job_properties["cluster"]["N"] + "-" + job_properties["wildcards"]["busco"]
+	else:
+		name = job_properties["cluster"]["N"]
+	job_properties["cluster"]["N"] = name
+	# set name for cluster log files:
+	prefix =  job_properties["rule"] + "-torque"
+	job_properties["cluster"]["o"] = job_properties["cluster"]["o"].replace("slurm", prefix).replace("%j",name)
+	job_properties["cluster"]["e"] = job_properties["cluster"]["e"].replace("slurm", prefix).replace("%j",name)
+	cmdline = ["qsub"]
+	
+	# extract info an requested resources
+	sge_args = "-w $(pwd) -V"
+	
+	if "pe" in job_properties["cluster"] and "nodes" in job_properties["cluster"]:
+		print("WARNING: You have set pe and nodes in your cluster config file. Is this really what you want?", file=sys.stderr)
+
+	for element in job_properties["cluster"]:
+		#print(element, file=sys.stderr)
+		
+		if element in sge_resources:
+			if "nodes" == element: #special case when nodes are specified, in this case threads are ppns
+				sge_args += " -l %s=%s:ppn=%s" % ("nodes", job_properties["cluster"]["nodes"], job_properties["threads"])
+			else:			
+				sge_args += " -l %s=%s" % (element, job_properties["cluster"][element])
+		else:
+			if element == "pe": # set parallel environment and correct number of threads according to config.yaml
+				sge_args += " -pe %s %s" % (job_properties["cluster"]["pe"], job_properties["threads"])
+			else:
+				sge_args += " -%s %s" % (element, job_properties["cluster"][element])
+	#job_properties["sge_resources"] = resources
+	# TODO: add correct thread handling for SGE clusters
+	#sge_args = "-cwd -V -q {queue} -l h_vmem={mem} -pe {pe} {ntasks} -o {output} -e {error} -N {N}".format(**job_properties["cluster"])	
+	cmdline.append(sge_args)
+
+	#now work on dependencies
+	print("\nDependencies for this job:", file=sys.stderr)
+	if dependencies:
+		cmdline.append("-W depend=afterok:")
+		# only keep numbers (which are the jobids) in dependencies list. this is necessary because slurm returns more than the jobid. For other schedulers this could be different!
+		dependencies = [x for x in dependencies.split(" ") if x.isdigit()]
+		cmdline.append(":".join(dependencies))
+		print(dependencies, file=sys.stderr)
+	else:
+		print("none", file=sys.stderr)	
+	# add @:
+	#cmdline.append("-@")
 else:
 	#print("Immediate submit error: Unkown submission system!")
 	sys.exit(1)
@@ -148,6 +203,6 @@ cmdline.append(jobscript)
 print("\nSubmission command:", file=sys.stderr)
 print(" ".join(cmdline), file=sys.stderr)
 print
-os.system(" ".join(cmdline))
+#os.system(" ".join(cmdline))
 
 print("---------------------------------------------------------------------", file=sys.stderr)
