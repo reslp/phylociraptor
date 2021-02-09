@@ -24,7 +24,6 @@ elif subs == "torque":
 else:
 	print("Cannot get dependencies for submission system")
 	sys.exit(1)
-
 # parse the job script for the job properties that are encoded by snakemake within
 # this also includes the information contained in the cluster-config file as job_properties["cluster"]
 job_properties = read_job_properties(jobscript)
@@ -181,6 +180,7 @@ elif subs == "torque":
 
 	#now work on dependencies
 	print("\nDependencies for this job:", file=sys.stderr)
+	print(dependencies, file=sys.stderr)
 	if dependencies:
 		cmdline.append("-W depend=afterok:")
 		# only keep numbers (which are the jobids) in dependencies list. this is necessary because slurm returns more than the jobid. For other schedulers this could be different!
