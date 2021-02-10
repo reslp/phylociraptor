@@ -4,7 +4,6 @@ __default__:
    N: default
    o: $(pwd)/log/sauron-%j.out
    e: $(pwd)/log/sauron-%j.err
-   q: $PBS_QUEUE # change this according to your cluster configuration
    pmem: 4gb #make sure to adjust so that this fits your cluster
    pe: shm # change this according your cluster configuration
    walltime: "12:00:00"

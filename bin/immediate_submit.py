@@ -175,19 +175,20 @@ elif subs == "torque":
 			else:
 				sge_args += " -%s %s" % (element, job_properties["cluster"][element])
 	#job_properties["sge_resources"] = resources
-	# TODO: add correct thread handling for SGE clusters
-	#sge_args = "-cwd -V -q {queue} -l h_vmem={mem} -pe {pe} {ntasks} -o {output} -e {error} -N {N}".format(**job_properties["cluster"])	
 	cmdline.append(sge_args)
 
 	#now work on dependencies
 	print("\nDependencies for this job:", file=sys.stderr)
 	print(dependencies, file=sys.stderr)
 	if dependencies:
-		cmdline.append("-W depend=afterok:")
+		deps = "-W depend=afterok:"
+		#cmdline.append("-W depend=afterok")
 		# only keep numbers (which are the jobids) in dependencies list. this is necessary because slurm returns more than the jobid. For other schedulers this could be different!
 		dependencies = [x for x in dependencies.split(" ") if x.isdigit()]
-		cmdline.append(":".join(dependencies))
+		deps += ":".join(dependencies)
+		cmdline.append(deps)
 		print(dependencies, file=sys.stderr)
+		print(deps, file=sys.stderr)
 	else:
 		print("none", file=sys.stderr)	
 	# add @:
