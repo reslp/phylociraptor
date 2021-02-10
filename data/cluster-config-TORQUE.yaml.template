@@ -4,53 +4,54 @@ __default__:
    N: default
    o: $(pwd)/log/sauron-%j.out
    e: $(pwd)/log/sauron-%j.err
-   pmem: 4gb #make sure to adjust so that this fits your cluster
+   mem: 2gb #make sure to adjust so that this fits your cluster
    pe: shm # change this according your cluster configuration
    walltime: "12:00:00"
 busco:
    N: BUSCO 
 run_busco:
    N: rBUSCO
-   pmem: 2gb
+   mem: 32gb
 extract_busco_table:
    N: exBUSCO
-   pmem: 12gb
+   mem: 12gb
 create_sequence_files:
    N: exSeqfiles
-   pmem: 12gb
+   mem: 12gb
 remove_duplicated_sequence_files:
    N: remdupseq
-   pmem: 12gb
+   mem: 12gb
 get_all_trimmed_files:
    N: gettrimfiles
-   pmem: 12gb
+   mem: 12gb
 align:
    N: align
-   pmem: 12gb
+   mem: 10gb
 get_alignment_statistics:
    N: alignstats
 trim:
    N: trim
-   pmem: 10gb
+   mem: 10gb
 iqtree:
    N: iqtree
-   pmem: 16gb
+   mem: 94gb
 concatenate:
    N: concat
-   pmem: 8gb
+   mem: 8gb
 modeltest:
    N: mt
-   pmem: 8gb
+   mem: 64gb
 aggregate_best_models:
    N: aggmodels
+   mem: 10gb
 part_modeltest:
    N: part_modeltest
 raxmlng:
    N: raxmlng
-   pmem: 8gb
+   mem: 94gb
 phylobayes:
    N: phylobayes
-   pmem: 16gb
+   mem: 16gb
 merge_phylobayes_chains:
    N: merge_phylobayes
 part1:
@@ -61,7 +62,7 @@ part3:
    N: part3
 astral_species_tree:
    N: astral
-   pmem: 48gb
+   mem: 48gb
 iqtree_gene_trees:
    N: iqtgt
 aggregate_gene_trees:
