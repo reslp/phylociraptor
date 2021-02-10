@@ -53,8 +53,8 @@ rule all:
 rule setup:
 	input:
 		"results/checkpoints/download_genomes.done",
-		#"results/checkpoints/download_busco_set.done",
-		#"results/checkpoints/prepare_augustus.done",
+		"results/checkpoints/download_busco_set.done",
+		"results/checkpoints/prepare_augustus.done",
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)
