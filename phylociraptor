@@ -9,7 +9,7 @@ usage() {
         echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
         echo
         echo "Options:"
-        echo "  -t <submission_system> Specify available submission system. Options: sge, slurm, serial (no submission system). Default: Automatic detection."
+        echo "  -t <submission_system> Specify available submission system. Options: sge, slurm, torque, serial (no submission system)."
         echo "  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). "
         echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
