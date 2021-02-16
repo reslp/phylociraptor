@@ -117,11 +117,13 @@ results/assemblies
 
 **Total number of included genomes:** `r total`
 
-Number of locally provided genomes: `r length(local)`
+**Locally provided genomes:** `r length(local)`
 
-Number of successfully downloaded genomes: `r length(success)`
+**Successfully downloaded genomes:** `r length(success)`
 
-Number of failed species downloads: `r length(failed)`
+**Failed species downloads:** `r length(failed)`
+
+**Not downloaded:**<br />`r failed`
 
 **Information on successfully downloaded genomes:**
 ```{r genome_stats, echo=FALSE, out.height=500}
@@ -129,7 +131,7 @@ info <- ""
 if (file.exists(downloaded_genomes_statistics_file))
 {
   if (file.size(downloaded_genomes_statistics_file) != 0) {
-      data <- read.table(downloaded_genomes_statistics_file, sep="\t", header=T)
+      data <- read.csv(downloaded_genomes_statistics_file, sep="\t", header=T)
       data$path <- NULL
       data$file_name <- NULL
   } else {
