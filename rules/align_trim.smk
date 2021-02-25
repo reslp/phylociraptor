@@ -12,9 +12,7 @@ rule align:
 	benchmark:
 		"results/statistics/benchmarks/align/align_{busco}.txt"
 	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
-	conda:
-		"../envs/mafft.yml"
+		"docker://reslp/mafft:7.464"
 	threads:
 		config["alignment"]["threads"]
 	params:
@@ -37,9 +35,7 @@ if config["trimming"]["method"] == "trimal":
 		params:
 			trimmer = config["trimming"]["parameters"]
 		singularity:
-			"docker://continuumio/miniconda3:4.7.10"
-		conda:
-			"../envs/trimal.yml"
+			"docker://reslp/trimal:1.4.1"
 		shell:
 			"""
 			trimal {params.trimmer} -in {input} -out {output.trimmed_alignment}
@@ -107,9 +103,7 @@ rule get_all_trimmed_files:
 	benchmark:
 		"results/statistics/benchmarks/align/get_all_trimmed_files.txt"
 	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
-	conda:
-		"../envs/biopython.yml"
+		"docker://reslp/biopython_plus:1.77"
 	params:
 		wd = os.getcwd(),
 		trimming_method = config["trimming"]["method"]

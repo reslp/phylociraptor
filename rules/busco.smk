@@ -114,9 +114,7 @@ rule create_sequence_files:
 		busco_dir = "results/busco",
 		seqtype = config["filtering"]["seq_type"]
 	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
-	conda:
-		"../envs/biopython.yml"
+		"docker://reslp/biopython_plus:1.77"
 	shell:
 		"""
 		mkdir -p {output.sequence_dir}
@@ -132,10 +130,7 @@ rule remove_duplicated_sequence_files:
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
 	benchmark:
 		"results/statistics/benchmarks/busco/remove_duplicated_sequence_files.txt"
-	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
-	conda:
-		"../envs/biopython.yml"
+	singularity: "docker://reslp/biopython_plus:1.77"
 	params:
 		wd = os.getcwd(),
 		dupseq=config["filtering"]["dupseq"]
