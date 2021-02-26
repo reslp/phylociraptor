@@ -14,3 +14,8 @@ pre
 data/assemblies/
 !data/assemblies/.gitkeep
 playground/
+.add_genomes.done
+.conda_pkg_tmp/
+.report.log
+data/config.yaml
+numerical_underflow/
