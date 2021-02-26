@@ -4,8 +4,8 @@ general:
 - change submission system to cluster profiles instead of cluster config files.
 
 setup:
-- sometimes genome downloads fail (time-out etc.) meaning that the --setup step has to be run again. This should be avoided.
-- be more clear which genome (sometimes there are multiple assemblies) should be downloaded.
+- sometimes genome downloads fail (time-out etc.) meaning that the --setup step has to be run again. This should be avoided. (DONE)
+- be more clear which genome (sometimes there are multiple assemblies) should be downloaded. (DONE)
 
 busco:
 - currently busco 3 is used. Providing the possibility to use busco4 would be good.
