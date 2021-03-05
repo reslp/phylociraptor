@@ -151,10 +151,16 @@ for (sp in all_species) {
            }  
         } else { # if there are multiple taxids proceed here
           print("GENOME DOWNLOAD: Multple taxids are present. Will try to resolve this...")
-          class <- classification(sp_subbed, db="ncbi") #this should also work with underscores in the name!
-          #print(class)
+          Sys.sleep(delay)
+	  class <- classification(sp_subbed, db="ncbi") #this should also work with underscores in the name!
+          print("GENOME DOWNLOAD: Classification complete")
+	  if (!("name" %in% colnames(class[[1]]))){
+		print("GENOME DOWNLOAD: There is some ambiguity with this taxon. Will skip.")
+	  	next
+	  } 
+	  #print(class)
           taxid <- class[[1]][class[[1]]$name == sp_subbed,]$id
-          #print(taxid)
+	  found <- 0
           for (x in 1:length(unique(genome_data$taxid))) {
                #print(toString(unique(genome_data$taxid)[x]))
                if (taxid == toString(unique(genome_data$taxid)[x])) {
@@ -169,6 +175,7 @@ for (sp in all_species) {
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
                      parse_download_message(my_message, accession, sp)  
+                     found <- 1
                      break 
                   } else if (is.na(genome_data2[genome_data2$refseq_category=="representative genome",]$assembly_accession[1]) == FALSE) {
                      print("GENOME DOWNLOAD: Representative genome found. Will download genome.")
@@ -179,6 +186,7 @@ for (sp in all_species) {
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
                      parse_download_message(my_message, accession, sp)
+                     found <- 1
                      break
                   } else {
                      print("GENOME DOWNLOAD: Will download genome latest genome.")
@@ -188,14 +196,25 @@ for (sp in all_species) {
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
                      my_message <- paste(mess$messages, collapse="\n")
+                     #print(my_message)
                      parse_download_message(my_message, accession, sp)
+                     found <- 1
                      break
                   }
                }
 	  }
+		# after the for loop for multiple taxids check if a genome was found:
+		if (found == 0) {
+		print("GENOME DOWNLOAD: Unfortunately I was unable to resolve this name based on its taxid. This can happen when only a genus name is provided.")
+		print(paste("GENOME DOWNLOAD: Nothing downloaded for taxon: ", sp_subbed," with taxid: ",str(taxid), sep=""))
+		}
+		if (found == 1) {
+		found <- 0
+		}
         }  
     }
   } else {
+  # it seems that this happens when a genome has been deposited only under the genus name but there also is a species genus available. Look at the algal set, where there are several cases like that. This could be better handeled and resolved permanently
   print(paste("GENOME DOWNLOAD:Genome for ", sp, " is not available on NCBI genbank and could therefore not be downloaded.", sep=""))
   species_data[nrow(species_data)+1, ] <- c(sp,"not_downloaded", "failed")
   failed <- c(sp, failed)
