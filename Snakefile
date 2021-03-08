@@ -95,6 +95,18 @@ rule orthology:
 		touch {output}
 		echo "$(date) - Pipeline part 1 (orthology) done." >> results/statistics/runlog.txt
 		"""
+
+rule filter_orthology:
+	input:
+		"results/checkpoints/create_sequence_files.done",
+		"results/checkpoints/remove_duplicated_sequence_files.done"
+	output:
+		"checkpoints/filter_orthology.done"
+	shell:
+		"""
+		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt
+		touch {output}
+		"""
 rule part2:
 	input:
 		"results/checkpoints/get_all_trimmed_files.done",
@@ -143,6 +155,7 @@ rule speciestree:
 
 include: "rules/setup.smk"
 include: "rules/orthology.smk"
+include: "rules/filter-orthology.smk"
 include: "rules/align_trim.smk"
 include: "rules/model.smk"
 include: "rules/tree.smk"

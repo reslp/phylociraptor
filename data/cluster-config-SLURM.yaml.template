@@ -13,6 +13,8 @@ busco:
    J: BUSCO 
 orthology:
    J: ORTHOLOGY
+filter_orthology:
+   J: FILTORTH
 run_busco:
    J: rBUSCO
    ntasks: 16

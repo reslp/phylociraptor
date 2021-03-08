@@ -10,6 +10,8 @@ busco:
    N: BUSCO 
 orthology:
    N: ORTHOLOGY
+filter_orthology:
+   N: FILTORTH
 run_busco:
    N: rBUSCO
    h_vmem: 2G

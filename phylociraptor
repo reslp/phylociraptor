@@ -13,7 +13,7 @@ usage() {
         echo "  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). "
         echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
-        echo "  -m <mode> Specify runmode, separated by comma. Options: busco, align, model, tree, speciestree"
+        echo "  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, model, tree, speciestree"
 	echo
 	echo "  --add-genomes will check for and add additional genomes (in case they were added to the config files)." 
 	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
@@ -200,12 +200,48 @@ if [[ $RUNMODE == "orthology" ]]; then
   fi
 fi
 
+
+if [[ $RUNMODE == "filter-orthology" ]]; then
+  if [[ ! -f ".phylogenomics_setup.done" ]]; then
+	echo "You must first run phylogenomics --setup to run the pipeline"
+	exit 0
+  fi
+  if [[ ! -f "checkpoints/orthology.done" ]]; then
+        echo "You must first phylogenomics -m orthology to run this part of the pipeline."
+        exit 0
+  fi
+  echo "Runmode set to: filter-orthology. Will filter BUSCO runs according to parameters specified in the config file."
+  if [[ $DRY != "-n" ]]; then
+	echo "Will remove previous results..."
+	rm -fr results/busco_sequences
+	rm -fr results/busco_sequences_deduplicated
+	rm -f checkpoints/filter_orthology.done
+	rm -f results/checkpoints/create_sequence_files.done
+	rm -f results/checkpoints/remove_duplicated_sequence_files.done
+  fi
+  if [[ $CLUSTER == "slurm" ]]; then
+          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
+          mkdir -p .conda_pkg_tmp
+          snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
+  	unset CONDA_PKGS_DIRS
+  elif [[ $CLUSTER == "sge" ]]; then
+  	snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
+  elif [[ $CLUSTER == "torque" ]]; then
+        snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
+  elif [[ $CLUSTER == "serial" ]]; then
+    snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --notemp $SM_ARGS -r filter_orthology $DRY
+  else
+          echo "Submission system not recognized"
+          exit 1
+  fi
+fi
+
 if [[ $RUNMODE == *"align"* ]]; then
   if [[ ! -f ".phylogenomics_setup.done" ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"
         exit 0
   fi
-  if [[ ! -f "checkpoints/part1.done" ]]; then
+  if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
         echo "You must first phylogenomics -m busco to run this part of the pipeline"
         exit 0
   fi
