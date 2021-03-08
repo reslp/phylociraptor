@@ -1,6 +1,6 @@
 rule iqtree_gene_trees:
 	input:
-		rules.part2.output,
+		rules.align_trim.output,
 		busco = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
 	output:
 		checkpoint = "results/checkpoints/gene_trees/{busco}_genetree.done",
