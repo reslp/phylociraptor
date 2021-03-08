@@ -11,6 +11,8 @@ __default__:
    error: $(pwd)/log/slurm-%j.err
 busco:
    J: BUSCO 
+orthology:
+   J: ORTHOLOGY
 run_busco:
    J: rBUSCO
    ntasks: 16
@@ -59,9 +61,6 @@ phylobayes:
    ntasks: 30
 merge_phylobayes_chains:
    J: merge_phylobayes
-   mem: 4G
-part1:
-   J: part1
    mem: 4G
 part2:
    J: part2

@@ -9,6 +9,8 @@ __default__:
    walltime: "12:00:00"
 busco:
    N: BUSCO 
+orthology:
+   N: ORTHOLOGY
 run_busco:
    N: rBUSCO
    mem: 32gb

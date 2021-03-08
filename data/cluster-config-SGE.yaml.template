@@ -8,6 +8,8 @@ __default__:
    pe: mpi1node # change this according your cluster configuration
 busco:
    N: BUSCO 
+orthology:
+   N: ORTHOLOGY
 run_busco:
    N: rBUSCO
    h_vmem: 2G

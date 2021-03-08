@@ -177,23 +177,23 @@ if [[ $RUNMODE == *"single"* ]]; then
 	fi
 fi
 # these if cases are still crude and do not cover all possible combinations!
-if [[ $RUNMODE == *"busco"* ]]; then
+if [[ $RUNMODE == "orthology" ]]; then
   if [[ ! -f ".phylogenomics_setup.done" ]]; then
 	echo "You must first run phylogenomics --setup to run the pipeline"
 	exit 0
   fi
-  echo "Runmode set to: busco. Will run first part of pipeline to generate BUSCO results.."
+  echo "Runmode set to: orthology. Will run BUSCO to identify orthologous genes."
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
           mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part1 $SM_ARGS $DRY
+          snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
   	unset CONDA_PKGS_DIRS
   elif [[ $CLUSTER == "sge" ]]; then
-  	snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part1 $SM_ARGS $DRY
+  	snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
   elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part1 $SM_ARGS $DRY
+        snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
   elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --notemp $SM_ARGS -r part1 $DRY
+    snakemake --use-conda --use-singularity --singularity-args "$SI_ARGS" -pr --notemp $SM_ARGS -r orthology $DRY
   else
           echo "Submission system not recognized"
           exit 1

@@ -47,7 +47,7 @@ rule all:
 		#"results/checkpoints/iqtree_gene_trees.done",
 		#"results/checkpoints/astral_species_tree.done"
 		".phylogenomics_setup.done",
-		"checkpoints/part1.done",
+		"checkpoints/orthology.done",
 		"checkpoints/part2.done",
 		"checkpoints/part3.done"
 rule setup:
@@ -81,18 +81,19 @@ rule add_genomes:
 		touch {output}
 		"""
 
-rule part1:
+rule orthology:
 	input:	
-                expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
+               	# expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
+		"results/checkpoints/busco.done",
 		"results/checkpoints/extract_busco_table.done",
-		"results/checkpoints/create_sequence_files.done",
-		"results/checkpoints/remove_duplicated_sequence_files.done"
+		#"results/checkpoints/create_sequence_files.done",
+		#"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
-		"checkpoints/part1.done"
+		"checkpoints/orthology.done"
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 1 (busco) done." >> results/statistics/runlog.txt
+		echo "$(date) - Pipeline part 1 (orthology) done." >> results/statistics/runlog.txt
 		"""
 rule part2:
 	input:
@@ -141,7 +142,7 @@ rule speciestree:
 		"""
 
 include: "rules/setup.smk"
-include: "rules/busco.smk"
+include: "rules/orthology.smk"
 include: "rules/align_trim.smk"
 include: "rules/model.smk"
 include: "rules/tree.smk"

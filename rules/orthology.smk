@@ -71,7 +71,7 @@ rule busco:
 	input:
 		checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
 	output:
-		"checkpoints/busco.done"
+		"results/checkpoints/busco.done"
 	shell:
 		"""
 		touch {output}
