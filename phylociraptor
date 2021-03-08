@@ -236,13 +236,13 @@ if [[ $RUNMODE == "filter-orthology" ]]; then
   fi
 fi
 
-if [[ $RUNMODE == *"align"* ]]; then
+if [[ $RUNMODE == "align" ]]; then
   if [[ ! -f ".phylogenomics_setup.done" ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"
         exit 0
   fi
   if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m busco to run this part of the pipeline"
+        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
         exit 0
   fi
   mkdir -p .usr_tmp
@@ -250,20 +250,55 @@ if [[ $RUNMODE == *"align"* ]]; then
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
           mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part2 $SM_ARGS $DRY
+          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
         unset CONDA_PKGS_DIRS
   elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part2 $SM_ARGS $DRY
+        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
   elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part2 $SM_ARGS $DRY
+        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
   elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r part2 $DRY
+    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r align_trim $DRY
   else
           echo "Submission system not recognized"
           exit 1
   fi
 fi
 
+if [[ $RUNMODE == "filter-align" ]]; then
+  if [[ ! -f ".phylogenomics_setup.done" ]]; then
+        echo "You must first run phylogenomics --setup to run the pipeline"
+        exit 0
+  fi
+  if [[ ! -f "checkpoints/align_trim.done" ]]; then
+        echo "You must first phylogenomics -m align to run this part of the pipeline"
+        exit 0
+  fi
+  mkdir -p .usr_tmp
+  echo "Runmode set to: filter-align. Will filter alignments based ony settings in config file."
+  if [[ $DRY != "-n" ]]; then
+	echo "Will remove previous results..."
+	rm -fr results/filtered_alignments/*
+	rm -f results/checkpoints/aggregate_align.done
+	rm -f results/statistics/alignment_filter_information.txt
+	rm -f results/statistics/statistics_alignments.txt
+	rm -f checkpoints/filter_align.done
+  fi
+  if [[ $CLUSTER == "slurm" ]]; then
+          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
+          mkdir -p .conda_pkg_tmp
+          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
+        unset CONDA_PKGS_DIRS
+  elif [[ $CLUSTER == "sge" ]]; then
+        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
+  elif [[ $CLUSTER == "torque" ]]; then
+        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
+  elif [[ $CLUSTER == "serial" ]]; then
+    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r part_filter_align $DRY
+  else
+          echo "Submission system not recognized"
+          exit 1
+  fi
+fi
 if [[ $RUNMODE == *"model"* ]]; then
   if [[ ! -f ".phylogenomics_setup.done" ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"

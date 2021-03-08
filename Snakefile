@@ -107,17 +107,30 @@ rule filter_orthology:
 		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt
 		touch {output}
 		"""
-rule part2:
+rule align_trim:
 	input:
-		"results/checkpoints/get_all_trimmed_files.done",
+		"results/checkpoints/aggregate_align.done",
 		"results/statistics/statistics_alignments.txt"
 	output:
-		"checkpoints/part2.done"
+		"checkpoints/align_trim.done"
 	shell:
 		"""
 		touch {output}	
 		echo "$(date) - Pipeline part 2 (align) done." >> results/statistics/runlog.txt
 		"""
+
+rule part_filter_align:
+	input:
+		"results/checkpoints/filter_alignments.done",
+		"results/statistics/statistics_filtered.txt"	
+	output:
+		"checkpoints/filter_align.done"
+	shell:
+		"""
+		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
+		touch {output}
+		"""
+
 
 rule part_modeltest:
 	input:
@@ -157,6 +170,7 @@ include: "rules/setup.smk"
 include: "rules/orthology.smk"
 include: "rules/filter-orthology.smk"
 include: "rules/align_trim.smk"
+include: "rules/filter-align_trim.smk"
 include: "rules/model.smk"
 include: "rules/tree.smk"
 include: "rules/speciestree.smk"

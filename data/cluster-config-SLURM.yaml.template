@@ -15,6 +15,16 @@ orthology:
    J: ORTHOLOGY
 filter_orthology:
    J: FILTORTH
+filter_alignments:
+   J: filtalgn
+part_filter_align:
+   J: FAL
+align_trim:
+   J: alntri
+filter_align:
+   J: FAL
+get_filter_statistics:
+   J: getfilstat 
 run_busco:
    J: rBUSCO
    ntasks: 16
