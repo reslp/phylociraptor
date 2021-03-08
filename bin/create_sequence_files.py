@@ -18,6 +18,9 @@ pars.add_argument('--cutoff', dest="cutoff", required=True, help="Percent cutoff
 pars.add_argument('--outdir', dest="outdir", required=True, help="Path to output directory.")
 pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number of species which have to be present to keep the sequences.")
 pars.add_argument('--type' , dest="type", required=True, help="Type of sequences (aa or nu).")
+pars.add_argument('--genome_statistics' , dest="genome_stats", required=True, help="Path to genome statistics output file.")
+pars.add_argument('--gene_statistics' , dest="gene_stats", required=True, help="Path to gene statistics output file.")
+
 args=pars.parse_args()
 
 extension=""
@@ -41,20 +44,25 @@ print("Original number of species:", len(species_list))
 #print(species_list)
 #first remove species with too low busco coverage
 busco_overview = busco_overview.set_index("species")
+
+genome_file = open(args.genome_stats, "w")
 for sp in species_list:
 	if busco_overview.loc[sp, "percent_complete"] < float(args.cutoff):
+		out = sp + "\tFAILED" + "\t" + str(busco_overview.loc[sp, "percent_complete"]) + "\t" + str(float(args.cutoff))
+		print(out, file=genome_file)
 		busco_overview = busco_overview.drop([sp])
-		out = "cutoff_check: " + sp + " has TOO FEW BUSCOs, will be removed"
-		print(out)
 	else:
-		out = "cutoff_check: " + sp + " has ENOUGH BUSCOs, will be included"
-		print(out)
+		out = sp + "\tOK" + "\t" + str(busco_overview.loc[sp, "percent_complete"]) + "\t" + str(float(args.cutoff)) 
+		print(out, file=genome_file)
 species_list =  list(busco_overview.index)
 print("Species remaining after applying cutoff:", len(species_list))
+genome_file.close()
 
 #now loop through each busco and extract sequence for each species
 buscos = list(busco_overview.columns.values)
 buscos.remove("percent_complete")
+
+gene_file = open(args.gene_stats, "w")
 for busco in buscos:
 	#print("Processing: " + busco)
 	numseqs = 0
@@ -75,9 +83,10 @@ for busco in buscos:
 				except: # skip missing buscos
 					continue
 	if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-		print("minsp_check: %s has ENOUGH sequences. Will be included." % busco)
+		print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 		outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
 		outfile.write(outstring)
 		outfile.close()
 	else:
-		print("minsp_check: %s has TOO FEW sequences. Will be skipped." % busco)
+		print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+gene_file.close()
