@@ -278,7 +278,7 @@ if [[ $RUNMODE == "filter-align" ]]; then
   if [[ $DRY != "-n" ]]; then
 	echo "Will remove previous results..."
 	rm -fr results/filtered_alignments/*
-	rm -f results/checkpoints/aggregate_align.done
+	rm -fr results/checkpoints/filter_alignments.done
 	rm -f results/statistics/alignment_filter_information.txt
 	rm -f results/statistics/statistics_filtered.txt
 	rm -f checkpoints/filter_align.done
