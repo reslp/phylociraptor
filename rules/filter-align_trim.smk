@@ -26,7 +26,7 @@ rule filter_alignments:
 		
 		for file in results/trimmed_alignments/*.fas;
 		do
-			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments" --statistics-file {input.stats} --min-parsimony {params.min_pars_sites} > {output.filter_info}
+			python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/filtered_alignments" --statistics-file {input.stats} --min-parsimony {params.min_pars_sites} >> {output.filter_info}
 		done
 		echo "$(date) - Number of alignments: $(ls results/alignments/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of trimmed alignments: $(ls results/filtered_alignments/*.fas | wc -l)" >> results/statistics/runlog.txt

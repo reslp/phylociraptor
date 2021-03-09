@@ -280,7 +280,7 @@ if [[ $RUNMODE == "filter-align" ]]; then
 	rm -fr results/filtered_alignments/*
 	rm -f results/checkpoints/aggregate_align.done
 	rm -f results/statistics/alignment_filter_information.txt
-	rm -f results/statistics/statistics_alignments.txt
+	rm -f results/statistics/statistics_filtered.txt
 	rm -f checkpoints/filter_align.done
   fi
   if [[ $CLUSTER == "slurm" ]]; then
