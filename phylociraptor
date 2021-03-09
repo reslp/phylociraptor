@@ -13,7 +13,7 @@ usage() {
         echo "  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). "
         echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
         echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
-        echo "  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, model, tree, speciestree"
+        echo "  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, filter-align, model, tree, speciestree"
 	echo
 	echo "  --add-genomes will check for and add additional genomes (in case they were added to the config files)." 
 	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
@@ -242,7 +242,7 @@ if [[ $RUNMODE == "align" ]]; then
         exit 0
   fi
   if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
+        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline."
         exit 0
   fi
   mkdir -p .usr_tmp
@@ -274,7 +274,7 @@ if [[ $RUNMODE == "filter-align" ]]; then
         exit 0
   fi
   mkdir -p .usr_tmp
-  echo "Runmode set to: filter-align. Will filter alignments based ony settings in config file."
+  echo "Runmode set to: filter-align. Will filter alignments based on settings in config file."
   if [[ $DRY != "-n" ]]; then
 	echo "Will remove previous results..."
 	rm -fr results/filtered_alignments/*
@@ -304,15 +304,29 @@ if [[ $RUNMODE == *"model"* ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part1.done" ]]; then
-        echo "You must first phylogenomics -m busco to run this part of the pipeline"
+ if [[ ! -f "checkpoints/orthology.done" ]]; then
+        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part2.done" ]]; then
+
+ if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
+        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
+        exit 0
+  fi
+ if [[ ! -f "checkpoints/align.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
         exit 0
   fi
 
+ if [[ ! -f "checkpoints/align_trim.done" ]]; then
+        echo "You must first phylogenomics -m align to run this part of the pipeline"
+        exit 0
+  fi
+
+ if [[ ! -f "checkpoints/filter_align.done" ]]; then
+        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
+        exit 0
+  fi
   echo "Runmode set to: model. Will run substitution model testing with IQTREE"
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
@@ -337,15 +351,30 @@ if [[ $RUNMODE == "tree" ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part1.done" ]]; then
-        echo "You must first phylogenomics -m busco to run this part of the pipeline"
+
+ if [[ ! -f "checkpoints/orthology.done" ]]; then
+        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part2.done" ]]; then
+
+ if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
+        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
+        exit 0
+  fi
+ if [[ ! -f "checkpoints/align.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
         exit 0
   fi
 
+ if [[ ! -f "checkpoints/align_trim.done" ]]; then
+        echo "You must first phylogenomics -m align to run this part of the pipeline"
+        exit 0
+  fi
+
+ if [[ ! -f "checkpoints/filter_align.done" ]]; then
+        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
+        exit 0
+  fi
   echo "Runmode set to: tree. Will run concatenated (supermatix) tree reconstruction."
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
@@ -369,15 +398,30 @@ if [[ $RUNMODE == *"speciestree"* ]]; then
         echo "You must first run phylogenomics --setup to run the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part1.done" ]]; then
-        echo "You must first phylogenomics -m busco to run this part of the pipeline"
+
+ if [[ ! -f "checkpoints/orthology.done" ]]; then
+        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/part2.done" ]]; then
+
+ if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
+        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
+        exit 0
+  fi
+ if [[ ! -f "checkpoints/align.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
         exit 0
   fi
 
+ if [[ ! -f "checkpoints/align_trim.done" ]]; then
+        echo "You must first phylogenomics -m align to run this part of the pipeline"
+        exit 0
+  fi
+
+ if [[ ! -f "checkpoints/filter_align.done" ]]; then
+        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
+        exit 0
+  fi
   echo "Runmode set to: speciestree. Will run species tree reconstruction."
   if [[ $CLUSTER == "slurm" ]]; then
           export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
