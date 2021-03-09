@@ -148,7 +148,8 @@ rule get_alignment_statistics:
 		alignment_method = config["alignment"]["method"],
 		alignment_params = config["alignment"]["parameters"],
 		trimming_method = config["trimming"]["method"],
-		trimming_params = config["trimming"]["parameters"]
+		trimming_params = config["trimming"]["parameters"],
+		pars_sites = config["filtering"]["min_parsimony_sites"]
 	singularity: "docker://reslp/concat:0.21"
 	shell:
 		"""
@@ -162,4 +163,5 @@ rule get_alignment_statistics:
 		echo "Alignment parameters:\t{params.alignment_params}" >> {output.overview_statistics}
 		echo "Trimming method:\t{params.trimming_method}" >> {output.overview_statistics}
 		echo "Trimming parameters:\t{params.trimming_params}" >> {output.overview_statistics}
+		echo "Min Parssites:\t{params.pars_sites}" >> {output.overview_statistics}
 		"""
