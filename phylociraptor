@@ -361,7 +361,7 @@ if [[ $RUNMODE == "tree" ]]; then
         echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/align.done" ]]; then
+ if [[ ! -f "checkpoints/align_trim.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
         exit 0
   fi
@@ -408,7 +408,7 @@ if [[ $RUNMODE == *"speciestree"* ]]; then
         echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/align.done" ]]; then
+ if [[ ! -f "checkpoints/align_trim.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
         exit 0
   fi
