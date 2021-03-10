@@ -1,7 +1,7 @@
 if "raxml" in config["tree"]["method"]:
 	rule concatenate:
 		input:
-			checkpoint = rules.part2.output
+			checkpoint = rules.align_trim.output
 		output:
 			checkpoint = "results/checkpoints/concatenate.done",
 			alignment = "results/phylogeny/concat.fas",
@@ -78,7 +78,7 @@ else:
 if "iqtree" in config["tree"]["method"]:
 	rule iqtree:
 		input:
-			rules.part2.output
+			rules.align_trim.output
 		output:
 			checkpoint = "results/checkpoints/iqtree.done",
 			statistics = "results/statistics/iqtree_statistics.txt"

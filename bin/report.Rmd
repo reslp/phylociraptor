@@ -19,7 +19,7 @@ library(stringr)
 library(data.table)
 #library(ggpubr)
 
-parsimony_cutoff <- 10
+parsimony_cutoff <- 3
 
 
 # function to convert seconds to better formated time:
@@ -43,11 +43,19 @@ dhms <- function(t){
 
 busco_overview_image <- ""
 
+# orthology statistics file:
 busco_overview_file <- "../results/busco_set/dataset.cfg"
 busco_summary_file <- "../results/statistics/busco_summary.txt"
+orthology_filtering_genomes_file <- "../results/statistics/orthology_filtering_genomes_statistics.txt"
+orthology_filtering_genes_file <- "../results/statistics/orthology_filtering_gene_statistics.txt"
+
+
+#  alignment statistics information
 alignment_statistics_file <- "../results/statistics/statistics_alignments.txt"
 trimmed_alignment_statistics_file <- "../results/statistics/statistics_trimmed.txt"
 filtered_alignment_statistics_file <- "../results/statistics/statistics_filtered.txt"
+filtered_gene_information_file <- "../results/statistics/alignment_filter_information.txt"
+
 align_trim_overview_statistics_file <- "../results/statistics/align_trim_overview_statistics.txt"
 
 downloaded_genomes_statistics_file <- "../results/statistics/downloaded_genomes_statistics.txt"
@@ -149,7 +157,7 @@ if (file.exists(downloaded_genomes_statistics_file))
 `r info`
 
 
-### BUSCO
+### Orthology
 
 ```{r, echo=FALSE}
 
@@ -174,8 +182,27 @@ if (file.exists(benchmarkfile_run_busco)) {
   busco_bench_df <- "not_found"
 }
 
-```
+if (file.exists(orthology_filtering_genomes_file)) {
+  ortho_filter_genomes <- read.table(orthology_filtering_genomes_file, sep="\t", header=F)
+  colnames(ortho_filter_genomes) <- c("sample", "status", "completeness", "cutoff")
+  failed_genomes <- ortho_filter_genomes$sample[ortho_filter_genomes$status == "FAILED"]
+  cutoff <- ortho_filter_genomes$cutoff[1]
+} else {
+  failed_genomes <- numeric()
+  cutoff <- numeric()
+}
+if (file.exists(orthology_filtering_genes_file)) {
+  ortho_filter_genes <- read.table(orthology_filtering_genes_file, sep="\t", header=F)
+  colnames(ortho_filter_genes) <- c("gene", "status", "nseqs", "cutoff")
+  failed_genes <- ortho_filter_genes$gene[ortho_filter_genes$status == "FAILED"]
+  cutoff_gene <- ortho_filter_genes$cutoff[1]
+} else {
+  failed_genes <- numeric()
+  cutoff_gene <- numeric()
+}
 
+```
+Orthologous genes were inferred using BUSCO.
 
 **Location of BUSCO results:** 
 
@@ -185,11 +212,19 @@ results/busco
 
 **Used BUSCO set:** `r busco_set`
 
-**Number of BUSCO genes:** `r nbuscos`
+**Total number of BUSCO genes in BUSCO set:** `r nbuscos`  
+**Number of BUSCO genes recovered in too few (`r cutoff_gene`) samples:** `r length(failed_genes)`  
+**BUSCO genes below threshold:**  
+`r failed_genes`
 
-**Runtime Statistics:**
+**Number of samples with single-copy BUSCO score below threshold (`r cutoff`):** `r length(failed_genomes)`  
+**Genomes below threshold:**  
+`r failed_genomes`
 
-|        Total (cumulative) runtime: `r if (busco_bench_df != "not_found") { dhms(sum(busco_bench_df$seconds)) }`
+**Runtime Statistics:**  
+
+|        Total (cumulative) runtime:
+|        `r if (busco_bench_df != "not_found") { dhms(sum(busco_bench_df$seconds)) }`
 
 ```{r, echo=F, message=F, warning=F, fig.width=8}
 if (busco_bench_df != "not_found") {
@@ -250,6 +285,7 @@ if (file.exists(busco_overview_image)) {
 results/alignments
 ```
 
+
 ```{r stats_alignments, echo=FALSE}
 if (file.exists(align_trim_overview_statistics_file) == TRUE) {
   ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
@@ -257,9 +293,11 @@ if (file.exists(align_trim_overview_statistics_file) == TRUE) {
   al_params <- ov[2,2]
   tr_method <- ov[3,2]
   tr_params <- ov[4,2]
+  parsimony_cutoff <- as.numeric(ov[5,2])
 } else {
   al_method <- "unknown (check if phylocraptor -m align has finished successfully)."
   al_params <- ""
+  parsimony_cutoff <- 0
 }
 if (file.exists(alignment_statistics_file) == TRUE) {
   data <- read.table(alignment_statistics_file, sep="\t", header=T)
@@ -269,9 +307,9 @@ if (file.exists(alignment_statistics_file) == TRUE) {
 }
 ```
 
-**Alignment method:** `r al_method` `r al_params`
-
-There are **`r length(few_npars)`** alignments with less than `r parsimony_cutoff` parsimony informative sites.
+**Alignment method:** `r al_method` `r al_params`  
+**Total number of alignments:** `r nrow(data)`  
+**Alignments with less than `r parsimony_cutoff` parsimony informative sites:** `r length(few_npars)`  
 
 
 ```{r stats_alignments2, echo=FALSE}
@@ -304,9 +342,11 @@ if (file.exists(align_trim_overview_statistics_file) == TRUE) {
   ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
   tr_method <- ov[3,2]
   tr_params <- ov[4,2]
+  parsimony_cutoff <- as.numeric(ov[5,2])
 } else {
   tr_method <- "unknown (check if phylocraptor -m align has finished successfully)."
   tr_params <- numeric()
+  parsimony_cutoff <- 0
 }
 
 if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
@@ -317,13 +357,13 @@ if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
 }
 ```
 
-**Trimming method:** `r tr_method` `r tr_params`
-
-There are **`r length(few_npars)`** trimmed alignments with less than `r parsimony_cutoff` parsimony informative sites.
+**Trimming method:** `r tr_method` `r tr_params`  
+**Total number of alignments after trimming:** `r nrow(data)`  
+**Alignments with less than `r parsimony_cutoff` parsimony informative sites:** `r length(few_npars)`  
 
 ```{r stats_trimmed2, echo=FALSE}
 if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
-rows <- which(data$nparsimony < 10)
+rows <- which(data$nparsimony < parsimony_cutoff)
 #data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
 #data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
 #print(rows)
@@ -348,6 +388,20 @@ if (file.exists(filtered_alignment_statistics_file) == TRUE) {
 } else {
   few_npars <- numeric()
 }
+if (file.exists(filtered_gene_information_file) == TRUE) {
+  data_filtered <- read.table(filtered_gene_information_file, sep="\t", header=F)
+  colnames(data_filtered) <- c("alignment", "status")
+  uninformative_alignments <- data_filtered$alignment[data_filtered$status == "NOT_INFORMATIVE"]
+  too_few_seqs_alignments <- data_filtered$alignment[data_filtered$status == "TOO_FEW_SEQUENCES"]
+  dup_seqs_removed <- data_filtered$alignment[data_filtered$status == "REMOVE_DUPLICATED_SEQUENCES"]
+  dup_align_removed <- data_filtered$alignment[data_filtered$status == "REMOVED"]
+} else {
+  uninformative_alignments <- numeric()
+  too_few_seqs_alignments <- numeric()
+  dup_seqs_removed <- numeric()
+  dup_align_removed <- numeric()
+}
+
 ```
 
 **Location of filtered alignment files:** 
@@ -355,7 +409,24 @@ if (file.exists(filtered_alignment_statistics_file) == TRUE) {
 results/filtered_alignments
 ```
 
-There are `r length(few_npars)` filtered alignments with less than `r parsimony_cutoff` parsimony informative sites.
+**Total number of alignments after filtering:** `r nrow(data)`  
+**Number of discarded alignments:** `r length(uninformative_alignments)+length(too_few_seqs_alignments)+length(dup_align_removed)`  
+
+**The following alignments were discarded:**  
+
+_Too few parsimony informative sites:_  
+`r if (length(uninformative_alignments) == 0){"none"}else{uninformative_alignments}`
+
+_Less then three sequences after trimming:_  
+`r if (length(too_few_seqs_alignments) == 0){"none"}else{too_few_seqs_alignments}`
+
+_Removed alignments due to duplicated sequences:_  
+`r if (length(dup_align_removed) == 0){"none"}else{dup_align_removed}`
+
+_Alignments with removed (duplicated) sequences:_  
+`r if (length(dup_seqs_removed)==0){"none"}else{dup_seqs_removed}`
+
+
 
 ```{r stats_filtered2, echo=FALSE}
 if (file.exists(filtered_alignment_statistics_file) == TRUE) {

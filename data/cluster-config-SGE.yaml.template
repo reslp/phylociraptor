@@ -8,6 +8,20 @@ __default__:
    pe: mpi1node # change this according your cluster configuration
 busco:
    N: BUSCO 
+orthology:
+   N: ORTHOLOGY
+filter_orthology:
+   N: FILTORTH
+filter_alignments:
+   N: filtalgn
+part_filter_align:
+   N: FAL
+align_trim:
+   N: alntri
+filter_align:
+   N: FAL
+get_filter_statistics:
+   N: getfilstat
 run_busco:
    N: rBUSCO
    h_vmem: 2G

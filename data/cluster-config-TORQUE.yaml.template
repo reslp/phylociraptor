@@ -9,6 +9,20 @@ __default__:
    walltime: "12:00:00"
 busco:
    N: BUSCO 
+orthology:
+   N: ORTHOLOGY
+filter_orthology:
+   N: FILTORTH
+filter_alignments:
+   N: filtalgn
+part_filter_align:
+   N: FAL
+align_trim:
+   N: alntri
+filter_align:
+   N: FAL
+get_filter_statistics:
+   N: getfilstat
 run_busco:
    N: rBUSCO
    mem: 32gb

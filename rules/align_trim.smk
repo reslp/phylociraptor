@@ -8,7 +8,6 @@ rule align:
 		sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
 	output:
 		alignment = "results/alignments/{busco}_aligned.fas",
-		checkpoint = "results/checkpoints/mafft/{busco}_aligned.done"
 	benchmark:
 		"results/statistics/benchmarks/align/align_{busco}.txt"
 	singularity:
@@ -20,7 +19,6 @@ rule align:
 	shell:
 		"""
 		mafft {params} {input.sequence_file} > {output.alignment}
-		touch {output.checkpoint}
 		"""
 
 if config["trimming"]["method"] == "trimal":
@@ -29,7 +27,6 @@ if config["trimming"]["method"] == "trimal":
 			rules.align.output.alignment
 		output:
 			trimmed_alignment = "results/trimmed_alignments/{busco}_aligned_trimmed.fas",
-			checkpoint = "results/checkpoints/trimmed/{busco}_trimmed.done"
 		benchmark:
 			"results/statistics/benchmarks/align/trim_{busco}.txt"
 		params:
@@ -39,7 +36,6 @@ if config["trimming"]["method"] == "trimal":
 		shell:
 			"""
 			trimal {params.trimmer} -in {input} -out {output.trimmed_alignment}
-			touch {output.checkpoint}
 			"""
 elif config["trimming"]["method"] == "aliscore":
 	rule trim:
@@ -47,7 +43,6 @@ elif config["trimming"]["method"] == "aliscore":
 			rules.align.output.alignment
 		output:
 			trimmed_alignment = "results/trimmed_alignments/{busco}_aligned_trimmed.fas",
-			checkpoint = "results/checkpoints/trimmed/{busco}_trimmed.done"
 		benchmark:
 			"results/statistics/benchmarks/align/trim_{busco}.txt"
 		params:
@@ -85,7 +80,6 @@ elif config["trimming"]["method"] == "aliscore":
 				fi
 				mv ALICUT_{params.busco}_aligned.fas {params.wd}/{output.trimmed_alignment}
 			fi
-			touch {params.wd}/{output.checkpoint}
 			"""
 			
 #def aggregate_trimmed_alignments(wildcards):
@@ -93,15 +87,24 @@ elif config["trimming"]["method"] == "aliscore":
 #    file_names = expand("results/trimmed_alignments/{busco}_aligned_trimmed.fas", busco = glob_wildcards(os.path.join(checkpoint_output, "{busco}_all.fas")).busco)
 #    return file_names
 
-
-
-rule get_all_trimmed_files:
+rule aggregate_align:
 	input:
 		expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 	output:
-		checkpoint = "results/checkpoints/get_all_trimmed_files.done"
+		checkpoint = "results/checkpoints/aggregate_align.done"
+	shell:
+		"""
+		touch {output.checkpoint}
+		"""
+
+
+rule get_all_trimmed_alignments:
+	input:
+		expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
+	output:
+		checkpoint = "results/checkpoints/get_all_trimmed_alignments.done"
 	benchmark:
-		"results/statistics/benchmarks/align/get_all_trimmed_files.txt"
+		"results/statistics/benchmarks/align/get_all_trimmed_alignments.txt"
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
 	params:
@@ -134,11 +137,10 @@ rule get_all_trimmed_files:
 
 rule get_alignment_statistics:
 	input:
-		rules.get_all_trimmed_files.output.checkpoint
+		rules.aggregate_align.output.checkpoint
 	output:
 		statistics_alignment = "results/statistics/statistics_alignments.txt",
 		statistics_trimmed = "results/statistics/statistics_trimmed.txt",
-		statistics_filtered = "results/statistics/statistics_filtered.txt",
 		overview_statistics = "results/statistics/align_trim_overview_statistics.txt"
 	params:
 		ids = config["species"],
@@ -146,7 +148,8 @@ rule get_alignment_statistics:
 		alignment_method = config["alignment"]["method"],
 		alignment_params = config["alignment"]["parameters"],
 		trimming_method = config["trimming"]["method"],
-		trimming_params = config["trimming"]["parameters"]
+		trimming_params = config["trimming"]["parameters"],
+		pars_sites = config["filtering"]["min_parsimony_sites"]
 	singularity: "docker://reslp/concat:0.21"
 	shell:
 		"""
@@ -156,10 +159,9 @@ rule get_alignment_statistics:
 		mv results/statistics/statistics.txt {output.statistics_alignment}
 		concat.py -d results/trimmed_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
 		mv results/statistics/statistics.txt {output.statistics_trimmed}
-		concat.py -d results/filtered_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype aa --noseq
-		mv results/statistics/statistics.txt {output.statistics_filtered}
 		echo "Alignment method:\t{params.alignment_method}" > {output.overview_statistics}
 		echo "Alignment parameters:\t{params.alignment_params}" >> {output.overview_statistics}
 		echo "Trimming method:\t{params.trimming_method}" >> {output.overview_statistics}
 		echo "Trimming parameters:\t{params.trimming_params}" >> {output.overview_statistics}
+		echo "Min Parssites:\t{params.pars_sites}" >> {output.overview_statistics}
 		"""

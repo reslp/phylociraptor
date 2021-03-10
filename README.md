@@ -51,23 +51,22 @@ Tree inference:
 $ git clone https://github.com/reslp/smsi-phylogenomics.git
 $ cd smsi-phylogenomics
 $ ./phylociraptor
-Welcome to phylociraptor. The rapid pyhlogenomic tree calculator pipeline.
+Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline. Git commit: 70abfa0
 
 Usage: ./phylociraptor [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]
 
 Options:
-  -t <submission_system> Specify available submission system. Options: sge, slurm, serial (no submission system). Default: Automatic detection.
-  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). 
+  -t <submission_system> Specify available submission system. Options: sge, slurm, torque, serial (no submission system).
+  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory).
   -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default.
   -i "<singularity_args>" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default.
-  -m <mode> Specify runmode, separated by comma. Options: busco, align, model, tree.
+  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, filter-align, model, tree, speciestree
 
-  --add-genomes will check for and add  additional genomes (in case they were added to the config files).
+  --add-genomes will check for and add additional genomes (in case they were added to the config files).
   --dry Invokes a dry-run. Corresponds to: snakemake -n
-  --report This flag will create an overview report about the BUSCO runs. It only works after -m busco has been run
-  --setup This flag will download the genomes and prepare the pipeline to run.
+  --report This creates an overview report of the run.
+  --setup Will download the genomes and prepare the pipeline to run.
   --remove Resets the pipeline. Will delete all results, logs and checkpoints.
-
 ```
 
 2. Create a conda environment with snakemake:
@@ -136,16 +135,28 @@ The basis of this file can be a CSV file directly downloaded from the [NCBI Geno
 $ ./phylociraptor --setup
 ```
 
-2. Run BUSCO for all the genomes:
+2. Identify orthologous genes for all the genomes:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m busco
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m orthology
 ```
 
-3. Create alignments and trim them:
+3. Filter orthologs using according to settings in the `config.yaml` file:
+
+```
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m filter-orthology
+```
+
+4. Create alignments and trim them:
 
 ```
 $ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m align
+```
+
+5. Filter alignments according to settings in the `config.yaml`file:
+
+```
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m filter-align
 ```
 
 Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
@@ -154,18 +165,19 @@ Optionally you can run extensive model testing for individual alignments. This i
 $ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m model
 ```
 
-4. Reconstruct a phylogeny:
+6. Reconstruct phylogenies:
 
 ```
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m njtree
 $ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m tree
+$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m speciestree
 ```
 
-5. Create a report of the run:
+7. Create a report of the run:
 
 ```
 $ ./phylociraptor --report
 ```
-
 
 After this step, your results directory should look like this:
 
@@ -187,3 +199,5 @@ Is done in a Docker container which has conda, snakemake and singularity install
 ```
 docker run --rm -it --privileged -v $(pwd):/data reslp/smsi_ubuntu:3.4.1
 ```
+
+

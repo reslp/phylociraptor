@@ -37,7 +37,7 @@ BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fa
 
 rule modeltest:
 	input:
-		rules.part2.output,
+		rules.align_trim.output,
 		alignment = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
 	output:
 		logfile = "results/modeltest/{busco}/{busco}.log",
