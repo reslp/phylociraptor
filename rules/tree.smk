@@ -1,47 +1,36 @@
-if "raxml" in config["tree"]["method"]:
-	rule concatenate:
-		input:
-			checkpoint = rules.align_trim.output
-		output:
-			checkpoint = "results/checkpoints/concatenate.done",
-			alignment = "results/phylogeny/concat.fas",
-			partitions = "results/phylogeny/partitions.txt",
-			phylip_alignment = "results/phylogeny/concat.phy"
-		benchmark:
-			"results/statistics/benchmarks/tree/concatenate.txt"
-		params:
-			wd = os.getcwd(),
-			ids = config["species"],
-			datatype = config["filtering"]["seq_type"],
-			models = "results/modeltest/best_models.txt"
-		singularity:
-			"docker://reslp/concat:0.2"
-		shell:
-			"""
-			tail -n +2 {params.ids} | awk -F "," '{{print $1;}}' | sed 's/ /_/g' > results/phylogeny/ids.txt	
-			concat.py -d results/filtered_alignments/ -t results/phylogeny/ids.txt --runmode concat -o results/phylogeny/ --biopython --statistics
-			
-			if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
-				echo "$(date) - phylociraptor was run with -model before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
-				awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
+rule partition_alignment:
+	input:
+		rules.concatenate.output.statistics
+	output:
+		partitions = "results/phylogeny/partitions.txt"
+	params:
+		wd = os.getcwd(),
+		models = "results/modeltest/best_models.txt",
+		datatype = config["filtering"]["seq_type"]
+	shell:
+		"""
+		if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
+			echo "$(date) - phylociraptor was run with -model before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
+			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
+		else
+			echo "$(date) - phylociraptor was NOT run with -model before. Will run raxml with GTR or PROTGTR according to input data type." >> {params.wd}/results/statistics/runlog.txt
+			if [[ {params.datatype} == "aa" ]]; then
+				awk '{{print $0"\\tPROTGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 			else
-				echo "$(date) - phylociraptor was run with -model before. Will run raxml with GTR or PTROTGTR according to input data type." >> {params.wd}/results/statistics/runlog.txt
-				if [[ {params.datatype} == "aa" ]]; then 
-					awk '{{print $0"\\tPROTGTR"}}' results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
-				else
-					awk '{{print $0"\\tGTR"}}' results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
-				fi
+				awk '{{print $0"\\tGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 			fi
-			# correct some model names to make them raxml compatible:
-			# it is not quite clear which models are compatible. During more extensive tests additional problems should show up
-			cat results/phylogeny/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
-			python -c "from Bio import AlignIO; alignment = AlignIO.read(open('{output.alignment}'), 'fasta'); print(' '+str(len(alignment))+' '+str(alignment.get_alignment_length())); print(''.join([str(seq.id)+'   '+str(seq.seq)+'\\n' for seq in alignment]));" > {output.phylip_alignment}
-			touch {output.checkpoint}
-			"""	
+		fi
+		# correct some model names to make them raxml compatible:
+		# it is not quite clear which models are compatible. During more extensive tests additional problems should show up
+		cat results/phylogeny/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
+		touch {output.partitions}
+		"""
+
+if "raxml" in config["tree"]["method"]:
 	rule raxmlng:
 		input:
 			alignment = rules.concatenate.output.alignment,
-			partitions = rules.concatenate.output.partitions
+			partitions = rules.partition_alignment.output.partitions
 		output:
 			checkpoint = "results/checkpoints/raxmlng.done",
 			alignment = "results/phylogeny/raxmlng/concat.fas",

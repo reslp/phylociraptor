@@ -84,3 +84,9 @@ iqtree_gene_trees:
    h_vmem: 2G
 aggregate_gene_trees:
    N: agg_genetrees
+njtree:
+   N: njtree
+   h_vmem: 16G
+partition_alignment:
+   N: partalgn
+   h_vmem: 10G

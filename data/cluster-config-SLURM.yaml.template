@@ -89,3 +89,9 @@ iqtree_gene_trees:
    ntasks: 16
 aggregate_gene_trees:
    J: agg_genetrees
+njtree:
+   J: njtree
+   mem: 16G
+partition_alignment:
+   J: partalgn
+   mem: 10G
