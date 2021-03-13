@@ -13,22 +13,23 @@ pars = argparse.ArgumentParser(prog="filter_alignments.py", description = """Thi
 pars.add_argument('--alignments', dest="align", required=True, help="alignment files")
 pars.add_argument('--outdir', dest="outdir", required=True, help="output directory")
 pars.add_argument('--per_sample', dest="perseq", action='store_true', help="if set, only samples with duplicated sequences will be removed. Else the whole alignment")
-pars.add_argument('--min-parsimony', dest="minpars", required=True, help="The minimum number of parsimony informative sites and alignment must have to be kept.")
-pars.add_argument('--statistics-file', dest="statfile", required=True, help="Statistics file which contains alignment information(incl. parsimony informative sites; this file needs to be created with concat)")
+pars.add_argument('--min-parsimony', nargs="?", dest="minpars", const=0, help="The minimum number of parsimony informative sites and alignment must have to be kept.")
+pars.add_argument('--statistics-file', nargs="?", dest="statfile", const="", help="Statistics file which contains alignment information(incl. parsimony informative sites; this file needs to be created with concat)")
 args=pars.parse_args()
 
 algn_list = args.align.split(" ")
 
 stats_dict = {}
-with open(args.statfile, "r") as stats:
-	stats.readline()
-	for stat in stats:
-		stats_dict[stat.split("\t")[0]] = int(stat.split("\t")[5])	
+if args.statfile:
+	with open(args.statfile, "r") as stats:
+		stats.readline()
+		for stat in stats:
+			stats_dict[stat.split("\t")[0]] = int(stat.split("\t")[5])	
 for al in algn_list:
 	if os.stat(al).st_size == 0:
 		print(os.path.basename(al), "\tEMPTY")
 		continue
-	if stats_dict[os.path.basename(al)] < int(args.minpars):
+	if stats_dict and stats_dict[os.path.basename(al)] < int(args.minpars):
 		print(os.path.basename(al), "\tNOT_INFORMATIVE")
 		continue
 	
