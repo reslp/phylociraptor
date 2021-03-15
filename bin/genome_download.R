@@ -37,6 +37,7 @@ messagereader <- function (fun, ...) { # this function will capture the output f
   list(res, messages = me)
 }
 
+
 parse_download_message <- function(my_message, sp, sp_name) { # this function parses the download message from biomartr and decides what to do with it (successful/failed/error)
 sp_sub <- gsub(" ", "_", sp)
 sp_name <- gsub(" ", "_", sp_name)
@@ -45,26 +46,26 @@ sp_name <- gsub(" ", "_", sp_name)
 if (grepl("Unzipping downloaded file", my_message, fixed=T)) {
          print(paste("GENOME DOWNLOAD: Download for ", sp, " was successfull", sep=""))
          path <- file.path(wd, "results","downloaded_genomes",paste(sp_sub,"_genomic_genbank.fna",sep=""))
-         species_data[nrow(species_data)+1, ] <<- c(sp_name, path, "successful")
+         species_data[nrow(species_data)+1, ] <<- c(sp_sub, path, "successful")
          successful <<- c(sp_name, successful)
          return
        } else if (grepl("no genome file could be found", my_message, fixed=T) == TRUE) {
          print(paste("GENOME DOWNLOAD: Download for ", sp, " failed", sep=""))
-         species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
+         species_data[nrow(species_data)+1, ] <<- c(sp_sub,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
          print("GENOME DOWNLOAD: Message from biomartr:")
          print(my_message)
          return
        } else if (!file.exists(file.path(wd, "results","downloaded_genomes",paste(sp_sub,"_genomic_genbank.fna",sep="")))){
          print(paste("GENOME DOWNLOAD: It seems no assembly for ", sp, " exists.", sep=""))
-         species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
+         species_data[nrow(species_data)+1, ] <<- c(sp_sub,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
          print("GENOME DOWNLOAD: Message from biomartr:")
          print(my_message)
          return
        } else {
          print(paste("GENOME DOWNLOAD: An unknown error occurred during genome download for ", sp, sep=""))
-         species_data[nrow(species_data)+1, ] <<- c(sp_name,"not_downloaded", "failed")
+         species_data[nrow(species_data)+1, ] <<- c(sp_sub,"not_downloaded", "failed")
          failed <<- c(sp_name, failed)
          print("GENOME DOWNLOAD: Message from biomartr:")
          print(my_message)
@@ -76,13 +77,13 @@ get_genome_id_for_download <- function(sp) {
 
 }
 
-check_genome_availibilty <- function(sp) {
+check_genome_availibilty <- function(sp, sp_name) {
  path <- file.path(wd,"results","downloaded_genomes",paste(sp,"_genomic_genbank.fna",sep=""))
  if (file.exists(path)) {
    print(paste("GENOME DOWNLOAD: File exists for ", sp, ". Will skip this species.", sep=""))
    cat("\n\n")
-   successful <<- c(sp, successful)
-   species_data[nrow(species_data)+1, ] <<- c(sp, path, "successful")
+   successful <<- c(sp_name, successful)
+   species_data[nrow(species_data)+1, ] <<- c(sp_name, path, "successful")
    return(TRUE)
  } else { return(FALSE) }
 }
@@ -91,7 +92,7 @@ for (sp in all_species) {
   print(paste("----------------------- ",sp," ----------------------- ", sep=""))
   # first check if genome was already downloaded. In this case skip download.
   path <- file.path(wd,"results","downloaded_genomes",paste(sp,"_genomic_genbank.fna",sep=""))
-  if (check_genome_availibilty(sp) == TRUE) {
+  if (check_genome_availibilty(sp, sp) == TRUE) {
 	next
   }
   sp_subbed <- gsub("_", " ", sp)
@@ -106,7 +107,7 @@ for (sp in all_species) {
     Sys.sleep(delay) # to second delay to prevent hitting the NCBI API access limit
     if (nrow(genome_data)==1) {
        print(paste("GENOME DOWNLOAD: Found a single genome for ", sp, ". Will download this genome now.",sep=""))
-       if (check_genome_availibilty(sp) == TRUE) {
+       if (check_genome_availibilty(sp, sp) == TRUE) {
         next
        }
        mess <- messagereader(getGenome ,db="genbank", organism=sp_subbed, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -120,7 +121,7 @@ for (sp in all_species) {
            if ("reference genome" %in% genome_data$refseq_category) { # reference genome found
               print(paste("GENOME DOWNLOAD: Reference genome is available for ", sp, ". Will download this", sep=""))
               accession <- genome_data[genome_data$refseq_category=="reference genome",]$assembly_accession[1]
-              if (check_genome_availibilty(accession) == TRUE) {
+              if (check_genome_availibilty(accession, sp) == TRUE) {
                next
               }
               mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -130,18 +131,19 @@ for (sp in all_species) {
            } else if ("representative genome" %in% genome_data$refseq_category) {
               print("GENOME DOWNLOAD: Representative genome found. Will download genome.")
               accession <- genome_data[genome_data$refseq_category=="representative genome",]$assembly_accession[1]
-              if (check_genome_availibilty(accession) == TRUE) {
+              if (check_genome_availibilty(accession, sp) == TRUE) {
                next
               }
               mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
               my_message <- paste(mess$messages, collapse="\n")
-              parse_download_message(my_message, accession, sp)
+              print(sp)
+	      parse_download_message(my_message, accession, sp)
               next
            }
            else {
               print(paste("GENOME DOWNLOAD: No genome is labeled as reference genome for ", sp, ". Will download the newest one.",sep=""))
               accession <- genome_data$assembly_accession[length(genome_data$seq_rel_date)][1]
-              if (check_genome_availibilty(accession) == TRUE) {
+              if (check_genome_availibilty(accession, sp) == TRUE) {
                next
               }
               mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -169,7 +171,7 @@ for (sp in all_species) {
 		  if (is.na(genome_data2[genome_data2$refseq_category=="reference genome",]$assembly_accession[1]) == FALSE) { # check if reference genome or representative genome
                      print("GENOME DOWNLOAD: Reference genome found. Will download genome.")
                      accession <- genome_data2[genome_data2$refseq_category=="reference genome",]$assembly_accession[1]
-                     if (check_genome_availibilty(accession) == TRUE) {
+                     if (check_genome_availibilty(accession, sp) == TRUE) {
                       break
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -180,7 +182,7 @@ for (sp in all_species) {
                   } else if (is.na(genome_data2[genome_data2$refseq_category=="representative genome",]$assembly_accession[1]) == FALSE) {
                      print("GENOME DOWNLOAD: Representative genome found. Will download genome.")
                      accession <- genome_data2[genome_data2$refseq_category=="representative genome",]$assembly_accession[1] 
-                     if (check_genome_availibilty(accession) == TRUE) {
+                     if (check_genome_availibilty(accession, sp) == TRUE) {
                       break
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -191,7 +193,7 @@ for (sp in all_species) {
                   } else {
                      print("GENOME DOWNLOAD: Will download genome latest genome.")
                      accession <- genome_data2$assembly_accession[length(genome_data2$seq_rel_date)][1]
-                     if (check_genome_availibilty(accession) == TRUE) {
+                     if (check_genome_availibilty(accession, sp) == TRUE) {
                       break
                      }
                      mess <- messagereader(getGenome ,db="genbank", organism=accession, path=file.path(wd, "results","downloaded_genomes"), gunzip=T)
@@ -206,7 +208,9 @@ for (sp in all_species) {
 		# after the for loop for multiple taxids check if a genome was found:
 		if (found == 0) {
 		print("GENOME DOWNLOAD: Unfortunately I was unable to resolve this name based on its taxid. This can happen when only a genus name is provided.")
-		print(paste("GENOME DOWNLOAD: Nothing downloaded for taxon: ", sp_subbed," with taxid: ",str(taxid), sep=""))
+		print(paste("GENOME DOWNLOAD: Nothing downloaded for taxon: ", sp," with taxid: ",taxid, sep=""))
+		species_data[nrow(species_data)+1, ] <- c(sp,"not_downloaded", "failed")
+		failed <- c(sp, failed)
 		}
 		if (found == 1) {
 		found <- 0

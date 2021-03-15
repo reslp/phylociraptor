@@ -43,23 +43,25 @@ rule rename_assemblies:
 	shell:
 		"""
 		mkdir -p results/assemblies
-		for spe in $(cat {input.success}); do
-			echo $spe
-			if [[ -f {params.wd}/results/assemblies/"$spe".fna ]]; then
+		for spe in $(grep ",success" {input.overview}); do
+			sp=$(echo $spe | awk -F',' '{{print $1}}')
+			if [[ -f {params.wd}/results/assemblies/"$sp".fna ]]; then
 				continue
 			else
-				link=$(tail -n +2 "{input.overview}" | grep "^$spe," | awk -F',' '{{print $2}}')
+				#link=$(tail -n +2 "{input.overview}" | grep "^$spe," | awk -F',' '{{print $2}}')
+				link=$(echo $spe | awk -F',' '{{print $2}}')
 				if [[ ! -f "$link" ]]; then
-					echo "$spe" >> {output.statistics} 
+					echo "$sp" >> {output.statistics} 
 					continue
 				else
-					ln -s $link {params.wd}/results/assemblies/"$spe".fna
+					ln -s $link {params.wd}/results/assemblies/"$sp".fna
 				fi
 			fi
 		done	
 		for spe in {params.local_species}; do
 			sparr=(${{spe//,/ }})
-			if [[ -f {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
+			if [[ -L {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
+				echo "${{sparr[0]}}" >> {output.statistics_local}
 				continue
 			else
 				echo "${{sparr[0]}}" >> {output.statistics_local}
@@ -84,7 +86,8 @@ rule download_busco_set:
 	shell:
 		"""
 		echo {params.set}
-		wget http://busco.ezlab.org/v2/datasets/{params.set}.tar.gz
+		#wget http://busco.ezlab.org/v3/datasets/{params.set}.tar.gz
+		wget https://busco-archive.ezlab.org/v3/datasets/prerelease/chlorophyta_odb10.tar.gz
 		tar xfz {params.set}.tar.gz
 		rm {params.set}.tar.gz
 		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
