@@ -256,6 +256,7 @@ if (file.exists(busco_summary_file))
 if (busco_bench_df != "not_found") {
   subplot(ggplotly(p, height=15*nrows), ggplotly(p2, height=15*nrows))
 } else {
+  p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
   ggplotly(p2, height=15*nrows)
 }
   
