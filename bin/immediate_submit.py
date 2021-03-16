@@ -98,8 +98,8 @@ elif subs == "sge":
 	job_properties["cluster"]["N"] = name
 	# set name for cluster log files:
 	prefix = "comparative-" + job_properties["rule"] + "-sge"
-	job_properties["cluster"]["o"] = job_properties["cluster"]["o"].replace("slurm", prefix).replace("%j",name)
-	job_properties["cluster"]["e"] = job_properties["cluster"]["e"].replace("slurm", prefix).replace("%j",name)
+	job_properties["cluster"]["o"] = job_properties["cluster"]["o"].replace("sge", prefix).replace("%j",name)
+	job_properties["cluster"]["e"] = job_properties["cluster"]["e"].replace("sge", prefix).replace("%j",name)
 	cmdline = ["qsub"]
 	
 	# extract info an requested resources
@@ -151,8 +151,8 @@ elif subs == "torque":
 	job_properties["cluster"]["N"] = name
 	# set name for cluster log files:
 	prefix =  job_properties["rule"] + "-torque"
-	job_properties["cluster"]["o"] = job_properties["cluster"]["o"].replace("slurm", prefix).replace("%j",name)
-	job_properties["cluster"]["e"] = job_properties["cluster"]["e"].replace("slurm", prefix).replace("%j",name)
+	job_properties["cluster"]["o"] = job_properties["cluster"]["o"].replace("torque", prefix).replace("%j",name)
+	job_properties["cluster"]["e"] = job_properties["cluster"]["e"].replace("torque", prefix).replace("%j",name)
 	cmdline = ["qsub"]
 	
 	# extract info an requested resources
