@@ -86,8 +86,8 @@ rule download_busco_set:
 	shell:
 		"""
 		echo {params.set}
-		#wget http://busco.ezlab.org/v3/datasets/{params.set}.tar.gz
-		wget https://busco-archive.ezlab.org/v3/datasets/prerelease/chlorophyta_odb10.tar.gz
+		wget http://busco.ezlab.org/v3/datasets/{params.set}.tar.gz
+		#wget https://busco-archive.ezlab.org/v3/datasets/prerelease/chlorophyta_odb10.tar.gz
 		tar xfz {params.set}.tar.gz
 		rm {params.set}.tar.gz
 		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
