@@ -87,7 +87,7 @@ rule extract_busco_table:
 	benchmark:
 		"results/statistics/benchmarks/busco/extract_busco_table.txt"
 	singularity:
-		"docker://continuumio/miniconda3:4.7.10"
+		"docker://reslp/biopython_plus:1.77"
 	params:
 		busco_dir = "results/busco/"
 	shell:
