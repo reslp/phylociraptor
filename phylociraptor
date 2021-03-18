@@ -319,10 +319,6 @@ if [[ $RUNMODE == *"model"* ]]; then
         echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
         exit 0
   fi
- if [[ ! -f "checkpoints/align.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
 
  if [[ ! -f "checkpoints/align_trim.done" ]]; then
         echo "You must first phylogenomics -m align to run this part of the pipeline"
