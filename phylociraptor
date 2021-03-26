@@ -276,7 +276,8 @@ def execute_command(cmd, verbose):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line[:-1]+"\n"
+				#yield line[:-1] +"\n"
+				yield line
 				#if char != "\n":
 				#	line += char
 				#else:
@@ -302,7 +303,7 @@ def execute_command(cmd, verbose):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line[:-1]	+"\n"
+				yield line[:-1]
 			else:
 				result = line
 				if result.startswith("Job counts"):
@@ -321,7 +322,7 @@ def execute_command(cmd, verbose):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line[:-1] + "\n"	
+				yield line[:-1] +"\n"
 			else:
 				result = line
 				if result.startswith("Job counts"):
@@ -446,7 +447,7 @@ if args.command=="filter-orthology":
 	forthology_parser.add_argument("-c", "--cluster-config", action="store")
 	forthology_parser.add_argument("--dry", action="store_true")
 	forthology_parser.add_argument("-h", "--help", action="store_true")
-	forthology_parser.add_argument("--verbose", action="store_true", default=True)
+	forthology_parser.add_argument("--verbose", action="store_true", default=False)
 	forthology_parser.add_argument("--config-file", action="store", dest="config_file")
 	forthology_parser.add_argument("--dupseq", action="store")
 	forthology_parser.add_argument("--cutoff", action="store")
@@ -508,7 +509,7 @@ if args.command=="align":
 	align_parser.add_argument("-c", "--cluster-config", action="store")
 	align_parser.add_argument("--dry", action="store_true")
 	align_parser.add_argument("-h", "--help", action="store_true")
-	align_parser.add_argument("--verbose", action="store_true", default=True)
+	align_parser.add_argument("--verbose", action="store_true", default=False)
 	align_parser.add_argument("--config-file", action="store", dest="config_file")
 	align_parser.add_argument("--method", action="store")
 	align_parser.add_argument("--threads", action="store")
@@ -524,7 +525,7 @@ if args.command=="align":
 		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-p", "-s", "rules/align_trim.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "align_trim", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(align_args.cluster)
 	cmd += get_flags(vars(align_args))
 
@@ -549,6 +550,7 @@ if args.command=="align":
 	print("Preparing to run phylociraptor align...")
 	for line in execute_command(cmd, align_args.verbose):
                 print(line, "\r")
+	print("\ndone")
 	if debug:
 		print(cmd)
 if args.command=="filter-align":
@@ -558,7 +560,7 @@ if args.command=="filter-align":
 	falign_parser.add_argument("-c", "--cluster-config", action="store")
 	falign_parser.add_argument("--dry", action="store_true")
 	falign_parser.add_argument("-h", "--help", action="store_true")
-	falign_parser.add_argument("--verbose", action="store_true", default=True)
+	falign_parser.add_argument("--verbose", action="store_true", default=False)
 	falign_parser.add_argument("--config-file", action="store", dest="config_file")
 	falign_parser.add_argument("--method", action="store")
 	falign_parser.add_argument("--parameters", action="store")
@@ -575,7 +577,7 @@ if args.command=="filter-align":
 		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake","-p", "-s", "rules/filter-align_trim.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part_filter_align", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part_filter_align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(falign_args.cluster)
 	cmd += get_flags(vars(falign_args))
 	
