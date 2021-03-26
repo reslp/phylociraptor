@@ -1,512 +1,685 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-#module load singularity/3.5.2-gcc-9.1.0-fp2564h
-set -e
+import sys, os, io
+import time
+if sys.version_info[0] < 3:
+	raise Exception("Must be using Python 3")
 
-usage() {
-        echo "Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline. Git commit: $commit"
-        echo
-        echo "Usage: $0 [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]"
-        echo
-        echo "Options:"
-        echo "  -t <submission_system> Specify available submission system. Options: sge, slurm, torque, serial (no submission system)."
-        echo "  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory). "
-        echo "  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default."
-        echo "  -i \"<singularity_args>\" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default."
-        echo "  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, filter-align, model, tree, njtree, speciestree"
-	echo
-	echo "  --add-genomes will check for and add additional genomes (in case they were added to the config files)." 
-	echo "  --dry Invokes a dry-run. Corresponds to: snakemake -n"
-	echo "  --report This creates an overview report of the run."
-	echo "  --setup Will download the genomes and prepare the pipeline to run."
-	echo "  --remove Resets the pipeline. Will delete all results, logs and checkpoints."
-	echo
-        1>&2; exit 1; }
-
-version() {
-        echo "$0 v0.1 - Git commit: $commit"
-        exit 0
-}
-CLUSTER=""
-CLUSTER_CONFIg=""
-SETUP=""
-RUNMODE=""
-REMOVE="FALSE"
-REPORT=""
-DRY=""
-NJOBS="10001"
-commit=$(git rev-parse --short HEAD)
-STDSMARGS="--notemp --latency-wait 600"
-
-while getopts ":vt:c:s:m:i:-:" option;
-        do
-                case "${option}"
-                in
-                        v) version;;
-                        t) CLUSTER=${OPTARG};;
-                        c) CLUSTER_CONFIG=${OPTARG};;
-                        s) SM_ARGS=${OPTARG};;
-                        i) SI_ARGS=${OPTARG};;
-                        m) RUNMODE=${OPTARG};;
-			-) LONG_OPTARG="${OPTARG#*}"
-				case $OPTARG in
-					add-genomes) ADD="TRUE";;
-					setup) SETUP="TRUE" ;;
-					remove) REMOVE="TRUE" ;;
-					report) REPORT="TRUE" ;;
-					dry) DRY="-n" ;;
-					'' ) break ;;
-					*) echo "Illegal option --$OPTARG" >&2; usage; exit 2 ;;
-				esac ;;	
-                        *) echo "Illegal option --$OPTARG" >&2; usage;;
-                        ?) echo "Illegal option --$OPTARG" >&2 usage;;
-                esac
-        done
-#SM_ARGS="--quiet"
-if [ $OPTIND -eq 1 ]; then usage; fi
+import argparse
+import subprocess
 
 
-echo "Welcome to phylociraptor - the rapid phylogenomic tree calculator."
-echo "Git commit: "$commit
+#some basic variables needed:
+njobs = "10001"
+latency_wait = "10" #in seconds
+singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
+debug=True
+default_help = """
+Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
-echo $SETUP
-if [[ $REMOVE == "TRUE" ]]; then
-	echo "WARNING: This command will delete all previously generated results."
-	read -r -p "Are you sure [y/n]? " yn
-	if [[ $yn == "y" ]]; then
-		echo "Deleting all results, logs and checkpoints..."
-		rm -r results/*
-		rm -r log/*
-		rm -r checkpoints/*
-		echo "...done"
-		exit 0
-	else
-		echo "Not deleting anything"
-		exit 0
-	fi
-fi
+Usage: phylociraptor <command> <arguments>
 
-if [[ $SETUP == "TRUE" ]]; then
-	if [[ -f .phylogenomics_setup.done ]]; then
-		read -r -p "Setup has been run previously. Are you sure you want to rerun this step? [y/n]? " yn
-		if [[ $yn == "y" ]]; then
-			rm -f .phylogenomics_setup.done
-			rm -f results/checkpoints/download_busco_set.done
-			rm -f results/checkpoints/prepare_augustus.done
-			rm -f results/checkpoints/download_genomes.done
-			rm -f results/checkpoints/rename_assemblies.done
-			rm -f results/statistics/downloaded_genomes_statistics.txt
-			echo "Will run setup of pipeline"
-			snakemake --use-singularity --singularity-args "$SI_ARGS" $STDSMARGS -r setup --cores 1 -f
-			exit 0
-		else
-			echo "Will not run setup."
-			exit 0
-		fi
-	else
-		echo "Will run setup of pipeline"
-		snakemake --use-singularity --singularity-args "$SI_ARGS" $STDSMARGS -r setup --cores 1
-		exit 0
-	fi
-fi
+Commands:
+	setup			Setup pipeline
+	orthology		Infer orthologs in a set of genomes
+	filter-orthology	Filter orthology results
+	align			Create alignments for orthologous genes
+	filter-align		Trim and filter alignments
+	model			Perform modeltesting
+	tree			Calculate Maximum-Likelihood phylogenomic trees
+	speciestree		Calculate gene trees and species tree
+	njtree			Calculate Neighbor-Joining tree
 
-if [[ $ADD == "TRUE" ]]; then
-	echo "Will rerun part which downloades, copies and renames genomes to add additional ones."
+	-v, --version 		Print version
+	-h, --help		Display help
+
+Example:
+	To see options for the setup step:
+	./phylociraptor setup -h
+
+	To run orthology inferrence for a set of genomes on a SLURM cluster:
+	./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
+
+	To filter alignments overwriting the number of parsimony informative sites set in the config file:
+	./phylciraptor filter-align --npars_cutoff 12
+        
+"""
+
+setup_help = """
+phylociraptor setup - will prepare your analysis
+
+Usage: phylociraptor setup <arguments>
+
+Argumemts:
+	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config	Specify Cluster config file path. Default: None
+	-f, --force		Force run this part in case it has already been run.
 	
-	if [[ ! -f .phylogenomics_setup.done ]]; then
-		echo "Setup has not been run before. You have to run --setup first to be able to run this."
-		exit 1
-	fi
-	rm -f results/checkpoints/download_genomes.done
-	rm -f results/checkpoints/rename_assemblies.done
-	rm -f results/statistics/downloaded_genomes_statistics.txt
-	rm -f .add_genomes.done
-	snakemake --use-singularity --singularity-args "$SI_ARGS" $STDSMARGS -r add_genomes --cores 1
-	exit 0
-	fi
+	--dry			Make a dry run.
+	--verbose		Display more output.
+	-h, --help		Display help.
 
+Additonal customization:
+	--config-file		Custom config-file path. (Default: data/config.yaml)	
+	--busco_set		BUSCO set to download. (Default: value from config.yaml)
+	--samples_csv		Samples CSV file path. (Default: value from config.yaml)
+"""
 
-# Testing warning
-#echo "WARNING: The submission script is still in testing mode! Check the snakemake command inside before moving into production!"
+orthology_help = """
+phylociraptor orthology - Will infer orthologous genes in a set of genomes.
 
-# create report if flag is set
-if [[ $REPORT == "TRUE" ]]; then
-	echo "Creating phylociraptor report. This can take a few minutes..."
-	if singularity exec docker://reslp/rmarkdown:4.0.3 Rscript -e "rmarkdown::render('./bin/report.Rmd')" 2>&1 | tee .report.log > /dev/null; then
-		echo "...done."
-		echo "Phylociraptor report created in results/report.html"
-		mv bin/report.html results/report.html
-	else
-		cat .report.log
-		echo "An ERROR occured. Please review logfile above."
-	fi
-	exit 0
-fi
+Usage: phylociraptor orthology <arguments>
 
-# Determine submission system:
-if [[ $CLUSTER == "sge" ]]; then
-        echo "SGE (Sun Grid Engine) submission system specified. Will use qsub to submit jobs."
-elif [[ $CLUSTER == "slurm" ]]; then
-        echo "SLURM submission system specified. Will use sbatch to submit jobs."
-elif [[ $CLUSTER == "torque" ]]; then
-        echo "TORQUE submission system specified. Will use qsub to submit jobs."
-elif [[ $CLUSTER == "serial" ]]; then
-  echo "Serial execution without job submission specified."
-# comment out automated submission detection which is currently broken.
-#else
-#       echo "No or unknown submission system specified, will try to detect the system automatically."
-#       CLUSTER=""
-#       command -v qsub >/dev/null 2>&1 && { echo >&2 "SGE detected, will use qsub to submit jobs."; CLUSTER="sge"; }
-#       command -v sbatch >/dev/null 2>&1 && { echo >&2 "SLURM detected, will use sbatch to submit jobs."; CLUSTER="slurm"; }
-else
-	echo "Submission system not specified. Will default to serial execution without job submission."
-	CLUSTER="serial"
-fi
+Argumemts:
+        -t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial.
+        -c, --cluster-config    Specify Cluster config file path. Default: None
+        -f, --force             Force run this part in case it has already been run.
+        
+        --dry                   Make a dry run.
+        --verbose               Display more output.
+        -h, --help              Display help.
 
-# add runmode for single rules, this is for testing
-if [[ $RUNMODE == *"single"* ]]; then
-	echo "Runmode set to: single. I hope you know what you are doing ..."
-  	if [[ $CLUSTER == "slurm" ]]; then
-        	export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          	mkdir -p .conda_pkg_tmp
-          	snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS $SM_ARGS $DRY
-        	unset CONDA_PKGS_DIRS
-  	elif [[ $CLUSTER == "sge" ]]; then
-        	snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS $SM_ARGS $DRY
-	elif [[ $CLUSTER == "torque" ]]; then
-                snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS $SM_ARGS $DRY
-  	elif [[ $CLUSTER == "serial" ]]; then
-    		snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS $DRY
-  	else
-          	echo "Submission system not recognized"
-          	exit 1
-	fi
-fi
-# these if cases are still crude and do not cover all possible combinations!
-if [[ $RUNMODE == "orthology" ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-	echo "You must first run phylogenomics --setup to run the pipeline"
-	exit 0
-  fi
-  echo "Runmode set to: orthology. Will run BUSCO to identify orthologous genes."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
-  	unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-  	snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r orthology $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp $SM_ARGS -r orthology $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Additonal customization:
+	--config-file           Custom config-file path. (Default: data/config.yaml)
+	--busco_threads		Number of threads for each BUSCO run. (Default: value from config.yaml)
+	--augustus_species	Pretrained species for Augustus. (Deafult: value from config.yaml)
+	--additional_params	Additional parameter passed on to BUSCO. Must be placed inside quotes. (Default: value from config.yaml)
+	        
+"""
 
+forthology_help = """
+phylociraptor filter-orthology - Will filter orthology results produced by phylociraptor orthology.
 
-if [[ $RUNMODE == "filter-orthology" ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-	echo "You must first run phylogenomics --setup to run the pipeline"
-	exit 0
-  fi
-  if [[ ! -f "checkpoints/orthology.done" ]]; then
-        echo "You must first phylogenomics -m orthology to run this part of the pipeline."
-        exit 0
-  fi
-  echo "Runmode set to: filter-orthology. Will filter BUSCO runs according to parameters specified in the config file."
-  if [[ $DRY != "-n" ]]; then
-	echo "Will remove previous results..."
-	rm -fr results/busco_sequences
-	rm -fr results/busco_sequences_deduplicated
-	rm -f checkpoints/filter_orthology.done
-	rm -f results/checkpoints/create_sequence_files.done
-	rm -f results/checkpoints/remove_duplicated_sequence_files.done
-  fi
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
-  	unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-  	snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r filter_orthology $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-singularity --singularity-args "$SI_ARGS" -pr --notemp $SM_ARGS -r filter_orthology $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Usage: phylociraptor filter-orthology <arguments>
 
-if [[ $RUNMODE == "align" ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
-  if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline."
-        exit 0
-  fi
-  mkdir -p .usr_tmp
-  echo "Runmode set to: align. Will run second part of pipeline to generate alignments.."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r align_trim $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r align_trim $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Argumemts:
+        -t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+        -c, --cluster-config    Specify Cluster config file path. Default: None
+        -f, --force             Force run this part in case it has already been run.
+        
+        --dry                   Make a dry run.
+        --verbose               Display more output.
+        -h, --help              Display help.
 
-if [[ $RUNMODE == "filter-align" ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
-  if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
-  mkdir -p .usr_tmp
-  echo "Runmode set to: filter-align. Will filter alignments based on settings in config file."
-  if [[ $DRY != "-n" ]]; then
-	echo "Will remove previous results..."
-	rm -fr results/filtered_alignments/*
-	rm -fr results/checkpoints/filter_alignments.done
-	rm -f results/statistics/alignment_filter_information.txt
-	rm -f results/statistics/statistics_filtered.txt
-	rm -f checkpoints/filter_align.done
-  fi
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part_filter_align $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r part_filter_align $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
-if [[ $RUNMODE == *"model"* ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
- if [[ ! -f "checkpoints/orthology.done" ]]; then
-        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
-        exit 0
-  fi
+Additional customization:
+	--config-file           Custom config-file path. (Default: data/config.yaml)
+	--dupseq		Set how occasionally found duplicated sequences should be handled.
+				Options: persample; remove only samples with duplicated sequences
+					 perfiler; remove complete file
+				(Default: value from config.yaml)
+	--cutoff		Minimum BUSCO completeness for a sample to be kept.
+				(Default: value from config.yaml)
+	--minsp			Mimimum number of species that need to have a BUSCO gene for it to be kept.
+				(Default: value from config.yaml)
+	--seq_type		Type of sequence data to use. Options (aa, nu).
+				(Default: value from config.yaml)
+        
+"""
 
- if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
-        exit 0
-  fi
+align_help = """
+phylociraptor align - Will filter create alignments for a set of single-copy orthologous genes.
 
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+Usage: phylociraptor align <arguments>
 
- if [[ ! -f "checkpoints/filter_align.done" ]]; then
-        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
-        exit 0
-  fi
-  echo "Runmode set to: model. Will run substitution model testing with IQTREE"
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part_modeltest $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part_modeltest $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part_modeltest $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r part_modeltest $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Argumemts:
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: None
+	-f, --force             Force run this part in case it has already been run.
 
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
 
-if [[ $RUNMODE == "tree" ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
+Additional customization:
+	--config-file           Custom config-file path. (Default: data/config.yaml)
+	--method		Alignment method. Options: mafft (Default: mafft; read from config.yaml)
+	--parameters        	Commandline arguments for alignment method. (Default: read from config.yaml)
+	--threads		Number of threads for alignment step. (Default: read from config.yaml)	
 
- if [[ ! -f "checkpoints/orthology.done" ]]; then
-        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
-        exit 0
-  fi
+"""
 
- if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
-        exit 0
-  fi
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+falign_help = """
+phylociraptor filter-align - Will filter alignments.
 
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+Usage: phylociraptor filter-align <arguments>
 
- if [[ ! -f "checkpoints/filter_align.done" ]]; then
-        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
-        exit 0
-  fi
-  echo "Runmode set to: tree. Will run concatenated (supermatix) tree reconstruction."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r part3 $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r part3 $SM_ARGS $DRY
-  elif [[ $CLUSTER == "torque" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' torque" --immediate-submit $STDSMARGS -r part3 $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r part3 $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Argumemts:
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: None
+	-f, --force             Force run this part in case it has already been run.
 
-if [[ $RUNMODE == *"speciestree"* ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
 
- if [[ ! -f "checkpoints/orthology.done" ]]; then
-        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
-        exit 0
-  fi
+Additional customization:
+	--config-file           Custom config-file path. (Default: data/config.yaml)
+	--min_parsimony_sites	Minimum number of parsimony informative sites in each alignments.
+	--method		Trimming method. Options: trimal, aliscore (Default: read from config.yaml)
+	--parameters        	Commandline arguments for trimming method. (Default: read from config.yaml)
 
- if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
-        exit 0
-  fi
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+"""
 
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+sptree_help = """
+phylociraptor speciestree - Will calculate single-gene trees and a species tree.
 
- if [[ ! -f "checkpoints/filter_align.done" ]]; then
-        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
-        exit 0
-  fi
-  echo "Runmode set to: speciestree. Will run species tree reconstruction."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r speciestree $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r speciestree $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r speciestree $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Usage: phylociraptor speciestree <arguments>
 
+Argumemts:
+-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+-c, --cluster-config    Specify Cluster config file path. Default: None
+-f, --force             Force run this part in case it has already been run.
 
-if [[ $RUNMODE == *"njtree"* ]]; then
-  if [[ ! -f ".phylogenomics_setup.done" ]]; then
-        echo "You must first run phylogenomics --setup to run the pipeline"
-        exit 0
-  fi
+--dry                   Make a dry run.
+--verbose               Display more output.
+-h, --help              Display help.
 
- if [[ ! -f "checkpoints/orthology.done" ]]; then
-        echo "You must first phylogenomics -m orthology to run this part of the pipeline"
-        exit 0
-  fi
+--method		Alignment method. Options: mafft (Default: mafft; read from config file)
+--method_args        	Commandline arguments for alignment method. (Default: read from config file)
 
- if [[ ! -f "checkpoints/filter_orthology.done" ]]; then
-        echo "You must first phylogenomics -m filter-orthology to run this part of the pipeline"
-        exit 0
-  fi
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+"""
+njtree_help = """
+phylociraptor njtree - Will calculate a NJ tree.
 
- if [[ ! -f "checkpoints/align_trim.done" ]]; then
-        echo "You must first phylogenomics -m align to run this part of the pipeline"
-        exit 0
-  fi
+Usage: phylociraptor njtree <arguments>
 
- if [[ ! -f "checkpoints/filter_align.done" ]]; then
-        echo "You must first phylogenomics -m filter-align to run this part of the pipeline"
-        exit 0
-  fi
-  echo "Runmode set to: njtree. Will create a Neighbor-Joining tree using quicktree."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit $STDSMARGS -r njtree $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS -r njtree $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-conda --use-singularity --singularity-args "-B $(pwd)/.usr_tmp:/usertmp $SI_ARGS" $STDSMARGS $SM_ARGS -r njtree $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
-# these if cases are still crude and do not cover all possible combinations!
-if [[ $RUNMODE == *"all"* ]]; then
-  if [[ ! -f "checkpoints/busco.done" ]]; then
-        echo "You must first run part 1 of the pipeline."
-        exit 0
-  fi
-  echo "Runmode set to: all."
-  if [[ $CLUSTER == "slurm" ]]; then
-          export CONDA_PKGS_DIRS="$(pwd)/.conda_pkg_tmp"
-          mkdir -p .conda_pkg_tmp
-          snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster '$(pwd)/bin/immediate_submit.py {dependencies} slurm' --immediate-submit  $SM_ARGS $DRY
-        unset CONDA_PKGS_DIRS
-  elif [[ $CLUSTER == "sge" ]]; then
-        snakemake --use-singularity --singularity-args "$SI_ARGS" --jobs $NJOBS --cluster-config $CLUSTER_CONFIG --cluster "$(pwd)/bin/immediate_submit.py '{dependencies}' sge" --immediate-submit $STDSMARGS busco $SM_ARGS $DRY
-  elif [[ $CLUSTER == "serial" ]]; then
-    snakemake --use-singularity --singularity-args "$SI_ARGS" $STDSMARGS $SM_ARGS -r busco $DRY
-  else
-          echo "Submission system not recognized"
-          exit 1
-  fi
-fi
+Argumemts:
+-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+-c, --cluster-config    Specify Cluster config file path. Default: None
+-f, --force             Force run this part in case it has already been run.
 
+--dry                   Make a dry run.
+--verbose               Display more output.
+-h, --help              Display help.
 
+--method		Alignment method. Options: mafft (Default: mafft; read from config file)
+--method_args        	Commandline arguments for alignment method. (Default: read from config file)
 
+"""
+def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
+	count = len(it)
+	def show(j):
+		x = int(size*j/count)
+		return "%s[%s%s] %i/%i\r" % (prefix, "#"*x, "."*(size-x), j, count)
+	return show(progress)
 
+def help_message(mes):
+	return mes
+
+def determine_submission_mode(flag):
+	cmd = []
+	if "serial" in flag:
+		return ["--cores"]
+	else:
+		return ["--cluster", 'bin/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
+
+def get_flags(flags):
+	mapdict ={
+	#"t": '--cluster "bin/immediate_submit.py {dependencies} ', "cluster": '--cluster "bin/immediate_submit.py {dependencies} ',
+	"c": "--cluster-config", "cluster_config": "--cluster-config",
+	"force": "-F",
+	"dry": "-n"
+	}
+	cmd = []
+	for flag in flags.keys():
+		#print(flag)
+		if flag in mapdict.keys() and flags[flag] != None:
+			if flag == "t" or flag == "cluster": #handle cluster specification
+				arg = mapdict[flag]
+				arg = arg + " "+flags[flag]+'"'
+				cmd.append(arg) 
+			if flag == "c" or flag == "cluster_config": #handle cluster config file
+				#print("here")
+				#arg = mapdict[flag]
+				#arg = arg + " " + flags[flag]
+				cmd.append(mapdict[flag])
+				cmd.append(flags[flag])
+			else:
+				if flags[flag]:
+					cmd.append(mapdict[flag])
+	
+	return cmd
+
+def check_required_files(runmode):
+	outfile_dict = {
+	"setup": ["data/config.yaml"],
+	"orthology": ["data/config.yaml", ".phylogenomics_setup.done"],
+	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
+	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
+	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
+	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"]
+	}
+	
+	for f in outfile_dict[runmode]:
+		if not os.path.isfile(f):
+			return f
+	return
+
+def check_config_file(f):
+	if os.path.isfile(f):
+		return ["--configfile", f]
+	else:
+		print("Config file specified with --config-file not found:", f)
+		sys.exit(0)
+
+def execute_command(cmd, verbose):
+	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	line = ""
+	jobcounts = False
+	njobs = 0
+	char = ""
+	nline = 0
+	curr_task = 0
+	if "-n" in cmd:
+		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
+			nline += 1
+			if verbose:
+				yield line[:-1]+"\n"
+				#if char != "\n":
+				#	line += char
+				#else:
+				#	result = line
+				#	line = ""
+				#	yield result
+					#sys.stdout.flush()
+			else:
+				result = line
+				#print(result)
+				if result.startswith("Nothing"):
+					yield "There is nothing to do. If you want to force a rerun of this step try: -f\n"
+				if result.startswith("Job counts"):
+					jobcounts = True
+					#yield result
+				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
+						yield "Total number of tasks to run: %s\n" % result.split("\t")[1] 
+				elif jobcounts and result == "":
+					jobcounts = False
+				line=""
+	elif "--cluster" in cmd:
+		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
+			nline += 1
+			if verbose:
+				yield line[:-1]	+"\n"
+			else:
+				result = line
+				if result.startswith("Job counts"):
+					jobcounts = True	
+				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
+						yield "Total number of jobs to submit: %s\n" % result.split("\t")[1]
+						njobs = int(result.split("\t")[1])
+				elif jobcounts and result == "":
+					jobcounts = False
+				if line.startswith("rule"):
+					curr_task += 1
+					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
+				line=""
+	else:
+		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
+			nline += 1
+			if verbose:
+				yield line[:-1] + "\n"	
+			else:
+				result = line
+				if result.startswith("Job counts"):
+					jobcounts = True	
+				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
+						yield "Total number of tasks to run: %s\n" % result.split("\t")[1]
+						njobs = int(result.split("\t")[1])
+				elif jobcounts and result == "":
+					jobcounts = False
+				if line.startswith("rule"):
+					curr_task += 1
+					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
+				line=""
+		
+pars = argparse.ArgumentParser(usage=help_message(default_help))
+pars.add_argument('command', action='store')
+pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
+
+args = pars.parse_args()
+
+if args.command == "setup":
+	#setup_parser = argparse.ArgumentParser("phylociraptor setup", description = """Description: phylociraptor setup - Will help to setup your analysis.""", epilog = """written by Philipp Resl and Christoph Hahn""", usage=help_message(setup_help), add_help=False)	
+	setup_parser = argparse.ArgumentParser(usage=help_message(setup_help), add_help=False)
+	setup_parser.add_argument("-f", "--force", action="store_true" )
+	setup_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	setup_parser.add_argument("-c", "--cluster-config", action="store")
+	setup_parser.add_argument("--dry", action="store_true")
+	setup_parser.add_argument("-h", "--help", action="store_true")
+	setup_parser.add_argument("--verbose", action="store_true", default=False)
+	setup_parser.add_argument("--config-file", action="store", dest="config_file")
+	setup_parser.add_argument("--samples-csv", action="store", dest="samples_file")
+	setup_parser.add_argument("--busco-set", action="store", dest="busco_set")
+	
+	setup_args = setup_parser.parse_args(args.arguments)
+	
+	if setup_args.help:
+		print(help_message(setup_help))
+		sys.exit(0)
+	
+	print("Preparing to run phylociraptor setup...")
+	cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
+	cmd += get_flags(vars(setup_args))
+	cmd += determine_submission_mode(setup_args.cluster)
+
+	# check for overrides of config file parameters	
+	if setup_args.config_file:
+		cmd += check_config_file(setup_args.config_file)
+	if setup_args.busco_set or setup_args.samples_file:
+		cmd += ["--config"]
+		if not os.path.isfile(setup_args.samples_file):
+			print("File specified with --samples-csv not found:", setup_args.samples_file)
+			sys.exit(0)
+		cmd += ["busco={set: %s}" % setup_args.busco_set]
+		cmd += ["species='%s'" % setup_args.samples_file]
+	
+	#args=""
+	#if setup_args.busco_set:
+	#	args += "busco={set: %s}"%setup_args.busco_set
+	#if setup_args.samples_file:
+	#	args += ",species={%s}"%setup_args.samples_file	
+	#execute_command(cmd)
+	for line in execute_command(cmd, setup_args.verbose):
+		print(line, end="\r")
+	print("\ndone")
+	if debug:
+		print(cmd)
+	#print(p.stdout)
+	#print(p.stderr)
+if args.command=="orthology":
+	orthology_parser = argparse.ArgumentParser(usage=help_message(orthology_help),add_help=False)	
+	orthology_parser.add_argument("-f", "--force", action="store_true")
+	orthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	orthology_parser.add_argument("-c", "--cluster-config", action="store")
+	orthology_parser.add_argument("--dry", action="store_true")
+	orthology_parser.add_argument("-h", "--help", action="store_true")
+	orthology_parser.add_argument("--verbose", action="store_true", default=False)	
+	orthology_parser.add_argument("--busco_threads", action="store")
+	orthology_parser.add_argument("--config-file", action="store", dest="config_file")
+	orthology_parser.add_argument("--augustus_species", action="store")
+	orthology_parser.add_argument("--additional_params", action="store")
+	orthology_args = orthology_parser.parse_args(args.arguments)
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(orthology_help))
+	#	sys.exit(0)
+	if orthology_args.help: # help is specified
+		print(help_message(orthology_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
+	#print(orthology_args)
+	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "orthology", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(orthology_args.cluster)
+	cmd += get_flags(vars(orthology_args))
+
+	# check for overrides of config file parameters	
+	if orthology_args.config_file:
+		cmd += check_config_file(orthology_args.config_file)
+	if orthology_args.busco_threads or orthology_args.augustus_species or orthology_args.additional_params:
+		cmd += ["--config"]
+		arg = "busco={"
+		if orthology_args.busco_threads: #evaluation of this string by snakemake is lazy, it does not seem to matter if there are extra , characters...
+			arg += "threads: %s, " % orthology_args.busco_threads
+		if orthology_args.augustus_species:
+			arg += "augustus_species: %s, " % orthology_args.augustus_species
+		if orthology_args.additional_params:
+			arg += "additional_parameters: %s " % orthology_args.additional_params
+		arg+="}"
+		cmd += [arg]
+
+	
+	print("Preparing to run phylociraptor orthology...")
+	for line in execute_command(cmd, orthology_args.verbose):
+                print(line, end="\r")
+	print("\ndone")
+	if debug:
+		print(cmd)
+if args.command=="filter-orthology":
+	forthology_parser = argparse.ArgumentParser(add_help=False)
+	forthology_parser.add_argument("-f", "--force", action="store_true")
+	forthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	forthology_parser.add_argument("-c", "--cluster-config", action="store")
+	forthology_parser.add_argument("--dry", action="store_true")
+	forthology_parser.add_argument("-h", "--help", action="store_true")
+	forthology_parser.add_argument("--verbose", action="store_true", default=True)
+	forthology_parser.add_argument("--config-file", action="store", dest="config_file")
+	forthology_parser.add_argument("--dupseq", action="store")
+	forthology_parser.add_argument("--cutoff", action="store")
+	forthology_parser.add_argument("--minsp", action="store")
+	forthology_parser.add_argument("--seqtype", action="store")
+	
+	forthology_args = forthology_parser.parse_args(args.arguments)	
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if forthology_args.help: # help is specified
+		print(help_message(forthology_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "filter_orthology", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(forthology_args.cluster)
+	cmd += get_flags(vars(forthology_args))
+	
+	# check for overrides of config file parameters	
+	if forthology_args.config_file:
+		cmd += check_config_file(forthology_args.config_file)
+	if forthology_args.dupseq or forthology_args.cutoff or forthology_args.minsp or forthology_args.seqtype:
+		cmd += ["--config"]
+		arg = "filtering={"
+		if forthology_args.dupseq:
+			if forthology_args.dupseq in ["persample", "perfile"]:
+				arg += "dupseq: %s, "% forthology_args.dupseq
+			else:
+				print("Wrong parameter specified for --dupseq: ", forthology_args.dupseq)
+				sys.exit(0)
+		if forthology_args.cutoff:
+			if float(forthology_args.cutoff) >=0 and float(forthology_args.cutoff) <=1:
+				arg += "cutoff: %s, " % forthology_args.cutoff
+			else:
+				print("Wrong parameter specified for --cutoff: ", forthology_args.dubseq)	
+				sys.exit(0)
+		if forthology_args.minsp:
+			arg += "minsp: %s, " %forthology_args.minsp
+		if forthology_args.seqtype:
+			if forthology_args.seqtype in ["aa", "nu"]:
+				arg += "seq_type: %s " % forthology_args.seqtype
+			else:
+				print("Wrong parameter specified for --seqtype: ", forthology_args.seqtype)
+				sys.exit(0)
+		arg += "}"
+		cmd += [arg]
+	
+	print("Preparing to run phylociraptor filter-orthology...")
+	for line in execute_command(cmd, forthology_args.verbose):
+                print(line, end="\r")
+	if debug:
+		print(cmd)
+if args.command=="align":
+	align_parser = argparse.ArgumentParser(usage=help_message(align_help), add_help=False)
+	align_parser.add_argument("-f", "--force", action="store_true")
+	align_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	align_parser.add_argument("-c", "--cluster-config", action="store")
+	align_parser.add_argument("--dry", action="store_true")
+	align_parser.add_argument("-h", "--help", action="store_true")
+	align_parser.add_argument("--verbose", action="store_true", default=True)
+	align_parser.add_argument("--config-file", action="store", dest="config_file")
+	align_parser.add_argument("--method", action="store")
+	align_parser.add_argument("--threads", action="store")
+	align_parser.add_argument("--parameters", action="store")
+	align_args = align_parser.parse_args(args.arguments)	
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if align_args.help: # help is specified
+		print(help_message(align_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake", "-p", "-s", "rules/align_trim.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "align_trim", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(align_args.cluster)
+	cmd += get_flags(vars(align_args))
+
+	# check for overrides of config file parameters	
+	if align_args.config_file:
+		cmd += check_config_file(align_args.config_file)
+	if align_args.method or align_args.threads or align_args.parameters:
+		cmd += ["--config"]
+		arg = "alignment={"
+		if align_args.method:
+			if align_args.method in ["mafft"]:
+				arg += "method: %s, " % align_args.method
+			else:
+				print("Wrong parameter specified with --method:", align_args.method)
+				sys.exit(0)	
+		if align_args.threads:
+			arg += "threads: %s, " % align_args.threads
+		if align_args.parameters:
+			arg += "parameters: '%s'" % align_args.parameters
+		arg += " }"
+		cmd += [arg]	
+	print("Preparing to run phylociraptor align...")
+	for line in execute_command(cmd, align_args.verbose):
+                print(line, "\r")
+	if debug:
+		print(cmd)
+if args.command=="filter-align":
+	falign_parser = argparse.ArgumentParser(usage=help_message(falign_help), add_help=False)
+	falign_parser.add_argument("-f", "--force", action="store_true")
+	falign_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	falign_parser.add_argument("-c", "--cluster-config", action="store")
+	falign_parser.add_argument("--dry", action="store_true")
+	falign_parser.add_argument("-h", "--help", action="store_true")
+	falign_parser.add_argument("--verbose", action="store_true", default=True)
+	falign_parser.add_argument("--config-file", action="store", dest="config_file")
+	falign_parser.add_argument("--method", action="store")
+	falign_parser.add_argument("--parameters", action="store")
+	falign_parser.add_argument("--min_parsimony_sites", action="store")
+	
+	falign_args = falign_parser.parse_args(args.arguments)	
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if falign_args.help: # help is specified
+		print(help_message(falign_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake","-p", "-s", "rules/filter-align_trim.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part_filter_align", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(falign_args.cluster)
+	cmd += get_flags(vars(falign_args))
+	
+	# check for overrides of config file parameters	
+	if falign_args.config_file:
+		cmd += check_config_file(falign_args.config_file)
+	if falign_args.method or falign_args.min_parsimony_sites or falign_args.parameters:
+		cmd += ["--config"]
+		arg = "trimming={" 
+		if falign_args.min_parsimony_sites:
+			arg += "min_parsimony_sites: %s, " % falign_args.min_parsimony_sites
+		if falign_args.method:
+			arg += "method: %s, " % falign_args.method
+		if falign_args.parameters:
+			arg += "parameters: %s " % falign_args.parameters
+		arg += "}"
+		cmd += [arg]
+
+	print("Preparing to run phylociraptor filter-align...")
+	for line in execute_command(cmd, falign_args.verbose):
+                print(line, end="\r")
+	print("\ndone")
+	if debug:
+		print(cmd)
+if args.command=="speciestree":
+	sptree_parser = argparse.ArgumentParser(prog="phylociraptor speciestree", description = """Description: phylociraptor speciestree - Will filter alignments based on multiple parameters.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
+	sptree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
+	sptree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
+	sptree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
+	sptree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+	sptree_parser.add_argument("-h", "--help", action="store_true")
+	sptree_parser.add_argument("--verbose", action="store_true", default=True)
+	sptree_args = sptree_parser.parse_args(args.arguments)	
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if sptree_args.help: # help is specified
+		print(help_message(sptree_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake", "-s", "rules/speciestree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "speciestree", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(sptree_args.cluster)
+	cmd += get_flags(vars(sptree_args))
+	print(cmd)
+	
+	print("Preparing to run phylociraptor speciestree...")
+	for line in execute_command(cmd, sptree_args.verbose):
+                print(line)
+if args.command=="njtree":
+	njtree_parser = argparse.ArgumentParser(prog="phylociraptor njtree", description = """Description: phylociraptor njtree - Will calculate a NJ tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
+	njtree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
+	njtree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
+	njtree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
+	njtree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+	njtree_parser.add_argument("-h", "--help", action="store_true")
+	njtree_parser.add_argument("--verbose", action="store_true", default=True)
+	njtree_args = njtree_parser.parse_args(args.arguments)	
+	print(sys.argv)
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if njtree_args.help: # help is specified
+		print(help_message(njtree_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "njtree", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(njtree_args.cluster)
+	cmd += get_flags(vars(njtree_args))
+	print(cmd)
+	
+	print("Preparing to run phylociraptor njtree...")
+	for line in execute_command(cmd, njtree_args.verbose):
+                print(line)
+if args.command=="tree":
+	tree_parser = argparse.ArgumentParser(prog="phylociraptor tree", description = """Description: phylociraptor tree - Will calculate a ML tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
+	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
+	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
+	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
+	tree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+	tree_parser.add_argument("-h", "--help", action="store_true")
+	tree_parser.add_argument("--verbose", action="store_true", default=True)
+	tree_args = tree_parser.parse_args(args.arguments)	
+	print(sys.argv)
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if tree_args.help: # help is specified
+		print(help_message(tree_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part3", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(tree_args.cluster)
+	cmd += get_flags(vars(tree_args))
+	print(cmd)
+	
+	print("Preparing to run phylociraptor tree...")
+	for line in execute_command(cmd, tree_args.verbose):
+                print(line)

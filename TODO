@@ -6,6 +6,7 @@ general:
 setup:
 - sometimes genome downloads fail (time-out etc.) meaning that the --setup step has to be run again. This should be avoided. (DONE)
 - be more clear which genome (sometimes there are multiple assemblies) should be downloaded. (DONE)
+- if genomes are removed from the data.csv they are not removed by setup or add-genomes
 
 busco:
 - currently busco 3 is used. Providing the possibility to use busco4 would be good.
