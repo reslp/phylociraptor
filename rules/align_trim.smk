@@ -1,10 +1,13 @@
+configfile:  "data/config.yaml"
 import subprocess
+
 
 BUSCOS, = glob_wildcards("results/busco_sequences_deduplicated/{busco}_all.fas")
 
 rule align:
 	input:
-		checkpoint = rules.remove_duplicated_sequence_files.output.checkpoint,
+		#checkpoint = rules.remove_duplicated_sequence_files.output.checkpoint,
+		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
 		sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
 	output:
 		alignment = "results/alignments/{busco}_aligned.fas",
@@ -13,7 +16,7 @@ rule align:
 	singularity:
 		"docker://reslp/mafft:7.464"
 	threads:
-		config["alignment"]["threads"]
+		int(config["alignment"]["threads"])
 	params:
 		config["alignment"]["parameters"]
 	shell:
@@ -149,7 +152,7 @@ rule get_alignment_statistics:
 		alignment_params = config["alignment"]["parameters"],
 		trimming_method = config["trimming"]["method"],
 		trimming_params = config["trimming"]["parameters"],
-		pars_sites = config["filtering"]["min_parsimony_sites"]
+		pars_sites = config["trimming"]["min_parsimony_sites"]
 	singularity: "docker://reslp/concat:0.21"
 	shell:
 		"""
@@ -164,4 +167,15 @@ rule get_alignment_statistics:
 		echo "Trimming method:\t{params.trimming_method}" >> {output.overview_statistics}
 		echo "Trimming parameters:\t{params.trimming_params}" >> {output.overview_statistics}
 		echo "Min Parssites:\t{params.pars_sites}" >> {output.overview_statistics}
+		"""
+rule align_trim:
+	input:
+		"results/checkpoints/aggregate_align.done",
+		"results/statistics/statistics_alignments.txt"
+	output:
+		"checkpoints/align_trim.done"
+	shell:
+		"""
+		touch {output}
+		echo "$(date) - Pipeline part 2 (align) done." >> results/statistics/runlog.txt
 		"""

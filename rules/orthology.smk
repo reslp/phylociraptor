@@ -1,8 +1,9 @@
+configfile: "data/config.yaml"
 rule run_busco:
 	input:
 		assembly = "results/assemblies/{species}.fna",
-		augustus_config_path = rules.prepare_augustus.output.augustus_config_path,
-		busco_set = rules.download_busco_set.output.busco_set,
+		augustus_config_path = "results/augustus_config_path",
+		busco_set = "results/busco_set",
 	output:
 		checkpoint = "results/checkpoints/busco/busco_{species}.done",
 		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
@@ -13,7 +14,7 @@ rule run_busco:
 		missing_busco_list ="results/busco/{species}/run_busco/missing_busco_list_busco.tsv",
 		single_copy_buscos = directory("results/busco/{species}/run_busco/single_copy_busco_sequences")
 	benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
-	threads: config["busco"]["threads"]
+	threads: int(config["busco"]["threads"])
 	shadow: "shallow"
 	params:
 		wd = os.getcwd(),
@@ -79,7 +80,7 @@ rule busco:
 
 rule extract_busco_table:
 	input:
-		busco_set = rules.download_busco_set.output.busco_set,
+		busco_set = "results/busco_set",
 		busco = rules.busco.output
 	output:
 		busco_table = "results/busco_table/busco_table.txt",
@@ -97,4 +98,17 @@ rule extract_busco_table:
 		for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		touch {output.checkpoint}
 		"""
-
+rule orthology:
+	input:
+		# expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
+		"results/checkpoints/busco.done",
+		"results/checkpoints/extract_busco_table.done",
+		#"results/checkpoints/create_sequence_files.done",
+		#"results/checkpoints/remove_duplicated_sequence_files.done"
+	output:
+		"checkpoints/orthology.done"
+	shell:
+		"""
+		touch {output}
+		echo "$(date) - Pipeline part 1 (orthology) done." >> results/statistics/runlog.txt
+		"""

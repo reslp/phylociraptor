@@ -1,11 +1,14 @@
+configfile: "data/config.yaml"
+
 import subprocess
 
-BUSCOS, = glob_wildcards("results/busco_sequences_deduplicated/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/trimmed_alignments/{busco}_all.fas")
 
 rule filter_alignments:
 	input:
 		alignments = expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS),
-		stats = rules.get_alignment_statistics.output.statistics_trimmed
+		stats = "results/statistics/statistics_trimmed.txt"
+		#stats = rules.get_alignment_statistics.output.statistics_trimmed
 	output:
 		checkpoint = "results/checkpoints/filter_alignments.done",
 		filter_info = "results/statistics/alignment_filter_information.txt"
@@ -16,7 +19,7 @@ rule filter_alignments:
 	params:
 		wd = os.getcwd(),
 		trimming_method = config["trimming"]["method"],
-		min_pars_sites = config["filtering"]["min_parsimony_sites"]
+		min_pars_sites = config["trimming"]["min_parsimony_sites"]
 	shell:
 		"""
 		if [[ -d results/filtered_alignments ]]; then
@@ -50,3 +53,15 @@ rule get_filter_statistics:
 		concat.py -d results/filtered_alignments/ -t results/statistics/ids_alignments.txt --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
 		mv results/statistics/statistics.txt {output.statistics_filtered}
 		"""
+
+rule part_filter_align:
+	input:
+		"results/checkpoints/filter_alignments.done",
+		"results/statistics/statistics_filtered.txt"
+	output:
+		"checkpoints/filter_align.done"
+	shell:
+		"""
+		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
+		touch {output}
+		"""	

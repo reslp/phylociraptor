@@ -1,3 +1,35 @@
+import pandas as pd
+configfile: "data/config.yaml"
+
+sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
+samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
+
+def get_species_names(wildcards):
+	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
+	names= ",".join(names)
+	return names
+
+def get_species_names_rename(wildcards):
+	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
+	names= " ".join(names)
+	return names
+
+
+def get_local_species_names_rename(wildcards):
+	names = [name.replace(" ","_") for name in sample_data.loc[sample_data["web_local"] != "web", "species"].to_list()]
+	assembly = [name for name in sample_data.loc[sample_data["web_local"] != "web", "web_local"].to_list()]
+	assembly = [name for name in assembly if str(name) != "nan"]
+	name_asse_pair = [name + "," + ass for name, ass in zip(names,assembly)]
+	names= " ".join(name_asse_pair)
+	#print(names)
+	return names
+        
+def get_all_species_names(wildcards):
+	print("All species names:")
+	names = [name for name in sample_data.loc["species"].to_list()]
+	#print(names)
+	return names
+
 # needs to be run first before other rules can be run.
 rule download_genomes:
 	output:
@@ -127,4 +159,21 @@ rule get_genome_download_statistics:
 					fi
 				done
 		"""
+rule setup:
+	input:
+		"results/checkpoints/download_genomes.done",
+		"results/checkpoints/download_busco_set.done",
+		"results/checkpoints/prepare_augustus.done",
+		"results/checkpoints/rename_assemblies.done",
+		"results/statistics/downloaded_genomes_statistics.txt"
+		#expand("results/assemblies/{species}.fna", species=samples)
+	output:
+		".phylogenomics_setup.done"
 
+	shell:
+		"""
+		touch {output}
+		mkdir -p results/statistics
+		touch "results/statistics/runlog.txt"
+		echo "$(date) - Pipeline setup done." >> results/statistics/runlog.txt
+		"""

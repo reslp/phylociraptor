@@ -1,3 +1,7 @@
+configfile:  "data/config.yaml"
+
+include: "concatenate.smk"
+
 rule partition_alignment:
 	input:
 		rules.concatenate.output.statistics
@@ -67,7 +71,7 @@ else:
 if "iqtree" in config["tree"]["method"]:
 	rule iqtree:
 		input:
-			rules.align_trim.output
+			"checkpoints/align_trim.done"
 		output:
 			checkpoint = "results/checkpoints/iqtree.done",
 			statistics = "results/statistics/iqtree_statistics.txt"
@@ -194,4 +198,14 @@ else:
 			"""
 			touch {output.checkpoint}
 			"""
-
+rule part3:
+	input:
+		"results/checkpoints/iqtree.done",
+		"results/checkpoints/raxmlng.done"
+	output:
+		"checkpoints/part3.done"
+	shell:
+		"""
+		touch {output}
+		echo "$(date) - Pipeline part 3 (tree) done." >> results/statistics/runlog.txt
+		"""

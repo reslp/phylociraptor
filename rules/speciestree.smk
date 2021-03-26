@@ -1,6 +1,7 @@
+configfile:  "data/config.yaml"
 rule iqtree_gene_trees:
 	input:
-		rules.align_trim.output,
+		#rules.align_trim.output,
 		busco = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
 	output:
 		checkpoint = "results/checkpoints/gene_trees/{busco}_genetree.done",
@@ -73,3 +74,14 @@ rule astral_species_tree:
 		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree}
 		touch {output.checkpoint}
 		"""
+rule speciestree:
+	input:
+		"results/checkpoints/astral_species_tree.done"
+	output:
+		"checkpoints/speciestree.done"
+	shell:
+		"""
+		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt
+		touch {output}
+		"""
+
