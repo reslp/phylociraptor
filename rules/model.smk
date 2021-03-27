@@ -1,4 +1,6 @@
+configfile: "data/config.yaml"
 BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fas")
+
 
 # keep old modeltest rule for later reference. The Alignment info part may be necessary for raxml later...
 #rule modeltest:
@@ -37,7 +39,6 @@ BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fa
 
 rule modeltest:
 	input:
-		rules.align_trim.output,
 		alignment = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
 	output:
 		logfile = "results/modeltest/{busco}/{busco}.log",
@@ -79,3 +80,13 @@ rule aggregate_best_models:
 		touch {output.checkpoint}
 		"""
 
+rule part_modeltest:
+	input:
+		"results/checkpoints/modeltest/aggregate_best_models.done"
+	output:
+		"checkpoints/part_modeltest.done"
+	shell:
+		"""
+		touch {output}
+		echo "$(date) - Pipeline part modeltest (model) done." >> results/statistics/runlog.txt
+		"""

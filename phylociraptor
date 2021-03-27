@@ -29,6 +29,7 @@ Commands:
 	tree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate gene trees and species tree
 	njtree			Calculate Neighbor-Joining tree
+	report			Create a HTML report of the run
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -166,36 +167,58 @@ phylociraptor speciestree - Will calculate single-gene trees and a species tree.
 Usage: phylociraptor speciestree <arguments>
 
 Argumemts:
--t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
--c, --cluster-config    Specify Cluster config file path. Default: None
--f, --force             Force run this part in case it has already been run.
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: None
+	-f, --force             Force run this part in case it has already been run.
 
---dry                   Make a dry run.
---verbose               Display more output.
--h, --help              Display help.
-
---method		Alignment method. Options: mafft (Default: mafft; read from config file)
---method_args        	Commandline arguments for alignment method. (Default: read from config file)
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
 
 """
+
 njtree_help = """
 phylociraptor njtree - Will calculate a NJ tree.
 
 Usage: phylociraptor njtree <arguments>
 
 Argumemts:
--t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
--c, --cluster-config    Specify Cluster config file path. Default: None
--f, --force             Force run this part in case it has already been run.
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: None
+	-f, --force             Force run this part in case it has already been run.
 
---dry                   Make a dry run.
---verbose               Display more output.
--h, --help              Display help.
-
---method		Alignment method. Options: mafft (Default: mafft; read from config file)
---method_args        	Commandline arguments for alignment method. (Default: read from config file)
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
 
 """
+
+model_help = """
+phylociraptor model - Will perform substitution model tests for each alignment.
+
+Usage: phylociraptor model <arguments>
+
+Argumemts:
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: None
+	-f, --force             Force run this part in case it has already been run.
+
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
+
+"""
+report_help = """
+phylociraptor report - Will create a HTML report of the run
+
+Usage: phylociraptor report <arguments>
+
+Argumemts:
+	--verbose               Display more output.
+	-h, --help              Display help.
+
+"""
+
 def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
 	count = len(it)
 	def show(j):
@@ -249,7 +272,9 @@ def check_required_files(runmode):
 	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
 	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
 	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"]
+	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"report": [".phylogenomics_setup.done"]
 	}
 	
 	for f in outfile_dict[runmode]:
@@ -303,7 +328,7 @@ def execute_command(cmd, verbose):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line[:-1]
+				yield line
 			else:
 				result = line
 				if result.startswith("Job counts"):
@@ -322,7 +347,7 @@ def execute_command(cmd, verbose):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line[:-1] +"\n"
+				yield line
 			else:
 				result = line
 				if result.startswith("Job counts"):
@@ -599,17 +624,16 @@ if args.command=="filter-align":
 	print("Preparing to run phylociraptor filter-align...")
 	for line in execute_command(cmd, falign_args.verbose):
                 print(line, end="\r")
-	print("\ndone")
 	if debug:
 		print(cmd)
 if args.command=="speciestree":
-	sptree_parser = argparse.ArgumentParser(prog="phylociraptor speciestree", description = """Description: phylociraptor speciestree - Will filter alignments based on multiple parameters.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
-	sptree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
-	sptree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
-	sptree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
-	sptree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+	sptree_parser = argparse.ArgumentParser(add_help=False)
+	sptree_parser.add_argument("-f", "--force", action="store_true")
+	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	sptree_parser.add_argument("-c", "--cluster-config", action="store")
+	sptree_parser.add_argument("--dry", action="store_true")
 	sptree_parser.add_argument("-h", "--help", action="store_true")
-	sptree_parser.add_argument("--verbose", action="store_true", default=True)
+	sptree_parser.add_argument("--verbose", action="store_true", default=False)
 	sptree_args = sptree_parser.parse_args(args.arguments)	
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
@@ -621,24 +645,24 @@ if args.command=="speciestree":
 		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-s", "rules/speciestree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "speciestree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "speciestree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
-	print(cmd)
 	
 	print("Preparing to run phylociraptor speciestree...")
 	for line in execute_command(cmd, sptree_args.verbose):
-                print(line)
+                print(line, sep="\r")
+	if debug:
+		print(cmd)
 if args.command=="njtree":
-	njtree_parser = argparse.ArgumentParser(prog="phylociraptor njtree", description = """Description: phylociraptor njtree - Will calculate a NJ tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
-	njtree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
-	njtree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
-	njtree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
-	njtree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+	njtree_parser = argparse.ArgumentParser(add_help=False)
+	njtree_parser.add_argument("-f", "--force", action="store_true")
+	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	njtree_parser.add_argument("-c", "--cluster-config", action="store")
+	njtree_parser.add_argument("--dry", action="store_true")
 	njtree_parser.add_argument("-h", "--help", action="store_true")
-	njtree_parser.add_argument("--verbose", action="store_true", default=True)
+	njtree_parser.add_argument("--verbose", action="store_true", default=False)
 	njtree_args = njtree_parser.parse_args(args.arguments)	
-	print(sys.argv)
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
@@ -652,11 +676,12 @@ if args.command=="njtree":
 	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "njtree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
-	print(cmd)
 	
 	print("Preparing to run phylociraptor njtree...")
 	for line in execute_command(cmd, njtree_args.verbose):
-                print(line)
+                print(line, end="\r")
+	if debug:
+		print(cmd)
 if args.command=="tree":
 	tree_parser = argparse.ArgumentParser(prog="phylociraptor tree", description = """Description: phylociraptor tree - Will calculate a ML tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
 	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
@@ -664,7 +689,7 @@ if args.command=="tree":
 	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
 	tree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
 	tree_parser.add_argument("-h", "--help", action="store_true")
-	tree_parser.add_argument("--verbose", action="store_true", default=True)
+	tree_parser.add_argument("--verbose", action="store_true", default=False)
 	tree_args = tree_parser.parse_args(args.arguments)	
 	print(sys.argv)
 	#if len(sys.argv) < 3: # too few argument
@@ -680,8 +705,60 @@ if args.command=="tree":
 	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part3", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
-	print(cmd)
 	
 	print("Preparing to run phylociraptor tree...")
 	for line in execute_command(cmd, tree_args.verbose):
-                print(line)
+                print(line, end="\r")
+	if debug:
+		print(cmd)
+if args.command=="model":
+	model_parser = argparse.ArgumentParser(add_help=False)
+	model_parser.add_argument("-f", "--force", action="store_true")
+	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+	model_parser.add_argument("-c", "--cluster-config", action="store")
+	model_parser.add_argument("--dry", action="store_true")
+	model_parser.add_argument("-h", "--help", action="store_true")
+	model_parser.add_argument("--verbose", action="store_true", default=False)
+	model_args = model_parser.parse_args(args.arguments)	
+	#if len(sys.argv) < 3: # too few argument
+	#	print(help_message(forthology_help))
+	#	sys.exit(0)
+	if model_args.help: # help is specified
+		print(help_message(model_help))
+		sys.exit(0)
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+
+	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "part_modeltest", "--latency-wait", latency_wait]
+	cmd += determine_submission_mode(model_args.cluster)
+	cmd += get_flags(vars(model_args))
+	
+	print("Preparing to run phylociraptor model...")
+	for line in execute_command(cmd, model_args.verbose):
+                print(line, end="\r")
+	if debug:
+		print(cmd)	
+if args.command=="report":
+	report_parser = argparse.ArgumentParser(add_help=False)
+	report_parser.add_argument("-h", "--help", action="store_true")
+	report_parser.add_argument("--verbose", action="store_true", default=False)
+	report_args = report_parser.parse_args(args.arguments)
+	print("Will create a phylociraptor report...")
+	
+	if report_args.help: # help is specified
+		print(help_message(report_help))
+		sys.exit(0)
+
+	if check_required_files(args.command):
+		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		sys.exit(0)
+	rcommand = """ rmarkdown::render('./bin/report.Rmd') """
+	cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
+	#proc = subprocess.run(cmd)
+	for line in execute_command(cmd, report_args.verbose):
+                print(line, end="\r")
+	if debug:
+		print(cmd)	
+
+		
