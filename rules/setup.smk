@@ -177,3 +177,15 @@ rule setup:
 		touch "results/statistics/runlog.txt"
 		echo "$(date) - Pipeline setup done." >> results/statistics/runlog.txt
 		"""
+
+rule add_genomes:
+	input:
+		"results/checkpoints/download_genomes.done",
+		"results/checkpoints/rename_assemblies.done",
+		"results/statistics/downloaded_genomes_statistics.txt"
+	output:
+		".add_genomes.done"
+	shell:
+		"""
+		touch {output}
+		"""

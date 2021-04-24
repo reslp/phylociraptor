@@ -64,6 +64,7 @@ Additonal customization:
 	--config-file		Custom config-file path. (Default: data/config.yaml)	
 	--busco_set		BUSCO set to download. (Default: value from config.yaml)
 	--samples_csv		Samples CSV file path. (Default: value from config.yaml)
+	--add_genomes		Will only add additional genomes specified in th CSV file.
 """
 
 orthology_help = """
@@ -290,6 +291,9 @@ def check_config_file(f):
 		sys.exit(0)
 
 def execute_command(cmd, verbose):
+	# this should also correctly parse and display:
+	# IncompleteFilesException
+	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	line = ""
 	jobcounts = False
@@ -387,7 +391,8 @@ if args.command == "setup":
 	setup_parser.add_argument("--config-file", action="store", dest="config_file")
 	setup_parser.add_argument("--samples-csv", action="store", dest="samples_file")
 	setup_parser.add_argument("--busco-set", action="store", dest="busco_set")
-	
+	setup_parser.add_argument("--add_genomes", action="store_true",default=False, dest="add_genomes")
+
 	setup_args = setup_parser.parse_args(args.arguments)
 	
 	if setup_args.help:
@@ -395,7 +400,11 @@ if args.command == "setup":
 		sys.exit(0)
 	
 	print("Preparing to run phylociraptor setup...")
-	cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
+	if (setup_args.add_genomes):
+		print("Will only add genomes")
+		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "add_genomes", "--latency-wait", latency_wait]
+	else:
+		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(setup_args))
 	cmd += determine_submission_mode(setup_args.cluster)
 
