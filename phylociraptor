@@ -1,9 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys, os, io
 import time
+
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
+	exit(1)
 
 import argparse
 import subprocess
@@ -337,6 +339,8 @@ def execute_command(cmd, verbose):
 				yield line
 			else:
 				result = line
+				if result.startswith("Singularity"):
+					yield result
 				if result.startswith("Error") or result.startswith("error"):
 					yield "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result
 				if result.startswith("Job counts"):
