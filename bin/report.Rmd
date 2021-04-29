@@ -140,17 +140,13 @@ if (file.exists(downloaded_genomes_statistics_file))
 {
   if (file.size(downloaded_genomes_statistics_file) != 0) {
       data <- read.csv(downloaded_genomes_statistics_file, sep="\t", header=T)
-      data$path <- NULL
-      data$file_name <- NULL
   } else {
     info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
   }
-
   
-  #gsub(data$url, "(link)["data$url"]", data$url)
-  data %>% mutate(url = cell_spec("download", "html", link = url)) %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+  data %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px")
 } else {
-  info <- "*No information about downloaded genomes found. Did you run phylociraptor --setup ?*"
+  info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
 }
 
 ```

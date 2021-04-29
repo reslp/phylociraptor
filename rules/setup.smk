@@ -31,31 +31,58 @@ def get_all_species_names(wildcards):
 	return names
 
 # needs to be run first before other rules can be run.
+#rule download_genomes:
+#	output:
+#		checkpoint = "results/checkpoints/download_genomes.done",
+#		download_overview = "results/downloaded_genomes/download_overview.txt",
+#		success = "results/downloaded_genomes/successfully_downloaded.txt",
+#		runlog = "results/statistics/runlog.txt"
+#	benchmark:
+#		"results/statistics/benchmarks/setup/download_genomes.txt"
+#	singularity:
+#		"docker://reslp/biomartr:0.9.2_exp"
+#	log:
+#		"log/download_genomes.log"
+#	params:
+#		species = get_species_names,
+#                wd = os.getcwd()
+#	shell:
+#		"""
+#		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
+#		if [[ "{params.species}" != "" ]]; then
+#			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
+#			Rscript bin/genome_download.R {params.species} {params.wd} 2>&1 | tee {log}
+#		else
+#			echo "(date) - Setup: No species to download." >> results/statistics/runlog.txt
+#		fi
+#		touch {output}
+#		"""
+
 rule download_genomes:
 	output:
 		checkpoint = "results/checkpoints/download_genomes.done",
 		download_overview = "results/downloaded_genomes/download_overview.txt",
-		success = "results/downloaded_genomes/successfully_downloaded.txt",
+		success = "results/downloaded_genomes/successfully_downloaded.txt",	
 		runlog = "results/statistics/runlog.txt"
 	benchmark:
 		"results/statistics/benchmarks/setup/download_genomes.txt"
-	singularity:
-		"docker://reslp/biomartr:0.9.2_exp"
+	singularity: "docker://reslp/biopython_plus:1.77"
 	log:
 		"log/download_genomes.log"
 	params:
 		species = get_species_names,
-                wd = os.getcwd()
+		wd = os.getcwd(),
+		email = "philipp.resl@uni-graz.at"
 	shell:
 		"""
 		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
 		if [[ "{params.species}" != "" ]]; then
 			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
-			Rscript bin/genome_download.R {params.species} {params.wd} 2>&1 | tee {log}
+			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} 2>&1 | tee {log}
 		else
-			echo "(date) - Setup: Now species to download." >> results/statistics/runlog.txt
+			echo "(date) - Setup: No species to download." >> results/statistics/runlog.txt
 		fi
-		touch {output}
+		touch {output.checkpoint}
 		"""
 
 rule rename_assemblies:
@@ -77,16 +104,16 @@ rule rename_assemblies:
 		mkdir -p results/assemblies
 		for spe in $(grep ",success" {input.overview}); do
 			sp=$(echo $spe | awk -F',' '{{print $1}}')
-			if [[ -f {params.wd}/results/assemblies/"$sp".fna ]]; then
+			if [[ -f {params.wd}/results/assemblies/"$sp".fna.gz ]]; then
 				continue
 			else
-				#link=$(tail -n +2 "{input.overview}" | grep "^$spe," | awk -F',' '{{print $2}}')
-				link=$(echo $spe | awk -F',' '{{print $2}}')
+				link="{params.wd}/results/downloaded_genomes/"$sp"_genomic_genbank.fna.gz"
+				echo $link
 				if [[ ! -f "$link" ]]; then
 					echo "$sp" >> {output.statistics} 
 					continue
 				else
-					ln -s $link {params.wd}/results/assemblies/"$sp".fna
+					ln -s $link {params.wd}/results/assemblies/"$sp".fna.gz
 				fi
 			fi
 		done	
@@ -150,12 +177,14 @@ rule get_genome_download_statistics:
 		"results/statistics/setup/get_genome_download_statistics.txt"
 	shell:
 		"""
-		echo "file_name\torganism\turl\tdatabase\tpath\trefseq_category\tassembly_accession\tbioproject\tbiosample\ttaxid\tinfraspecific_name\tversion_status\trelease_type\tgenome_rep\tseq_rel_date\tsubmitter" > {output.statistics}	
+		echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
 				do
-					species=$(echo $file | awk -F 'doc_' '{{print $2}}' | awk -F '_db' '{{print $1}}')
-					if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna" ]]; then 
-						sed -n 2p $file >> {output.statistics}
+					species=$(echo $file | awk -F '_db_' '{{print $1}}' | awk -F '/' '{{print $(NF)}}')
+					echo $species
+					if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna.gz" ]]; then 
+						output=$(sed -n 2p $file)
+						echo $species"\t""$output" >> {output.statistics}
 					fi
 				done
 		"""
