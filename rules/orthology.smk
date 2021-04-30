@@ -1,9 +1,25 @@
 configfile: "data/config.yaml"
+
+import os
+import glob
+
+def get_assemblies(wildcards):
+	sp = "{wildcards.species}".format(wildcards=wildcards)
+	sp.replace(" ", "_")
+	print(sp)
+	if os.path.isfile("results/assemblies/" + sp + ".fna"):
+		return ["results/assemblies/" + sp + ".fna"]
+	elif os.path.isfile("results/assemblies/" + sp + ".fna.gz"):
+		return ["results/assemblies/" + sp + ".fna.gz"]
+	else:
+		return []
+
 rule run_busco:
 	input:
-		assembly = "results/assemblies/{species}.fna",
+		#assembly = "results/assemblies/{species}.fna",
+		assembly = get_assemblies,
 		augustus_config_path = "results/augustus_config_path",
-		busco_set = "results/busco_set",
+		busco_set = "results/busco_set"
 	output:
 		checkpoint = "results/checkpoints/busco/busco_{species}.done",
 		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
@@ -16,6 +32,7 @@ rule run_busco:
 	benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
 	threads: int(config["busco"]["threads"])
 	shadow: "shallow"
+	log: "log/{species}_busco.log"
 	params:
 		wd = os.getcwd(),
 		sp = config["busco"]["augustus_species"],
@@ -44,7 +61,18 @@ rule run_busco:
 
 		export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
 		echo $AUGUSTUS_CONFIG_PATH
-		run_busco -i {input.assembly} -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
+		
+		# handle gzipped and other assemblies differently
+		if echo $(file $(readlink -f "{input.assembly}")) | grep compressed ;
+		then
+			fullname=$(basename "{input.assembly}")
+			filename="${{fullname%.*}}"
+			gunzip -c $(readlink -f "{input.assembly}") > "$filename"
+		else
+			filename="{input.assembly}"
+		fi
+		echo "Assembly used for BUSCO is "$filename
+		run_busco -i $filename -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
 		# do some cleanup to save space
 		bin/tar_folder.sh {output.blast_output} run_busco/blast_output
 		bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output
@@ -70,7 +98,7 @@ rule run_busco:
 
 rule busco:
 	input:
-		checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species)
+		checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species + glob_wildcards("results/assemblies/{species}.fna.gz").species)
 	output:
 		"results/checkpoints/busco.done"
 	shell:
