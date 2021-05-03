@@ -104,7 +104,7 @@ def download(download_data, genome):
 			outstream = subprocess.run(["wget", download_url_genome, "-P", args.outdir], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 			if outstream.returncode == 0:
 				print(now(), "Download finished successfully.")
-				outstream = subprocess.run(["mv", args.outdir + filename + "_genomic_genbank.fna.gz", args.outdir + genome + "_genomic_genbank.fna.gz"])
+				outstream = subprocess.run(["mv", args.outdir + filename + "_genomic.fna.gz", args.outdir + genome + "_genomic_genbank.fna.gz"])
 				print(now(), "Writing meta information file.")
 				download_data.to_csv(args.outdir + genome +"_db_genbank.tsv", sep="\t")
 			else:
@@ -196,7 +196,7 @@ for genome in genomes:
 					dates = list(taxid_species_data["seq_rel_date"])
 					latest_date = dates[-1]
 					print(now(), "Latest genome of",genome,"was released:", latest_date, ". Will try to download this genome...")
-					overview[genome] = download(taxid_species_data[taxid_species_data.seq_rel_date == "latest_date"], genome)
+					overview[genome] = download(taxid_species_data[taxid_species_data.seq_rel_date == latest_date], genome)
 					continue
 print(now(), "Writing overview statistics files")
 statsfile = open(args.outdir + "download_overview.txt", "w")
