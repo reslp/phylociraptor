@@ -146,6 +146,7 @@ for genome in genomes:
 			continue
 		else:
 			print(now(), "The genome availabe for", genome, "with taxid:",species_data.iloc[0]["taxid"],"seems to have a different taxid as the species specified:", taxid, ". Nothing will be downloaded, please check manually and adjust the name.")
+			overview[genome] = "failed"
 			continue
 	else:
 		print(now(), "Will check if all assemblies have the same taxid...")
@@ -153,6 +154,7 @@ for genome in genomes:
 			print(now(), "All genomes have the same the same taxid.", list(species_data["taxid"])[0])
 			if not str(list(species_data["taxid"])[0]) == taxid:
 				print(now(), "The genome availabe for", genome, "with taxid:",species_data.iloc[0]["taxid"],"seems to have a different taxid as the species specified:", taxid, ". Nothing will be downloaded, please check manually and adjust the name.")
+				overview[genome] = "failed"
 				#print(now(), "taxid:", list(species_data["taxid"])[0], "and species name", genome, "do not match. Will skip this species")
 				continue	
 			else:
@@ -176,6 +178,7 @@ for genome in genomes:
 			taxids = [str(item) for item in set(list(species_data["taxid"]))]
 			if taxid not in taxids:
 				print(now(), "tax id of species is not in the list of taxon ids with potential genomes. Will not download anything. Please resolve manually.")
+				overview[genome] = "failed"
 				continue
 			taxid_species_data = species_data[species_data["taxid"] == int(taxid)]
 			if (taxid_species_data.shape[0] == 1):
@@ -203,6 +206,7 @@ for genome in genomes:
 	print(now(), "An unspecified problem occured for species", genome, ". Nothing was downloaded")
 	overview[genome] = "failed"
 
+print(overview)
 print(now(), "Writing overview statistics files")
 statsfile = open(args.outdir + "download_overview.txt", "w")
 successfile = open(args.outdir + "successfully_downloaded.txt", "w")
