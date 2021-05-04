@@ -200,7 +200,7 @@ for genome in genomes:
 					overview[genome] = download(taxid_species_data[taxid_species_data.seq_rel_date == latest_date], genome)
 					continue
 	# All possible cases should be covered by the code above, in case something goes wrong nonetheless, treat genome as failed:
-	print(now(), "An unspecified problem occured for species", genome, ". Nothing was downloaded"
+	print(now(), "An unspecified problem occured for species", genome, ". Nothing was downloaded")
 	overview[genome] = "failed"
 
 print(now(), "Writing overview statistics files")
