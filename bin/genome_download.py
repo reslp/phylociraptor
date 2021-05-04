@@ -143,6 +143,7 @@ for genome in genomes:
 		if str(species_data.iloc[0]["taxid"]) == taxid:
 			print(now(), "taxids of species and available genome entry match. Will proceed to genome download...")
 			overview[genome] = download(species_data, genome)
+			continue
 		else:
 			print(now(), "The genome availabe for", genome, "with taxid:",species_data.iloc[0]["taxid"],"seems to have a different taxid as the species specified:", taxid, ". Nothing will be downloaded, please check manually and adjust the name.")
 			continue
@@ -198,6 +199,10 @@ for genome in genomes:
 					print(now(), "Latest genome of",genome,"was released:", latest_date, ". Will try to download this genome...")
 					overview[genome] = download(taxid_species_data[taxid_species_data.seq_rel_date == "latest_date"], genome)
 					continue
+	# All possible cases should be covered by the code above, in case something goes wrong nonetheless, treat genome as failed:
+	print(now(), "An unspecified problem occured for species", genome, ". Nothing was downloaded"
+	overview[genome] = "failed"
+
 print(now(), "Writing overview statistics files")
 statsfile = open(args.outdir + "download_overview.txt", "w")
 successfile = open(args.outdir + "successfully_downloaded.txt", "w")
