@@ -139,6 +139,6 @@ rule orthology:
 		"checkpoints/orthology.done"
 	shell:
 		"""
-		#touch {output}
+		touch {output}
 		echo "$(date) - Pipeline part 1 (orthology) done." >> results/statistics/runlog.txt
 		"""
