@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=False #turn debugging mode on (True) and off (False)
+debug=True #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator
@@ -254,6 +254,7 @@ def get_flags(flags):
 		print(flags)
 	if flags["cluster_config"] == None and flags["cluster"] != "serial": #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
+		flags["cluster_config"] = ccf
 		print("No cluster config file specified. Will try to use default file: %s" % ccf)	
 	else:
 		ccf = flags["cluster_config"]
@@ -312,6 +313,8 @@ def check_for_errors(result):
 		return result	
 	if result.startswith("IncompleteFilesException"):
 		return "There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
+	if result.startswith("KeyError"):
+		return result
 	return ""
 
 
@@ -356,7 +359,7 @@ def execute_command(cmd, verbose):
 					#yield result
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of tasks to run: %s\n" % result.split("\t")[1] 
+						yield "Total number of tasks to run/submit: %s" % result.split("\t")[1].strip() 
 				elif jobcounts and result == "":
 					jobcounts = False
 				line=""
@@ -375,7 +378,7 @@ def execute_command(cmd, verbose):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of jobs to submit: %s\n" % result.split("\t")[1]
+						yield "Total number of jobs to submit: %s" % result.split("\t")[1].strip()
 						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
@@ -396,7 +399,7 @@ def execute_command(cmd, verbose):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of tasks to run: %s\n" % result.split("\t")[1]
+						yield "Total number of tasks to run: %s" % result.split("\t")[1].strip()
 						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
@@ -619,7 +622,7 @@ elif args.command=="align":
 		arg += " }"
 		cmd += [arg]	
 	for line in execute_command(cmd, align_args.verbose):
-                print(line, "\r")
+                print(line, end="\r")
 	if debug:
 		print(cmd)
 elif args.command=="filter-align":
@@ -695,7 +698,7 @@ elif args.command=="speciestree":
 	cmd += get_flags(vars(sptree_args))
 	
 	for line in execute_command(cmd, sptree_args.verbose):
-                print(line, sep="\r")
+                print(line, end="\r")
 	if debug:
 		print(cmd)
 elif args.command=="njtree":
