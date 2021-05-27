@@ -9,15 +9,13 @@ if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
 	exit(1)
 
-if subprocess.call(["which", "snakemake"]) == 1:
-	print("Snakemake needs to be installed and in your PATH to run phylociraptor.")
-	exit(1)
 
 #some basic variables needed:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=False
+debug=True
+cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml", "sge":"data/cluster-config-SGE.yaml", "torque":"data/cluster-config-TORQUE.yaml"}
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
@@ -252,8 +250,14 @@ def get_flags(flags):
 	"dry": "-n"
 	}
 	cmd = []
+	if debug:
+		print(flags)
+	if flags["cluster_config"] == None: #in case no cluster config file was specified, get default value
+		ccf = cluster_config_defaults[flags["cluster"]]
+		print("No cluster config file specified. Will try to use default file: %s" % ccf)	
+	else:
+		ccf = flags["cluster_config"]
 	for flag in flags.keys():
-		#print(flag)
 		if flag in mapdict.keys() and flags[flag] != None:
 			if flag == "t" or flag == "cluster": #handle cluster specification
 				arg = mapdict[flag]
@@ -264,7 +268,7 @@ def get_flags(flags):
 				#arg = mapdict[flag]
 				#arg = arg + " " + flags[flag]
 				cmd.append(mapdict[flag])
-				cmd.append(flags[flag])
+				cmd.append(ccf)
 			else:
 				if flags[flag]:
 					cmd.append(mapdict[flag])
@@ -309,6 +313,12 @@ def check_for_errors(result):
 	if result.startswith("IncompleteFilesException"):
 		return "There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
 	return ""
+
+
+def check_snakemake():
+	if subprocess.call(["which", "snakemake"]) == 1:
+		print("Snakemake needs to be installed and in your PATH to run phylociraptor.")
+		exit(1)
 
 def execute_command(cmd, verbose):
 	# this should also correctly parse and display:
@@ -794,5 +804,7 @@ if args.command=="report":
                 print(line, end="\r")
 	if debug:
 		print(cmd)
-
+	if os.path.isfile("bin/report.html"):
+		subprocess.call("mv", "bin/report.html", "results/report.html")
+		print("Your phylociraptor report has been created in the results folder.")
 print("done")	
