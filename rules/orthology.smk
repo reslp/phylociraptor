@@ -6,7 +6,7 @@ import glob
 def get_assemblies(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
 	sp.replace(" ", "_")
-	print(sp)
+	#print(sp)
 	if os.path.isfile("results/assemblies/" + sp + ".fna"):
 		return ["results/assemblies/" + sp + ".fna"]
 	elif os.path.isfile("results/assemblies/" + sp + ".fna.gz"):
