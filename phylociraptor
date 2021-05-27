@@ -2,20 +2,22 @@
 
 import sys, os, io
 import time
+import subprocess
+import argparse
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
 	exit(1)
 
-import argparse
-import subprocess
-
+if subprocess.call(["which", "snakemake"]) == 1:
+	print("Snakemake needs to be installed and in your PATH to run phylociraptor.")
+	exit(1)
 
 #some basic variables needed:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=True
+debug=False
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
@@ -222,6 +224,9 @@ Argumemts:
 
 """
 
+
+
+
 def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
 	count = len(it)
 	def show(j):
@@ -292,6 +297,19 @@ def check_config_file(f):
 		print("Config file specified with --config-file not found:", f)
 		sys.exit(0)
 
+def check_for_errors(result):
+	if result.startswith("WorkflowError"):
+		return "phylociraptor encountered an error. You may try to run with --verbose to diagnose what has gone wrong.\n"
+	if result.startswith("The singularity command"):
+		return result
+	if result.startswith("Error") or result.startswith("error"):
+		return "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result	
+	if result.startswith("Directory cannot be locked."):
+		return result	
+	if result.startswith("IncompleteFilesException"):
+		return "There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
+	return ""
+
 def execute_command(cmd, verbose):
 	# this should also correctly parse and display:
 	# IncompleteFilesException
@@ -319,10 +337,10 @@ def execute_command(cmd, verbose):
 			else:
 				result = line
 				#print(result)
-				if result.startswith("Error") or result.startswith("error"):
-					yield "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result
+				if check_for_errors(result):
+					yield check_for_errors(result)
 				if result.startswith("Nothing"):
-					yield "There is nothing to do. If you want to force a rerun of this step try: -f\n"
+					yield "There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True
 					#yield result
@@ -339,10 +357,10 @@ def execute_command(cmd, verbose):
 				yield line
 			else:
 				result = line
+				if check_for_errors(result):
+					yield check_for_errors(result)
 				if result.startswith("Singularity"):
 					yield result
-				if result.startswith("Error") or result.startswith("error"):
-					yield "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -362,8 +380,8 @@ def execute_command(cmd, verbose):
 				yield line
 			else:
 				result = line
-				if result.startswith("Error") or result.startswith("error"):
-					yield "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result
+				if check_for_errors(result):
+					yield check_for_errors(result)
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -431,7 +449,6 @@ if args.command == "setup":
 	#execute_command(cmd)
 	for line in execute_command(cmd, setup_args.verbose):
 		print(line, end="\r")
-	print("\ndone")
 	if debug:
 		print(cmd)
 	#print(p.stdout)
@@ -481,7 +498,6 @@ if args.command=="orthology":
 	print("Preparing to run phylociraptor orthology...")
 	for line in execute_command(cmd, orthology_args.verbose):
                 print(line, end="\r")
-	print("\ndone")
 	if debug:
 		print(cmd)
 if args.command=="filter-orthology":
@@ -594,7 +610,6 @@ if args.command=="align":
 	print("Preparing to run phylociraptor align...")
 	for line in execute_command(cmd, align_args.verbose):
                 print(line, "\r")
-	print("\ndone")
 	if debug:
 		print(cmd)
 if args.command=="filter-align":
@@ -778,6 +793,6 @@ if args.command=="report":
 	for line in execute_command(cmd, report_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)	
+		print(cmd)
 
-		
+print("done")	
