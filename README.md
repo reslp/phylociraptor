@@ -11,14 +11,12 @@ Local computer or solitary server:
 
 - Linux or MacOS operating system
 - globally installed singularity 3.4.1+ 
-- Miniconda or Anaconda 
-- installed snakemake 5.19.3+ (eg. in an anaconda environment)
+- installed snakemake 6.0.2+ (best in an anaconda environment)
 
 On a cluster:
 
-- installed snakemake 5.19.3+ (eg. in an anaconda environment)
+- installed snakemake 6.0.2+ (best in an anaconda environment)
 - globally installed singularity 3.4.1+
-- Miniconda or Anaconda
 - SGE or SLURM job scheduling system
 
 ## Available tools:
@@ -29,6 +27,7 @@ Orthology inference:
 
 Alignment:
 
+- clustalo 1.2.4 (http://www.clustal.org/omega/)
 - mafft 7.464 (https://mafft.cbrc.jp/alignment/software/)
 
 Trimming:
@@ -41,7 +40,6 @@ Tree inference:
 - iqtree 2.0.7 (http://www.iqtree.org/)
 - raxml-ng 1.0 (https://github.com/amkozlov/raxml-ng)
 - astral 5.7.1 (https://github.com/smirarab/ASTRAL)
-- phylobayes-mpi git commit: dca7bdf (http://www.atgc-montpellier.fr/phylobayes/) (still experimental!)
 
 ## Getting phylociraptor
 
@@ -51,29 +49,43 @@ Tree inference:
 $ git clone https://github.com/reslp/smsi-phylogenomics.git
 $ cd smsi-phylogenomics
 $ ./phylociraptor
-Welcome to phylociraptor. The rapid phylogenomic tree calculator pipeline. Git commit: 70abfa0
+Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
-Usage: ./phylociraptor [-v] [-t <submission_system>] [-c <cluster_config_file>] [-s <snakemke_args>] [-m <mode>]
+Usage: phylociraptor <command> <arguments>
 
-Options:
-  -t <submission_system> Specify available submission system. Options: sge, slurm, torque, serial (no submission system).
-  -c <cluster_config_file> Path to cluster config file in YAML format (mandatory).
-  -s <snakemake_args> Additional arguments passed on to the snakemake command (optional). snakemake is run with --immediate-submit -pr --notemp --latency-wait 600 --use-singularity --jobs 1001 by default.
-  -i "<singularity_args>" Additional arguments passed on to singularity (optional). Singularity is run with -B /tmp:/usertmp by default.
-  -m <mode> Specify runmode, separated by comma. Options: orthology, filter-orthology, align, filter-align, model, tree, speciestree
+Commands:
+    setup               Setup pipeline
+    orthology           Infer orthologs in a set of genomes
+    filter-orthology    Filter orthology results
+    align               Create alignments for orthologous genes
+    filter-align        Trim and filter alignments
+    model               Perform modeltesting
+    tree                Calculate Maximum-Likelihood phylogenomic trees
+    speciestree         Calculate gene trees and species tree
+    njtree              Calculate Neighbor-Joining tree
+    report              Create a HTML report of the run
 
-  --add-genomes will check for and add additional genomes (in case they were added to the config files).
-  --dry Invokes a dry-run. Corresponds to: snakemake -n
-  --report This creates an overview report of the run.
-  --setup Will download the genomes and prepare the pipeline to run.
-  --remove Resets the pipeline. Will delete all results, logs and checkpoints.
+    -v, --version       Print version
+    -h, --help          Display help
+
+Examples:
+    To see options for the setup step:
+    ./phylociraptor setup -h
+
+    To run orthology inferrence for a set of genomes on a SLURM cluster:
+    ./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
+
+    To filter alignments overwriting the number of parsimony informative sites set in the config file:
+    ./phylciraptor filter-align --npars_cutoff 12
+
+phylociraptor: error: the following arguments are required: command, arguments
 ```
 
 2. Create a conda environment with snakemake:
 If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
 
 ```
-$ conda create -c conda-forge -c bioconda -n snakemake snakemake=5.19.3
+$ conda create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 $ conda activate snakemake
 ```
 
@@ -93,7 +105,7 @@ species: data/data.csv
 
 ```
 busco:
-   set: fungi_odb9
+   set: "http://busco.ezlab.org/v3/datasets/fungi_odb9.tar.gz"
    ausgustus_species: anidulans
 ```
 
@@ -132,65 +144,52 @@ The basis of this file can be a CSV file directly downloaded from the [NCBI Geno
 1. Setup the pipeline:
 
 ```
-$ ./phylociraptor --setup
+$ ./phylociraptor setup
 ```
 
 2. Identify orthologous genes for all the genomes:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m orthology
+$ ./phylociraptor orthology -t sge -c data/cluster_config-sauron.yaml
 ```
 
 3. Filter orthologs using according to settings in the `config.yaml` file:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m filter-orthology
+$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-sauron.yaml
 ```
 
 4. Create alignments and trim them:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m align
+$ ./phylociraptor align -t sge -c data/cluster_config-sauron.yaml
 ```
 
 5. Filter alignments according to settings in the `config.yaml`file:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m filter-align
+$ ./phylociraptor filter-align -t sge -c data/cluster_config-sauron.yaml
 ```
 
 Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m model
+$ ./phylociraptor model -t sge -c data/cluster_config-sauron.yaml
 ```
 
 6. Reconstruct phylogenies:
 
 ```
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m njtree
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m tree
-$ ./phylociraptor -t sge -c data/cluster_config-sauron.yaml -m speciestree
+$ ./phylociraptor njtree -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor tree -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
 ```
 
 7. Create a report of the run:
 
 ```
-$ ./phylociraptor --report
+$ ./phylociraptor report
 ```
-
-After this step, your results directory should look like this:
-
-```
-$ ls results/
-alignments  assemblies  augustus_config_path  busco  busco_sequences  busco_set  busco_table  checkpoints  downloaded_genomes  filtered_alignments  phylogeny  report  report.txt  trimmed_alignments
-```
-
-
-## Rulegraph
-
-<img src="https://github.com/reslp/smsi-phylogenomics/blob/master/rulegraph.png" height="500">
-
 
 ## Prototyping
 

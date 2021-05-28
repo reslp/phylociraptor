@@ -2,10 +2,13 @@ This is an (incomplete) list of todos for the Pipeline:
 
 general:
 - change submission system to cluster profiles instead of cluster config files.
-
+- be more verbose on quiet runs to catch some case were snakemake wont run (eg. incomplete files, error in CSV data file)
+- add setup rules to cluster config
 setup:
 - sometimes genome downloads fail (time-out etc.) meaning that the --setup step has to be run again. This should be avoided. (DONE)
 - be more clear which genome (sometimes there are multiple assemblies) should be downloaded. (DONE)
+- if genomes are removed from the data.csv they are not removed by setup or add-genomes
+- add possiblity to use ENTREZ key
 
 busco:
 - currently busco 3 is used. Providing the possibility to use busco4 would be good.

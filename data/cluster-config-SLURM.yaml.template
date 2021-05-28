@@ -9,6 +9,19 @@ __default__:
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
+download_genomes:
+   J: dlgenomes
+   mem: 12G
+rename_assemblies:
+   J: renasse
+download_busco_set:
+   J: dlbuscoset
+prepare_augustus:
+   J: prepaug
+get_genome_download_statistics:
+   J: ggendlstat
+setup:
+   J: setup
 busco:
    J: BUSCO 
 orthology:
@@ -45,6 +58,7 @@ get_alignment_statistics:
    J: getalnstat
 align:
    J: align
+   time: "02:00:00"
    mem: 10G
 trim:
    J: trim

@@ -1,8 +1,10 @@
 species: data/plath.csv
 
+email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
+
 # settings realted to busco
 busco:
-    set: "metazoa_odb9"
+    set: "http://busco.ezlab.org/v3/datasets/metazoa_odb9.tar.gz" # the download URL for the BUSCO set which should be used
     threads: 8
     augustus_species: fly
     additional_parameters: ""
@@ -14,7 +16,6 @@ busco:
 # ---- Trimmed alignments can be additionally filtered ----
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
-
 filtering:
     dupseq: "persample"
     cutoff: 0.5
@@ -24,9 +25,9 @@ filtering:
 
 # settings related to alignment and trimming
 alignment:
-    method: mafft
+    method: mafft # currently supported methods: mafft, clustalo
     threads: 8
-    parameters: --quiet --auto
+    parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
 extract_sequences:
     cutoff: 0.5
     minsp: 3

@@ -6,7 +6,9 @@ import sys
 import pandas as pd
 from Bio import SeqIO
 import argparse
-
+import tarfile
+from io import StringIO
+from io import TextIOWrapper
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
@@ -64,9 +66,40 @@ buscos.remove("percent_complete")
 
 gene_file = open(args.gene_stats, "w")
 for busco in buscos:
-	#print("Processing: " + busco)
+	print("Processing: " + busco)
 	numseqs = 0
 	outstring = ""
+	for species in species_list:
+		tar_file_content = open(args.busco_results + "/" + species + "/run_busco/single_copy_busco_sequences.txt", "r")
+		for line in tar_file_content:
+			line = line.strip()
+			if busco+extension in line:
+				path_to_busco_file = line.split(" ")[-1]	
+				tf = tarfile.open(args.busco_results + "/" + species + "/run_busco/single_copy_busco_sequences.tar", "r")
+				#print(path_to_busco_file)
+				#print(tf.extractfile(path_to_busco_file))
+				tar_file_content = TextIOWrapper(tf.extractfile(path_to_busco_file))
+				if tar_file_content:
+					with TextIOWrapper(tf.extractfile(path_to_busco_file)) as handle:
+						for seq_record in SeqIO.parse(handle, "fasta"):
+							name = ">" +species+"\n"
+							#outfile.write(name)
+							#outfile.write(str(seq_record.seq)+"\n")
+							outstring = outstring + name
+							outstring = outstring + str(seq_record.seq) + "\n"
+				else:
+					print(busco, "not found for", species)
+					continue
+				if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+					print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+					outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
+					outfile.write(outstring)
+					outfile.close()
+				else:
+					print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+gene_file.close()
+#old working code when busco sequences are not tared.
+"""
 	for species in species_list:
 		for genome in genomes: # this loop is to get the correct directory name, it is very unelegant
 			#print(args.busco_results+"/"+genome+"/run_busco/single_copy_busco_sequences/"+busco+extension)
@@ -90,3 +123,4 @@ for busco in buscos:
 	else:
 		print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 gene_file.close()
+"""

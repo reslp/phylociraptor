@@ -1,7 +1,10 @@
+configfile: "data/config.yaml"
+
 rule create_sequence_files:
 	input:
-		busco_table = rules.extract_busco_table.output.busco_table,
-		checkpoint = rules.orthology.output
+		#busco_table = rules.extract_busco_table.output.busco_table,
+		#checkpoint = rules.orthology.output
+		busco_table = "results/busco_table/busco_table.txt"
 	output:
 		sequence_dir = directory("results/busco_sequences"),
 		checkpoint = "results/checkpoints/create_sequence_files.done",
@@ -69,4 +72,16 @@ rule remove_duplicated_sequence_files:
 		echo "$(date) - Number of BUSCO sequence files: $(ls results/busco_sequences/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
 		touch {output.checkpoint}
+		"""
+
+rule filter_orthology:
+	input:
+		"results/checkpoints/create_sequence_files.done",
+		"results/checkpoints/remove_duplicated_sequence_files.done"
+	output:
+		"checkpoints/filter_orthology.done"
+	shell:
+		"""
+		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt
+		touch {output}
 		"""

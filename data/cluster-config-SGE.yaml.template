@@ -6,6 +6,19 @@ __default__:
    q: mpi # change this according to your cluster configuration
    h_vmem: 4G # change this according to your cluster configuration. Make sure if you want to use h_vmem, mem, ... This has to be changed for all rules accordingly
    pe: mpi1node # change this according your cluster configuration
+download_genomes:
+   N: dlgenomes
+   h_vmem: 12G
+rename_assemblies:
+   N: renasse
+download_busco_set:
+   N: dlbuscoset
+prepare_augustus:
+   N: prepaug
+get_genome_download_statistics:
+   N: ggendlstat
+setup:
+   N: setup
 busco:
    N: BUSCO 
 orthology:
