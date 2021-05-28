@@ -141,7 +141,7 @@ rule filter_alignments:
 	params:
 		wd = os.getcwd(),
 		trimming_method = config["trimming"]["method"],
-		min_pars_sites = config["trimming"]["min_parsimony_sites"],
+		min_pars_sites = config["filtering"]["min_parsimony_sites"],
 		stats = "results/statistics/statistics_trimmed.txt"
 	shell:
 		"""
