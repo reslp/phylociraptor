@@ -58,6 +58,7 @@ get_alignment_statistics:
    J: getalnstat
 align:
    J: align
+   time: "02:00:00"
    mem: 10G
 trim:
    J: trim
