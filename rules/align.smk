@@ -3,26 +3,45 @@ import subprocess
 
 
 BUSCOS, = glob_wildcards("results/busco_sequences_deduplicated/{busco}_all.fas")
+if config["alignment"]["method"] == "clustalo":
+	rule align:
+		input:
+			checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
+			sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
+		output:
+			alignment = "results/alignments/{busco}_aligned.fas",
+		benchmark:
+			"results/statistics/benchmarks/align/align_{busco}.txt"
+		singularity:
+			"docker://reslp/clustalo:1.2.4"
+		threads:
+			int(config["alignment"]["threads"])
+		params:
+			config["alignment"]["parameters"]
+		shell:
+			"""
+			clustalo -i {input.sequence_file} --threads={threads} {params} > {output.alignment} 
+			"""
 
-rule align:
-	input:
-		#checkpoint = rules.remove_duplicated_sequence_files.output.checkpoint,
-		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
-		sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
-	output:
-		alignment = "results/alignments/{busco}_aligned.fas",
-	benchmark:
-		"results/statistics/benchmarks/align/align_{busco}.txt"
-	singularity:
-		"docker://reslp/mafft:7.464"
-	threads:
-		int(config["alignment"]["threads"])
-	params:
-		config["alignment"]["parameters"]
-	shell:
-		"""
-		mafft {params} {input.sequence_file} > {output.alignment}
-		"""
+else:
+	rule align:
+		input:
+			checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
+			sequence_file = "results/busco_sequences_deduplicated/{busco}_all.fas"
+		output:
+			alignment = "results/alignments/{busco}_aligned.fas",
+		benchmark:
+			"results/statistics/benchmarks/align/align_{busco}.txt"
+		singularity:
+			"docker://reslp/mafft:7.464"
+		threads:
+			int(config["alignment"]["threads"])
+		params:
+			config["alignment"]["parameters"]
+		shell:
+			"""
+			mafft {params} {input.sequence_file} > {output.alignment}
+			"""
 
 
 rule aggregate_align:
