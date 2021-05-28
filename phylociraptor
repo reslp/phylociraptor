@@ -36,7 +36,7 @@ Commands:
 	-v, --version 		Print version
 	-h, --help		Display help
 
-Example:
+Examples:
 	To see options for the setup step:
 	./phylociraptor setup -h
 
