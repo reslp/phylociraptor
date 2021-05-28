@@ -72,7 +72,7 @@ rule download_genomes:
 	params:
 		species = get_species_names,
 		wd = os.getcwd(),
-		email = "philipp.resl@uni-graz.at"
+		email = config["email"]
 	shell:
 		"""
 		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
@@ -145,12 +145,9 @@ rule download_busco_set:
 	shell:
 		"""
 		echo {params.set}
-		wget http://busco.ezlab.org/v3/datasets/{params.set}.tar.gz
-		#wget https://busco-archive.ezlab.org/v3/datasets/prerelease/chlorophyta_odb10.tar.gz
-		tar xfz {params.set}.tar.gz
-		rm {params.set}.tar.gz
 		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
-		mv {params.set} {output.busco_set}
+		if [ ! -d {output.busco_set} ]; then mkdir {output.busco_set}; fi
+		wget -c {params.set} -O - | tar -xz --strip-components 1 -C {output.busco_set}/
 		touch {output.checkpoint}
 		"""
 

@@ -1,8 +1,10 @@
 species: data/plath.csv
 
+email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
+
 # settings realted to busco
 busco:
-    set: "metazoa_odb9"
+    set: "http://busco.ezlab.org/v3/datasets/metazoa_odb9.tar.gz" # the download URL for the BUSCO set which should be used
     threads: 8
     augustus_species: fly
     additional_parameters: ""
