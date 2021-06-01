@@ -1,0 +1,31 @@
+__default__:
+   time: "72:00:00"
+   n: 1
+   ntasks: 1
+   J: default
+   hint: nomultithread
+   mem: 4G
+   partition: mem_0096 
+   qos: mem_0096
+   output: $(pwd)/log/slurm-%j.out
+   error: $(pwd)/log/slurm-%j.err
+busco:
+   J: BUSCO 
+orthology:
+   J: ORTHOLOGY
+filter_orthology:
+   J: FILTORTH
+filter_alignments:
+   J: filtalgn
+part_filter_align:
+   J: FAL
+align_trim:
+   J: alntri
+filter_align:
+   J: FAL
+get_filter_statistics:
+   J: getfilstat 
+run_busco:
+   J: rBUSCO
+   ntasks: 16
+   mem: 32G
