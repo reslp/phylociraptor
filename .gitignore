@@ -19,6 +19,6 @@ playground/
 .report.log
 data/config.yaml
 numerical_underflow/
-doc/_build/
-doc/.DS_Store
-doc/*/.DS_Store
+docs/_build/
+docs/.DS_Store
+docs/*/.DS_Store
