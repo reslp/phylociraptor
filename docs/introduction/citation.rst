@@ -4,5 +4,4 @@
 Citation
 =========================
 
-If you use (parts) of phylociraptor please cite this publication:
-
+A manuscript for phylociraptor is in preparation.
