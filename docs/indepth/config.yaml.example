@@ -1,0 +1,39 @@
+species: data/plath.csv
+busco:
+		set: "metazoa_odb9"
+		threads: 8
+		augustus_species: fly
+		additional_parameters: ""
+
+filtering:
+		dupseq: "persample"
+		cutoff: 0.5
+		minsp: 3
+		seq_type: "aa"
+		min_parsimony_sites: 10
+
+alignment:
+		method: mafft
+		threads: 8
+		parameters: --quiet --auto
+
+trimming: 
+		method: trimal 
+		parameters: -gappyout
+
+tree:
+		method: "iqtree raxml"
+
+speciestree:
+		method: "astral"
+
+iqtree:
+		threads: 16 
+		bootstrap: 1000
+		model: MFP
+		additional_params: ""
+		maxmem: "" 
+raxmlng:
+		threads: 16
+		bootstrap: 1000
+		additional_params: ""

@@ -4,6 +4,12 @@ This pipeline creates phylogenomic trees for a specified set of species using di
 
 *One word of caution:* phylociraptor is currently under active development. Different features may change or won't work from time to time before everything is finalized.
 
+
+## Documentation
+
+This README only provides a quick overview of phylociraptor. An extended documentation can be found here: https://phylociraptor.readthedocs.io
+
+
 ## Prerequisites
 Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
 
