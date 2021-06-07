@@ -40,7 +40,6 @@ get_filter_statistics:
    J: getfilstat 
 run_busco:
    J: rBUSCO
-   ntasks: 16
    mem: 32G
 extract_busco_table:
    J: exBUSCO
@@ -66,25 +65,21 @@ trim:
 iqtree:
    J: iqtree
    mem: 94G
-   ntasks: 16
 concatenate:
    J: concat
    mem: 8G
 modeltest:
    J: mt
    mem: 64G
-   ntasks: 16
 aggregate_best_models:
    J: aggmodels
    mem: 10G
 raxmlng:
    J: raxmlng
    mem: 94G
-   ntasks: 16
 phylobayes:
    J: phylobayes
    mem: 16G
-   ntasks: 30
 merge_phylobayes_chains:
    J: merge_phylobayes
    mem: 4G
@@ -100,7 +95,6 @@ astral_species_tree:
 iqtree_gene_trees:
    J: iqtgenetrees
    mem: 32G
-   ntasks: 16
 aggregate_gene_trees:
    J: agg_genetrees
 njtree:
