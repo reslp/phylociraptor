@@ -73,8 +73,8 @@ rule run_busco:
 		else
 			filename="{input.assembly}"
 		fi
-		echo "Assembly used for BUSCO is "$filename
-		run_busco -i $filename -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params}
+		echo "Assembly used for BUSCO is "$filename 2>&1 | tee {log}
+		run_busco -i $filename -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m genome {params.additional_params} 2>&1 | tee {log}
 		# do some cleanup to save space
 		bin/tar_folder.sh {output.blast_output} run_busco/blast_output
 		bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output
