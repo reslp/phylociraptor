@@ -1,8 +1,7 @@
 __default__:
    time: "72:00:00"
-   n: 1
    ntasks: 1
-   J: default
+   job-name: default
    hint: nomultithread
    mem: 4G
    partition: mem_0096 
@@ -10,96 +9,96 @@ __default__:
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
 download_genomes:
-   J: dlgenomes
+   job-name: dlgenomes
    mem: 12G
 rename_assemblies:
-   J: renasse
+   job-name: renasse
 download_busco_set:
-   J: dlbuscoset
+   job-name: dlbuscoset
 prepare_augustus:
-   J: prepaug
+   job-name: prepaug
 get_genome_download_statistics:
-   J: ggendlstat
+   job-name: ggendlstat
 setup:
-   J: setup
+   job-name: setup
 busco:
-   J: BUSCO 
+   job-name: BUSCO 
 orthology:
-   J: ORTHOLOGY
+   job-name: ORTHOLOGY
 filter_orthology:
-   J: FILTORTH
+   job-name: FILTORTH
 filter_alignments:
-   J: filtalgn
+   job-name: filtalgn
 part_filter_align:
-   J: FAL
+   job-name: FAL
 align_trim:
-   J: alntri
+   job-name: alntri
 filter_align:
-   J: FAL
+   job-name: FAL
 get_filter_statistics:
-   J: getfilstat 
+   job-name: getfilstat 
 run_busco:
-   J: rBUSCO
+   job-name: rBUSCO
    mem: 32G
 extract_busco_table:
-   J: exBUSCO
+   job-name: exBUSCO
    mem: 12G
 create_sequence_files:
-   J: exSeqfiles
+   job-name: exSeqfiles
    mem: 12G
 remove_duplicated_sequence_files:
-   J: remdupseq
+   job-name: remdupseq
    mem: 12G
 get_all_trimmed_files:
-   J: gettrimfiles
+   job-name: gettrimfiles
    mem: 12G
 get_alignment_statistics:
-   J: getalnstat
+   job-name: getalnstat
 align:
-   J: align
+   job-name: align
    time: "02:00:00"
    mem: 10G
 trim:
-   J: trim
+   job-name: trim
    mem: 10G
 iqtree:
-   J: iqtree
+   job-name: iqtree
    mem: 94G
 concatenate:
-   J: concat
+   job-name: concat
    mem: 8G
 modeltest:
-   J: mt
+   job-name: mt
    mem: 64G
 aggregate_best_models:
-   J: aggmodels
+   job-name: aggmodels
    mem: 10G
 raxmlng:
-   J: raxmlng
+   job-name: raxmlng
    mem: 94G
 phylobayes:
-   J: phylobayes
+   job-name: phylobayes
    mem: 16G
 merge_phylobayes_chains:
-   J: merge_phylobayes
+   job-name: merge_phylobayes
    mem: 4G
 part2:
-   J: part2
+   job-name: part2
    mem: 4G
 part3:
-   J: part3
+   job-name: part3
    mem: 4G
 astral_species_tree:
-   J: astral
+   job-name: astral
    mem: 48G
 iqtree_gene_trees:
-   J: iqtgenetrees
+   job-name: iqtgenetrees
    mem: 32G
 aggregate_gene_trees:
-   J: agg_genetrees
+   job-name: agg_genetrees
 njtree:
-   J: njtree
+   job-name: njtree
    mem: 16G
 partition_alignment:
-   J: partalgn
+   job-name: partalgn
    mem: 10G

@@ -240,7 +240,7 @@ def determine_submission_mode(flag):
 	if "serial" in flag:
 		return ["--cores"]
 	else:
-		return ["--cluster", 'bin/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
+		return ["--cluster", 'bin/immediate-submit/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 
 def get_flags(flags):
 	mapdict ={
