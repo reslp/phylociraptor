@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=True #turn debugging mode on (True) and off (False)
+debug=False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator

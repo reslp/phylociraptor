@@ -31,7 +31,7 @@ The probably best way is to clone the repository directly using git (if availabl
 
 .. code-block:: bash
 
-	$ git clone https://github.com/reslp/phylociraptor.git
+	$ git clone --recurse-submodules https://github.com/reslp/phylociraptor.git
 	$ cd phylocirpator
 	$ ./phylociraptor
 	Welcome to phylociraptor, the rapid phylogenomic tree calculator
