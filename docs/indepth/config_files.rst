@@ -187,7 +187,7 @@ Here are the first 30 lines of the config file for a SLURM cluster.
 .. literalinclude:: cluster-config-SLURM.yaml
         :language: python
         :linenos:
-	:emphasize-lines: 2,8,9
+	:emphasize-lines: 2,7,8
 
 Typically it will only be necessary to change the highlighted lines in the example above. QOS (Quality of service) and partition are usually cluster specific and need to be changed. The walltime limit :bash:`time: "72:00:00"` will also depend on your cluster environment.
 

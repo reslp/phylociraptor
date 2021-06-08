@@ -42,6 +42,7 @@ dependencies:
 **Alignment:**
 
 * mafft 7.464 - `https://mafft.cbrc.jp/alignment/software/ <https://mafft.cbrc.jp/alignment/software/>`_
+* clustalo 1.2.4 - `http://www.clustal.org/omega/ <http://www.clustal.org/omega/>`_
 
 **Trimming:**
 
