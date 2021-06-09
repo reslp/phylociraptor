@@ -395,6 +395,8 @@ def execute_command(cmd, verbose):
 				result = line
 				if check_for_errors(result):
 					yield check_for_errors(result)
+				if result.startswith("Nothing"):
+					yield "There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -430,7 +432,7 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	
-	if setup_args.help:
+	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
 	
@@ -482,7 +484,7 @@ elif args.command=="orthology":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(orthology_help))
 	#	sys.exit(0)
-	if orthology_args.help: # help is specified
+	if orthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(orthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -531,7 +533,7 @@ elif args.command=="filter-orthology":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if forthology_args.help: # help is specified
+	if forthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(forthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -591,7 +593,7 @@ elif args.command=="align":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if align_args.help: # help is specified
+	if align_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(align_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -642,7 +644,7 @@ elif args.command=="filter-align":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if falign_args.help: # help is specified
+	if falign_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(falign_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -685,7 +687,7 @@ elif args.command=="speciestree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if sptree_args.help: # help is specified
+	if sptree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(sptree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -713,7 +715,7 @@ elif args.command=="njtree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if njtree_args.help: # help is specified
+	if njtree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(njtree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -742,7 +744,7 @@ elif args.command=="tree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if tree_args.help: # help is specified
+	if tree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(tree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -770,7 +772,7 @@ elif args.command=="model":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if model_args.help: # help is specified
+	if model_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(model_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -793,7 +795,7 @@ elif args.command=="report":
 	report_args = report_parser.parse_args(args.arguments)
 	print("Will create a phylociraptor report...")
 	
-	if report_args.help: # help is specified
+	if report_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(report_help))
 		sys.exit(0)
 
