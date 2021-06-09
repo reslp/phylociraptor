@@ -16,6 +16,46 @@ latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
 debug=False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
+outfile_dict = {
+	"setup": ["data/config.yaml"],
+	"orthology": ["data/config.yaml", ".phylogenomics_setup.done"],
+	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
+	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
+	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
+	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"report": [".phylogenomics_setup.done"]
+	}
+
+checkpoint_file_dict = {
+	"setup": ".phylogenomics_setup.done",
+	"orthology": "checkpoints/orthology.done",
+	"filter-orthology": "checkpoints/filter_orthology.done",
+	"align": "checkpoints/align_trim.done",
+	"filter-align": "checkpoints/filter_align.done",
+	"speciestree": "checkpoints/filter_align.done",
+	"njtree": "checkpoints/filter_align.done",
+	"tree": "checkpoints/filter_align.done",
+	"model": "checkpoints/filter_align.done"
+}
+	
+
+outdir_dict = {
+	"setup": ["results/busco_set", "results/assemblies", "results/downloaded_genomes", "results/augustus_config_path"],
+	"orthology": ["results/busco"],
+	"align": ["results/alignments"],
+	"filter-orthology": ["results"],
+	"align": ["results"],
+	"filter-align": ["results"],
+	"speciestree": ["results"],
+	"njtree": ["results"],
+	"tree": ["results"],
+	"model": ["results"]
+}
+
+
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
@@ -277,23 +317,23 @@ def get_flags(flags):
 	return cmd
 
 def check_required_files(runmode):
-	outfile_dict = {
-	"setup": ["data/config.yaml"],
-	"orthology": ["data/config.yaml", ".phylogenomics_setup.done"],
-	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
-	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
-	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
-	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"report": [".phylogenomics_setup.done"]
-	}
-	
 	for f in outfile_dict[runmode]:
 		if not os.path.isfile(f):
 			return f
 	return
+
+def check_directories(mode):
+	for directory in outdir_dict[mode]:
+		if not os.path.isdir(directory):
+			return directory
+	return
+
+def check_hasrun(mode):
+	f = checkpoint_file_dict[mode]
+	if not os.path.isfile(f):
+		return f
+	else:
+		return
 
 def check_config_file(f):
 	if os.path.isfile(f):
@@ -812,8 +852,103 @@ elif args.command=="report":
 	if os.path.isfile("bin/report.html"):
 		subprocess.call("mv", "bin/report.html", "results/report.html")
 		print("Your phylociraptor report has been created in the results folder.")
+elif args.command == "check":
+	print("Welcome to phylociraptor check.")
+	print("Checking the status of the pipeline...")
+
+	check_rest = True
+	for mode in outfile_dict.keys():
+		if mode == "report":
+			continue
+		failed = 0
+		if check_hasrun(mode) and check_rest == True:
+			#what_failed += "File not found %s\n" % check_hasrun(mode)
+			#print("setp has run")
+			failed = 1
+			check_rest = False
+		if check_required_files(mode) and check_rest == True:
+			#print("all files present")
+			failed = 1
+			check_rest = False
+		if check_directories(mode) and check_rest == True:
+			#print("all dirs present")
+			#what_failed += "Directory not found %s\n" % check_directories(mode)	
+			failed = 1
+			check_rest  = False
+		# if non of the checkpoint files are missing, lets check if the dataset has changed:
+		if failed == 0 and check_rest == True:
+			#print("runmode: ", mode)	
+			#print(checkpoint_file_dict[mode])
+			#print(outfile_dict[mode][-1])
+			last_files = []
+			for n in outfile_dict[mode]:
+				last_files.append(os.path.getmtime(n))
+			last = max(last_files)
+			current = os.path.getmtime(checkpoint_file_dict[mode])
+			if last > current and mode != "setup":	
+				failed = 1
+				check_rest = False
+		if failed == 0 and check_rest == False:
+			failed = 2
+		if failed == 1: 
+			print("Step", mode, "...", '\033[91m' , "INCOMPLETE", '\033[0m')
+			if mode == "orthology":
+				missing=""
+				for assembly in os.listdir("results/assemblies"):
+					#if ".fna.gz" in assembly:
+					#	assembly = assembly.strip(".fna.gz")
+					#if ".fna" in assembly:
+					#	assembly = assembly.strip(".fna")
+					assembly = os.path.splitext(assembly)[0]
+					if ".fna" in assembly:
+						assembly = assembly.split(".fna")[0]
+					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
+						missing += assembly +","
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing orthology results for", len(missing.split(",")), "genomes:")
+					print("\t", missing)		
+		elif failed == 2:	
+			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
+		else:
+			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
+		"""
+		if step_done == False:
+			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step never finished properly)")
+			continue
+		elif not check_required_files(mode):
+			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
+			continue
+		else:
+			print("Step", mode, "...", '\033[91m' , "INCOMPLETE", '\033[0m')
+			check_directories(mode)
+			if mode == "setup":
+				
+			if mode == "orthology":
+				missing=""
+				for assembly in os.listdir("results/assemblies"):
+					#if ".fna.gz" in assembly:
+					#	assembly = assembly.strip(".fna.gz")
+					#if ".fna" in assembly:
+					#	assembly = assembly.strip(".fna")
+					assembly = os.path.splitext(assembly)[0]
+					if ".fna" in assembly:
+						assembly = assembly.split(".fna")[0]
+					if not os.path.isdir(outdir_dict[mode][0]+"/"+assembly):
+						missing += assembly +","
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing orthology results for", len(missing.split(",")), "genomes:")
+					print("\t", missing)		
+			if mode == "align":
+				for gene in os.listdir("results/busco_sequences_deduplicated"):
+					continue 
+			step_done = False
+		"""
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
+
+
 
 print("")	
