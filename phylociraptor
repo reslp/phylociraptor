@@ -925,8 +925,9 @@ elif args.command == "check":
 				for gene in os.listdir("results/alignments"):
 					gene = os.path.splitext(gene)[0]
 					gene = gene.split("_")[0]
-					if gene not in genes:
-						missing += gene + ","
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
 				missing = missing.strip(",")
 				if missing:
 					print("\t Missing alignments for", len(missing.split(",")), "genes:")
