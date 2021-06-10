@@ -71,7 +71,9 @@ Commands:
 	tree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate gene trees and species tree
 	njtree			Calculate Neighbor-Joining tree
+
 	report			Create a HTML report of the run
+	check			Quickly check status of the run
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -255,6 +257,16 @@ report_help = """
 phylociraptor report - Will create a HTML report of the run
 
 Usage: phylociraptor report <arguments>
+
+Argumemts:
+	--verbose               Display more output.
+	-h, --help              Display help.
+
+"""
+check_help = """
+phylociraptor check - Quickly check the status of the run.
+
+Usage: phylociraptor check <arguments>
 
 Argumemts:
 	--verbose               Display more output.
@@ -835,7 +847,7 @@ elif args.command=="report":
 	report_args = report_parser.parse_args(args.arguments)
 	print("Will create a phylociraptor report...")
 	
-	if report_args.help or len(sys.argv) <= 2: # help is specified
+	if report_args.help: # help is specified
 		print(help_message(report_help))
 		sys.exit(0)
 
@@ -854,6 +866,15 @@ elif args.command=="report":
 		print("Your phylociraptor report has been created in the results folder.")
 elif args.command == "check":
 	print("Welcome to phylociraptor check.")
+	check_parser = argparse.ArgumentParser(add_help=False)
+	check_parser.add_argument("-h", "--help", action="store_true")
+	check_parser.add_argument("--verbose", action="store_true", default=False)
+	check_args = check_parser.parse_args(args.arguments)
+	
+	if check_args.help: 
+		print(help_message(check_help))
+		sys.exit(0)
+
 	print("Checking the status of the pipeline...")
 
 	check_rest = True
@@ -902,16 +923,20 @@ elif args.command == "check":
 				if not os.path.isdir("results/assemblies"):
 					print("\tDirectory not found: results/assemblies")
 					continue
+				nassemblies = 0
 				for assembly in os.listdir("results/assemblies"):
 					assembly = os.path.splitext(assembly)[0]
 					if ".fna" in assembly:
 						assembly = assembly.split(".fna")[0]
 					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
 						missing += assembly +","
+					nassemblies += 1
 				missing = missing.strip(",")
 				if missing:
-					print("\t Missing orthology results for", len(missing.split(",")), "genomes:")
-					print("\t", missing)		
+					print("\t Missing orthology results for", len(missing.split(",")), "of", nassemblies, "genomes.")
+					if check_args.verbose:
+						print("\tOrthology step was not successful for these genomes:")
+						print("\t", missing)		
 			if mode == "align":
 				missing = ""
 				genes = []
@@ -922,6 +947,7 @@ elif args.command == "check":
 					gene = os.path.splitext(gene)[0]
 					genes.append(gene.split("_")[0])
 				# now check if the same files are in align
+				total_genes = len(genes)
 				for gene in os.listdir("results/alignments"):
 					gene = os.path.splitext(gene)[0]
 					gene = gene.split("_")[0]
@@ -930,13 +956,17 @@ elif args.command == "check":
 				missing = ",".join(genes)
 				missing = missing.strip(",")
 				if missing:
-					print("\t Missing alignments for", len(missing.split(",")), "genes:")
-					print("\t", missing)
+					print("\t Missing alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese alignments are missing:")
+						print("\t", missing)
 
 		elif failed == 2:	
 			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
 		else:
 			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
+	print("\nWARNING: phylociraptor check is just a quick and shallow verification of the run. In case you run into problems, please also check logfiles in the log directory for more in-depth diagnostics.")  
+
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
