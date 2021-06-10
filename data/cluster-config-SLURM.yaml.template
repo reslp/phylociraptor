@@ -2,7 +2,6 @@ __default__:
    time: "72:00:00"
    ntasks: 1
    job-name: default
-   hint: nomultithread
    mem: 4G
    partition: mem_0096 
    qos: mem_0096
