@@ -14,11 +14,11 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=False #turn debugging mode on (True) and off (False)
+debug=True #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 outfile_dict = {
 	"setup": ["data/config.yaml"],
-	"orthology": ["data/config.yaml", ".phylogenomics_setup.done"],
+	"orthology": [".phylogenomics_setup.done"],
 	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
 	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
 	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
@@ -861,44 +861,48 @@ elif args.command == "check":
 		if mode == "report":
 			continue
 		failed = 0
+		if debug:
+			print("\n(Debug) Checking runmode:", mode)
 		if check_hasrun(mode) and check_rest == True:
-			#what_failed += "File not found %s\n" % check_hasrun(mode)
-			#print("setp has run")
 			failed = 1
 			check_rest = False
+			if debug:
+				print("After check_hasrun: Failed=", failed, "check_rest=", check_rest)
 		if check_required_files(mode) and check_rest == True:
-			#print("all files present")
 			failed = 1
 			check_rest = False
+			if debug:
+				print("After check_required files: Failed=", failed, "check_rest=", check_rest)
 		if check_directories(mode) and check_rest == True:
-			#print("all dirs present")
-			#what_failed += "Directory not found %s\n" % check_directories(mode)	
 			failed = 1
 			check_rest  = False
+			if debug:
+				print("After check_directories: Failed=", failed, "check_rest=", check_rest)
 		# if non of the checkpoint files are missing, lets check if the dataset has changed:
 		if failed == 0 and check_rest == True:
-			#print("runmode: ", mode)	
-			#print(checkpoint_file_dict[mode])
-			#print(outfile_dict[mode][-1])
 			last_files = []
 			for n in outfile_dict[mode]:
 				last_files.append(os.path.getmtime(n))
 			last = max(last_files)
 			current = os.path.getmtime(checkpoint_file_dict[mode])
+			if debug: 
+				print("Current file timestamp:", current)
+				print("Last file timestamp:", last)
 			if last > current and mode != "setup":	
 				failed = 1
 				check_rest = False
+				if debug:
+					print("Due to timestamp. Failed=", failed, "check_rest=", check_rest)
 		if failed == 0 and check_rest == False:
 			failed = 2
 		if failed == 1: 
 			print("Step", mode, "...", '\033[91m' , "INCOMPLETE", '\033[0m')
 			if mode == "orthology":
 				missing=""
+				if not os.path.isdir("results/assemblies"):
+					print("\tDirectory not found: results/assemblies")
+					continue
 				for assembly in os.listdir("results/assemblies"):
-					#if ".fna.gz" in assembly:
-					#	assembly = assembly.strip(".fna.gz")
-					#if ".fna" in assembly:
-					#	assembly = assembly.strip(".fna")
 					assembly = os.path.splitext(assembly)[0]
 					if ".fna" in assembly:
 						assembly = assembly.split(".fna")[0]
@@ -908,43 +912,30 @@ elif args.command == "check":
 				if missing:
 					print("\t Missing orthology results for", len(missing.split(",")), "genomes:")
 					print("\t", missing)		
+			if mode == "align":
+				missing = ""
+				genes = []
+				# first get all sequences files after filter-orthology
+				if not os.path.isdir("results/alignments"):
+					continue
+				for gene in os.listdir("results/busco_sequences_deduplicated"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				# now check if the same files are in align
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene not in genes:
+						missing += gene + ","
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing alignments for", len(missing.split(",")), "genes:")
+					print("\t", missing)
+
 		elif failed == 2:	
 			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
 		else:
 			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
-		"""
-		if step_done == False:
-			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step never finished properly)")
-			continue
-		elif not check_required_files(mode):
-			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
-			continue
-		else:
-			print("Step", mode, "...", '\033[91m' , "INCOMPLETE", '\033[0m')
-			check_directories(mode)
-			if mode == "setup":
-				
-			if mode == "orthology":
-				missing=""
-				for assembly in os.listdir("results/assemblies"):
-					#if ".fna.gz" in assembly:
-					#	assembly = assembly.strip(".fna.gz")
-					#if ".fna" in assembly:
-					#	assembly = assembly.strip(".fna")
-					assembly = os.path.splitext(assembly)[0]
-					if ".fna" in assembly:
-						assembly = assembly.split(".fna")[0]
-					if not os.path.isdir(outdir_dict[mode][0]+"/"+assembly):
-						missing += assembly +","
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing orthology results for", len(missing.split(",")), "genomes:")
-					print("\t", missing)		
-			if mode == "align":
-				for gene in os.listdir("results/busco_sequences_deduplicated"):
-					continue 
-			step_done = False
-		"""
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
