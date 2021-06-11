@@ -29,6 +29,7 @@ outfile_dict = {
 	"report": [".phylogenomics_setup.done"]
 	}
 
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "tree", "speciestree"]
 checkpoint_file_dict = {
 	"setup": ".phylogenomics_setup.done",
 	"orthology": "checkpoints/orthology.done",
@@ -878,7 +879,7 @@ elif args.command == "check":
 	print("Checking the status of the pipeline...")
 
 	check_rest = True
-	for mode in outfile_dict.keys():
+	for mode in steps_to_check:
 		if mode == "report":
 			continue
 		failed = 0
