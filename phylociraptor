@@ -961,7 +961,50 @@ elif args.command == "check":
 					if check_args.verbose:
 						print("\tThese alignments are missing:")
 						print("\t", missing)
-
+			if mode == "filter-align":
+				# first look for missing trimmed files
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/trimmed_alignments"):
+					continue
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/trimmed_alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing trimmed alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese trimmed alignments are missing:")
+						print("\t", missing)
+				# second check missing filtered files (after trimming)
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/filtered_alignments"):
+					continue
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/filtered_alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing filtered alignments for", len(missing.split(",")), "of", total_genes, "genes. (Automatically filtered out alignments will also show up here)")
+					if check_args.verbose:
+						print("\tThese filtered alignments are missing:")
+						print("\t", missing)
+				
 		elif failed == 2:	
 			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
 		else:
