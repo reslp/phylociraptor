@@ -863,7 +863,7 @@ elif args.command=="report":
 	if debug:
 		print(cmd)
 	if os.path.isfile("bin/report.html"):
-		subprocess.call("mv", "bin/report.html", "results/report.html")
+		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print("Your phylociraptor report has been created in the results folder.")
 elif args.command == "check":
 	print("Welcome to phylociraptor check.")
