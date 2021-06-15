@@ -70,6 +70,9 @@ Commands:
     speciestree         Calculate gene trees and species tree
     njtree              Calculate Neighbor-Joining tree
     report              Create a HTML report of the run
+    
+    report		Create a HTML report of the run
+    check		Quickly check status of the run
 
     -v, --version       Print version
     -h, --help          Display help
