@@ -36,6 +36,8 @@ filter_align:
    N: FAL
 get_filter_statistics:
    N: getfilstat
+get_trimmed_statistics:
+   N: gettristat
 run_busco:
    N: rBUSCO
    mem: 32gb

@@ -1,6 +1,7 @@
 __default__:
    time: "72:00:00"
    ntasks: 1
+   cpus-per-task: 1
    job-name: default
    mem: 4G
    partition: mem_0096 
@@ -53,6 +54,8 @@ get_all_trimmed_files:
    mem: 12G
 get_alignment_statistics:
    job-name: getalnstat
+get_trimmed_statistics:
+   job-name: gettristat
 align:
    job-name: align
    time: "02:00:00"
@@ -60,6 +63,7 @@ align:
 trim:
    job-name: trim
    mem: 10G
+   time: "02:00:00"
 iqtree:
    job-name: iqtree
    mem: 94G
