@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=True #turn debugging mode on (True) and off (False)
+debug=True#turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 outfile_dict = {
 	"setup": ["data/config.yaml"],
@@ -36,10 +36,10 @@ checkpoint_file_dict = {
 	"filter-orthology": "checkpoints/filter_orthology.done",
 	"align": "checkpoints/align_trim.done",
 	"filter-align": "checkpoints/filter_align.done",
-	"speciestree": "checkpoints/filter_align.done",
-	"njtree": "checkpoints/filter_align.done",
-	"tree": "checkpoints/filter_align.done",
-	"model": "checkpoints/filter_align.done"
+	"speciestree": "checkpoints/speciestree.done",
+	"njtree": "results/phylogeny/njtree/njtree.tre",
+	"tree": "checkpoints/part3.done",
+	"model": "checkpoints/part_modeltest.done"
 }
 	
 
@@ -49,11 +49,11 @@ outdir_dict = {
 	"align": ["results/alignments"],
 	"filter-orthology": ["results"],
 	"align": ["results"],
-	"filter-align": ["results"],
-	"speciestree": ["results"],
-	"njtree": ["results"],
-	"tree": ["results"],
-	"model": ["results"]
+	"filter-align": ["results/trimmed_alignments", "results/filtered_alignments"],
+	"speciestree": ["results/phylogeny/astral"],
+	"njtree": ["results/phylogeny/njtree"],
+	"tree": ["results/phylogeny/concatenated"],
+	"model": ["results/modeltest"]
 }
 
 
@@ -884,23 +884,25 @@ elif args.command == "check":
 		if mode == "report":
 			continue
 		failed = 0
+		if filter_align_done and not check_rest: # in case filter_align is already finished, check the rest of the parts.
+			check_rest = True 
 		if debug:
 			print("\n(Debug) Checking runmode:", mode)
 		if check_hasrun(mode) and check_rest == True:
 			failed = 1
 			check_rest = False
 			if debug:
-				print("After check_hasrun: Failed=", failed, "check_rest=", check_rest)
+				print("After check_hasrun: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
 		if check_required_files(mode) and check_rest == True:
 			failed = 1
 			check_rest = False
 			if debug:
-				print("After check_required files: Failed=", failed, "check_rest=", check_rest)
+				print("After check_required files: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
 		if check_directories(mode) and check_rest == True:
 			failed = 1
 			check_rest  = False
 			if debug:
-				print("After check_directories: Failed=", failed, "check_rest=", check_rest)
+				print("After check_directories: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
 		# if non of the checkpoint files are missing, lets check if the dataset has changed:
 		if failed == 0 and check_rest == True:
 			last_files = []
@@ -915,7 +917,7 @@ elif args.command == "check":
 				failed = 1
 				check_rest = False
 				if debug:
-					print("Due to timestamp. Failed=", failed, "check_rest=", check_rest)
+					print("Due to timestamp. Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
 		if failed == 0 and check_rest == False and filter_align_done == False:
 			failed = 2
 		if failed == 1: 
