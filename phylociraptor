@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=True#turn debugging mode on (True) and off (False)
+debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 outfile_dict = {
 	"setup": ["data/config.yaml"],
@@ -876,7 +876,7 @@ elif args.command == "check":
 		print(help_message(check_help))
 		sys.exit(0)
 
-	print("Checking the status of the pipeline...")
+	print("Checking the status of the pipeline:")
 
 	check_rest = True
 	filter_align_done = False
@@ -921,7 +921,7 @@ elif args.command == "check":
 		if failed == 0 and check_rest == False and filter_align_done == False:
 			failed = 2
 		if failed == 1: 
-			print("Step", mode, "...", '\033[91m' , "INCOMPLETE", '\033[0m')
+			print(" ", mode, " ...", '\033[91m' , "INCOMPLETE", '\033[0m')
 			if mode == "orthology":
 				missing=""
 				if not os.path.isdir("results/assemblies"):
@@ -1052,11 +1052,11 @@ elif args.command == "check":
 						
 				
 		elif failed == 2:	
-			print("Step", mode, "...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
+			print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
 		else:
 			if mode == "filter-align":
 				filter_align_done = True
-			print("Step", mode,"...", '\033[92m', "DONE", '\033[0m')
+			print(" ", mode," ...", '\033[92m', "DONE", '\033[0m')
 	print("\nWARNING: phylociraptor check is just a quick and shallow verification of the run. In case you run into problems, please also check logfiles in the log directory for more in-depth diagnostics.")  
 
 else:
