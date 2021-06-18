@@ -112,7 +112,7 @@ rule get_trimmed_statistics:
 		alignments = expand("results/trimmed_alignments/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 	output:
 		statistics_trimmed = "results/statistics/statistics_trimmed.txt",
-		checkpoint = "results/checkpoint/get_trim_statistics.done"
+		checkpoint = "results/checkpoints/get_trim_statistics.done"
 	params:
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],

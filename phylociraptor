@@ -14,8 +14,49 @@ if sys.version_info[0] < 3:
 njobs = "10001"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
-debug=False #turn debugging mode on (True) and off (False)
+debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
+outfile_dict = {
+	"setup": ["data/config.yaml"],
+	"orthology": [".phylogenomics_setup.done"],
+	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
+	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
+	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
+	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
+	"report": [".phylogenomics_setup.done"]
+	}
+
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "tree", "speciestree"]
+checkpoint_file_dict = {
+	"setup": ".phylogenomics_setup.done",
+	"orthology": "checkpoints/orthology.done",
+	"filter-orthology": "checkpoints/filter_orthology.done",
+	"align": "checkpoints/align_trim.done",
+	"filter-align": "checkpoints/filter_align.done",
+	"speciestree": "checkpoints/speciestree.done",
+	"njtree": "results/phylogeny/njtree/njtree.tre",
+	"tree": "checkpoints/part3.done",
+	"model": "checkpoints/part_modeltest.done"
+}
+	
+
+outdir_dict = {
+	"setup": ["results/busco_set", "results/assemblies", "results/downloaded_genomes", "results/augustus_config_path"],
+	"orthology": ["results/busco"],
+	"align": ["results/alignments"],
+	"filter-orthology": ["results"],
+	"align": ["results"],
+	"filter-align": ["results/trimmed_alignments", "results/filtered_alignments"],
+	"speciestree": ["results/phylogeny/astral"],
+	"njtree": ["results/phylogeny/njtree"],
+	"tree": ["results/phylogeny/concatenated"],
+	"model": ["results/modeltest"]
+}
+
+
 default_help = """
 Welcome to phylociraptor, the rapid phylogenomic tree calculator
 
@@ -31,7 +72,9 @@ Commands:
 	tree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate gene trees and species tree
 	njtree			Calculate Neighbor-Joining tree
+
 	report			Create a HTML report of the run
+	check			Quickly check status of the run
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -221,6 +264,16 @@ Argumemts:
 	-h, --help              Display help.
 
 """
+check_help = """
+phylociraptor check - Quickly check the status of the run.
+
+Usage: phylociraptor check <arguments>
+
+Argumemts:
+	--verbose               Display more output.
+	-h, --help              Display help.
+
+"""
 
 
 
@@ -277,23 +330,23 @@ def get_flags(flags):
 	return cmd
 
 def check_required_files(runmode):
-	outfile_dict = {
-	"setup": ["data/config.yaml"],
-	"orthology": ["data/config.yaml", ".phylogenomics_setup.done"],
-	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
-	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
-	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done"],
-	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align_trim.done", "checkpoints/filter_align.done"],
-	"report": [".phylogenomics_setup.done"]
-	}
-	
 	for f in outfile_dict[runmode]:
 		if not os.path.isfile(f):
 			return f
 	return
+
+def check_directories(mode):
+	for directory in outdir_dict[mode]:
+		if not os.path.isdir(directory):
+			return directory
+	return
+
+def check_hasrun(mode):
+	f = checkpoint_file_dict[mode]
+	if not os.path.isfile(f):
+		return f
+	else:
+		return
 
 def check_config_file(f):
 	if os.path.isfile(f):
@@ -395,6 +448,8 @@ def execute_command(cmd, verbose):
 				result = line
 				if check_for_errors(result):
 					yield check_for_errors(result)
+				if result.startswith("Nothing"):
+					yield "There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -430,7 +485,7 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	
-	if setup_args.help:
+	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
 	
@@ -482,7 +537,7 @@ elif args.command=="orthology":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(orthology_help))
 	#	sys.exit(0)
-	if orthology_args.help: # help is specified
+	if orthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(orthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -531,7 +586,7 @@ elif args.command=="filter-orthology":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if forthology_args.help: # help is specified
+	if forthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(forthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -591,7 +646,7 @@ elif args.command=="align":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if align_args.help: # help is specified
+	if align_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(align_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -642,7 +697,7 @@ elif args.command=="filter-align":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if falign_args.help: # help is specified
+	if falign_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(falign_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -685,7 +740,7 @@ elif args.command=="speciestree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if sptree_args.help: # help is specified
+	if sptree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(sptree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -713,7 +768,7 @@ elif args.command=="njtree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if njtree_args.help: # help is specified
+	if njtree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(njtree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -742,7 +797,7 @@ elif args.command=="tree":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if tree_args.help: # help is specified
+	if tree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(tree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -770,7 +825,7 @@ elif args.command=="model":
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
-	if model_args.help: # help is specified
+	if model_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(model_help))
 		sys.exit(0)
 	if check_required_files(args.command):
@@ -808,10 +863,206 @@ elif args.command=="report":
 	if debug:
 		print(cmd)
 	if os.path.isfile("bin/report.html"):
-		subprocess.call("mv", "bin/report.html", "results/report.html")
+		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print("Your phylociraptor report has been created in the results folder.")
+elif args.command == "check":
+	print("Welcome to phylociraptor check.")
+	check_parser = argparse.ArgumentParser(add_help=False)
+	check_parser.add_argument("-h", "--help", action="store_true")
+	check_parser.add_argument("--verbose", action="store_true", default=False)
+	check_args = check_parser.parse_args(args.arguments)
+	
+	if check_args.help: 
+		print(help_message(check_help))
+		sys.exit(0)
+
+	print("Checking the status of the pipeline:")
+
+	check_rest = True
+	filter_align_done = False
+	for mode in steps_to_check:
+		if mode == "report":
+			continue
+		failed = 0
+		if filter_align_done and not check_rest: # in case filter_align is already finished, check the rest of the parts.
+			check_rest = True 
+		if debug:
+			print("\n(Debug) Checking runmode:", mode)
+		if check_hasrun(mode) and check_rest == True:
+			failed = 1
+			check_rest = False
+			if debug:
+				print("After check_hasrun: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
+		if check_required_files(mode) and check_rest == True:
+			failed = 1
+			check_rest = False
+			if debug:
+				print("After check_required files: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
+		if check_directories(mode) and check_rest == True:
+			failed = 1
+			check_rest  = False
+			if debug:
+				print("After check_directories: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
+		# if non of the checkpoint files are missing, lets check if the dataset has changed:
+		if failed == 0 and check_rest == True:
+			last_files = []
+			for n in outfile_dict[mode]:
+				last_files.append(os.path.getmtime(n))
+			last = max(last_files)
+			current = os.path.getmtime(checkpoint_file_dict[mode])
+			if debug: 
+				print("Current file timestamp:", current)
+				print("Last file timestamp:", last)
+			if last > current and mode != "setup":	
+				failed = 1
+				check_rest = False
+				if debug:
+					print("Due to timestamp. Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
+		if failed == 0 and check_rest == False and filter_align_done == False:
+			failed = 2
+		if failed == 1: 
+			print(" ", mode, " ...", '\033[91m' , "INCOMPLETE", '\033[0m')
+			if mode == "orthology":
+				missing=""
+				if not os.path.isdir("results/assemblies"):
+					print("\tDirectory not found: results/assemblies")
+					continue
+				nassemblies = 0
+				for assembly in os.listdir("results/assemblies"):
+					assembly = os.path.splitext(assembly)[0]
+					if ".fna" in assembly:
+						assembly = assembly.split(".fna")[0]
+					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
+						missing += assembly +","
+					nassemblies += 1
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing orthology results for", len(missing.split(",")), "of", nassemblies, "genomes.")
+					if check_args.verbose:
+						print("\tOrthology step was not successful for these genomes:")
+						print("\t", missing)		
+			if mode == "align":
+				missing = ""
+				genes = []
+				# first get all sequences files after filter-orthology
+				if not os.path.isdir("results/alignments"):
+					continue
+				for gene in os.listdir("results/busco_sequences_deduplicated"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				# now check if the same files are in align
+				total_genes = len(genes)
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese alignments are missing:")
+						print("\t", missing)
+			if mode == "filter-align":
+				# first look for missing trimmed files
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/trimmed_alignments"):
+					continue
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/trimmed_alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing trimmed alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese trimmed alignments are missing:")
+						print("\t", missing)
+				# second check missing filtered files (after trimming)
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/filtered_alignments"):
+					continue
+				for gene in os.listdir("results/alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/filtered_alignments"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing filtered alignments for", len(missing.split(",")), "of", total_genes, "genes. (Automatically filtered out alignments will also show up here)")
+					if check_args.verbose:
+						print("\tThese filtered alignments are missing:")
+						print("\t", missing)
+			if mode == "model":
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/checkpoints/modeltest"):
+					continue
+				for gene in os.listdir("results/filtered_alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/checkpoints/modeltest"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing modeltest results for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese modeltest results are missing:")
+						print("\t", missing)
+			if mode == "speciestree":
+				missing = ""
+				genes = []
+				if not os.path.isdir("results/checkpoints/gene_trees"):
+					continue
+				for gene in os.listdir("results/filtered_alignments"):
+					gene = os.path.splitext(gene)[0]
+					genes.append(gene.split("_")[0])
+				total_genes = len(genes)
+				for gene in os.listdir("results/checkpoints/gene_trees"):
+					gene = os.path.splitext(gene)[0]
+					gene = gene.split("_")[0]
+					if gene in genes:
+						genes.remove(gene)	
+				missing = ",".join(genes)
+				missing = missing.strip(",")
+				if missing:
+					print("\t Missing gene tree for", len(missing.split(",")), "of", total_genes, "genes.")
+					if check_args.verbose:
+						print("\tThese gene trees are missing:")
+						print("\t", missing)
+						
+				
+		elif failed == 2:	
+			print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
+		else:
+			if mode == "filter-align":
+				filter_align_done = True
+			print(" ", mode," ...", '\033[92m', "DONE", '\033[0m')
+	print("\nWARNING: phylociraptor check is just a quick and shallow verification of the run. In case you run into problems, please also check logfiles in the log directory for more in-depth diagnostics.")  
+
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
+
+
 
 print("")	

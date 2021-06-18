@@ -1,3 +1,4 @@
 [submodule "bin/immediate-submit"]
 	path = bin/immediate-submit
 	url = https://github.com/reslp/immediate-submit.git
+	branch = main
