@@ -95,7 +95,7 @@ astral_species_tree:
    job-name: astral
    mem: 48G
 iqtree_gene_trees:
-   job-name: iqtgenetrees
+   job-name: iqtgt
    mem: 32G
 aggregate_gene_trees:
    job-name: agg_genetrees
