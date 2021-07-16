@@ -381,6 +381,7 @@ def execute_command(cmd, verbose):
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	print("If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
@@ -485,9 +486,9 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	
-	if setup_args.help or len(sys.argv) <= 2:
-		print(help_message(setup_help))
-		sys.exit(0)
+	#if setup_args.help or len(sys.argv) <= 2:
+	#	print(help_message(setup_help))
+	#	sys.exit(0)
 	
 	if (setup_args.add_genomes):
 		print("Will only add genomes")
