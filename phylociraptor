@@ -97,7 +97,7 @@ phylociraptor setup - will prepare your analysis
 Usage: phylociraptor setup <arguments>
 
 Argumemts:
-	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, serial.
 	-c, --cluster-config	Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
 	-f, --force		Force run this part in case it has already been run.
 	
@@ -486,9 +486,9 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	
-	#if setup_args.help or len(sys.argv) <= 2:
-	#	print(help_message(setup_help))
-	#	sys.exit(0)
+	if setup_args.help or len(sys.argv) <= 2:
+		print(help_message(setup_help))
+		sys.exit(0)
 	
 	if (setup_args.add_genomes):
 		print("Will only add genomes")

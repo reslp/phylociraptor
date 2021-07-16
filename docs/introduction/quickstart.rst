@@ -68,7 +68,7 @@ Running phylociraptor
 
 .. code-block:: bash
 	
-	$ ./phylociraptor setup
+	$ ./phylociraptor setup -t sge
 
 
 During this step, phylociraptor will download and organize all necessary input data. This includes downloading genome assemblies for NCBI (if there are any), downloading the BUSCO set
