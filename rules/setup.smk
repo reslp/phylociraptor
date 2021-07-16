@@ -80,6 +80,9 @@ rule download_genomes:
 			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
 			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} 2>&1 | tee {log}
 		else
+			# need to touch these files, since they are usually produced by the python script.
+			touch {output.success}
+			touch {output.download_overview}
 			echo "(date) - Setup: No species to download." >> results/statistics/runlog.txt
 		fi
 		touch {output.checkpoint}
