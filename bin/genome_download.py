@@ -153,7 +153,7 @@ for genome in genomes:
 		if len(set(list(species_data["taxid"]))) == 1:
 			print(now(), "All genomes have the same the same taxid.", list(species_data["taxid"])[0])
 			if not str(list(species_data["taxid"])[0]) == taxid:
-				print(now(), "The genome availabe for", genome, "with taxid:",species_data.iloc[0]["taxid"],"seems to have a different taxid as the species specified:", taxid, ". Nothing will be downloaded, please check manually and adjust the name.")
+				print(now(), "The genome availabe for", genome, "with taxid:",species_data.iloc[0]["taxid"],"seems to have a different taxid as the species specified:", taxid, ". Nothing will be downloaded, please check manually and adjust the name. This can happen if the genome is deposited under an infraspecific name such as strains, subspecies etc.")
 				overview[genome] = "failed"
 				#print(now(), "taxid:", list(species_data["taxid"])[0], "and species name", genome, "do not match. Will skip this species")
 				continue	
@@ -167,7 +167,7 @@ for genome in genomes:
 					overview[genome] = download(species_data[species_data.refseq_category == "representative genome"], genome)
 					continue
 				else:
-					print(now(), "There is now reference or representative genome available for, will download latest genome...", genome)
+					print(now(), "There is no reference or representative genome available for %s, will download latest genome..." % genome)
 					dates = list(species_data["seq_rel_date"])
 					latest_date = dates[-1]
 					print(now(), "Latest genome of",genome,"was released:", latest_date, ". Will try to download this genome...")
