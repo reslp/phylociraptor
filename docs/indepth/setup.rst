@@ -64,10 +64,10 @@ How phylociraptor downloads genomes
 ------------------------------------
 
 After you have downloaded phylociraptor and edited the config files to fit your analysis it is time to run :bash:`phylociraptor setup`. During this step several things happen: First, phylocirpator will read the samples CSV file and start to download genomes in case you have specified them in the config file. 
-This is done with a custom R script, which uses `biomartr`_ to interact with the NCBI servers. Our script includes several fail-safe checks to ensure that the downloaded genome is correct and belongs to the desired species (by determining the NCBI taxon ID of the specified species name in the config file).
+This is done with a custom python script, to interact with the NCBI servers. Our script includes several fail-safe checks to ensure that the downloaded genome is correct and belongs to the desired species (by determining the NCBI taxon ID of the specified species name in the config file).
 In case there are multiple genomes for a species, it will decide which genome to download based on a set of rules implemented in the script: If a genome is labeled "reference" it will download this genomes, if no reference genome is available it will insted look for a "representative genome" (look `here <https://support.nlm.nih.gov/knowledgebase/article/KA-03578/en-us>`_ to learn more about NCBI genome types).
 
-If also no representative genome is available, it will download the latest genome based on publication date of the genome. So that this works properly it is important to specify the correct name under which a genome is deposited at NCBI. If you follow the provided instructions above properly, everything should work as expected.  
+If also no representative genome is available, it will download the latest genome based on publication date of the genome. So that this works properly it is important to **specify the correct name under which a genome is deposited at NCBI**. If you follow the provided instructions above properly, everything should work as expected.  
 
 In some cases phylocirpator may be unable to find a genome. This can be due to several reasons:
 
@@ -75,7 +75,7 @@ In some cases phylocirpator may be unable to find a genome. This can be due to s
 2. The specified species name is ambiguous (eg. when you specify only a genus name and there are genomes of multiple species in this genus available).
 3. The deposited genome has a different taxon ID. This can happen if there is no genome of the specified organisms but there is a genome of a symbiont or in another way associated organism which does not have a proper species name.
 
-Downloading many genomes from NCBI will take some time (expect this to take several hours if you have >100 genomes), however it is not particularly CPU intensive. Make sure you have a stable internet connection though. After genome download is finished phylociraptor will rename all assemblies and place symlinks of each genome it was able to gather into the folder :bash:`results/assemblies`. The files in this folder is what phylocirpator will use for subsequent analysis steps.
+Downloading many genomes from NCBI will take some time (expect this to take several hours if you have >1000 genomes), however it is not particularly CPU intensive. Make sure you have a stable internet connection though. After genome download is finished phylociraptor will rename all assemblies and place symlinks of each genome it was able to gather into the folder :bash:`results/assemblies`. The files in this folder is what phylocirpator will use for subsequent analysis steps.
 In general it is a good idea to run :bash:`./phylociraptor report` after genome download. This will give you an overview of the downloaded genomes and which genomes had a failed download. For more information on the report go here.
 
 -------------------------------
