@@ -258,7 +258,7 @@ if (busco_bench_df != "not_found") {
   
   #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 } else {
-  cat("no information on BUSCO runs found. Did you run phylociraptor -m busco?")
+  cat("no information on BUSCO runs found. Did you run phylociraptor busco?")
 }
 
 
@@ -318,7 +318,7 @@ if (file.exists(alignment_statistics_file) == TRUE) {
     rows <- which(data$nparsimony < 10)
     data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
 } else {
-  print("Alignment statistics file not found. Did you run phylociraptor -m align?")
+  print("Alignment statistics file not found. Did you run phylociraptor align?")
 }
 #%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
   
@@ -366,7 +366,7 @@ rows <- which(data$nparsimony < parsimony_cutoff)
 #print(rows)
 data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
 } else {
-  print("Trimming statistics file not found. Did you run phylociraptor -m align?")
+  print("Trimming statistics file not found. Did you run phylociraptor align?")
 }
 #%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
   
@@ -433,7 +433,7 @@ rows <- which(data$nparsimony < 10)
 #print(rows)
 data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red")%>% scroll_box(width = "100%", height = "600px")
 } else {
-  print("Filtering statistics file not found. Did you run phylociraptor -m align?")
+  print("Filtering statistics file not found. Did you run phylociraptor align?")
 }
 #%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
   
@@ -469,7 +469,7 @@ if (file.exists(tree_statistics_file) == TRUE) {
 }
 ```
 
-`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor -m tree?**"}`
+`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
 
 ### Speciestree
 
@@ -481,7 +481,7 @@ if (file.exists(speciestree_statistics_file) == TRUE) {
 }
 ```
 
-`r if(!tree_stats){"**Speciestree statistics not found. Did you run phylociraptor -m speciestree?**"}`
+`r if(!tree_stats){"**Speciestree statistics not found. Did you run phylociraptor speciestree?**"}`
 
 ### Log
 
