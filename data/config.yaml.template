@@ -28,9 +28,7 @@ alignment:
     method: mafft # currently supported methods: mafft, clustalo
     threads: 8
     parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
-extract_sequences:
-    cutoff: 0.5
-    minsp: 3
+
 # possible trimming options: trimal, aliscore
 trimming: 
     method: trimal 
