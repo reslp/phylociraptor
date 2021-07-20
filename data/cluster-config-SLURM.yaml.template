@@ -76,6 +76,10 @@ modeltest:
 aggregate_best_models:
    job-name: aggmodels
    mem: 10G
+part_modeltest:
+   job-name: part_modeltest
+   mem: 2G
+   time: "00:00:05"
 raxmlng:
    job-name: raxmlng
    mem: 94G
