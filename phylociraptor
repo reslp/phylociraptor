@@ -207,6 +207,22 @@ Additional customization:
 
 """
 
+tree_help = """
+phylociraptor tree - Will calculate phylogenomic trees based on supermatrix (concatenated alignment).
+
+Usage: phylociraptor tree <arguments>
+
+Argumemts:
+	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
+	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
+	-f, --force             Force run this part in case it has already been run.
+
+	--dry                   Make a dry run.
+	--verbose               Display more output.
+	-h, --help              Display help.
+
+"""
+
 sptree_help = """
 phylociraptor speciestree - Will calculate single-gene trees and a species tree.
 
