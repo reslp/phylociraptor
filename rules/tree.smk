@@ -15,7 +15,7 @@ rule partition_alignment:
 		"""
 		if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
 			echo "$(date) - phylociraptor was run with -model before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
-			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $5", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
+			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/partitions_unformated.txt
 		else
 			echo "$(date) - phylociraptor was NOT run with -model before. Will run raxml with GTR or PROTGTR according to input data type." >> {params.wd}/results/statistics/runlog.txt
 			if [[ {params.datatype} == "aa" ]]; then
