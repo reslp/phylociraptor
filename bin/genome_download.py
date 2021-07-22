@@ -118,11 +118,25 @@ def download(download_data, genome):
 
 overview = {}
 for genome in genomes:
-	print("\n----------------------------------", genome, "----------------------------------")
+	print("\n----------------------------------", genome.split("=")[0], "----------------------------------")
 	if check_already_downloaded(args.outdir+genome+"_genomic_genbank.fna.gz"):
 		print(now(), "A genome has already been downloaded. Will skip")
 		overview[genome] = "success"
 		continue
+
+	#if specific accession is provided via 'web=accession'
+	if "=" in genome:
+		accession = genome.split("=")[1]
+		print(now(), "A specific accession '"+accession+"' has been provided")
+		if data.assembly_accession.str.fullmatch(accession).any():
+			species_data = data[data.assembly_accession == accession]
+		else:
+			print(now(), "The accession wasn't found in the current list of genomes")
+			overview[genome.split("=")[0]] = "failed"
+			continue
+		overview[genome.split("=")[0].replace("_", " ")] = download(species_data, genome.split("=")[0])
+		continue
+
 	genome = genome.replace("_", " ")
 	taxid = get_taxid(genome)
 	if taxid:

@@ -5,9 +5,16 @@ sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
 
 def get_species_names(wildcards):
-	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
-	names= ",".join(names)
-	return names
+	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"].str.startswith("web"), "species"].to_list()]
+	acc = sample_data.loc[sample_data["web_local"].str.startswith("web"), "web_local"].to_list()
+	full = []
+	for i in range(len(names)):
+		if len(acc[i].split("=")) > 1:
+			full.append(names[i]+"="+acc[i].split("=")[1])
+		else:
+			full.append(names[i])
+	full= ",".join(full)
+	return full
 
 def get_species_names_rename(wildcards):
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
