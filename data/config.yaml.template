@@ -16,6 +16,10 @@ busco:
 # ---- Trimmed alignments can be additionally filtered ----
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
+
+#file with species names to exclude from orthology/filter-orthology rules
+exclude_orthology:
+
 filtering:
     dupseq: "persample"
     cutoff: 0.5

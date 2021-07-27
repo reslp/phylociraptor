@@ -14,6 +14,22 @@ def get_assemblies(wildcards):
 	else:
 		return []
 
+def select_species(dir="results/assemblies"):
+	sps = [sp.split("/")[-1].split(".fna")[0] for sp in glob.glob(dir+"/*fna*")]
+#	print("Species ("+str(len(sps))+"):"+str(sps))
+	if config["exclude_orthology"]:
+		blacklist = []
+		with open(config["exclude_orthology"]) as file:
+			blacklist = [line.strip() for line in file]
+#		print("blacklist: "+str(blacklist))
+		for i in reversed(range(len(sps))):
+			if sps[i] in blacklist:
+				del(sps[i])
+#		print("Species ("+str(len(sps))+"): "+str(sps))
+	return sps
+
+species = select_species()
+
 rule run_busco:
 	input:
 		#assembly = "results/assemblies/{species}.fna",
@@ -101,7 +117,7 @@ rule run_busco:
 
 rule busco:
 	input:
-		checks = expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species + glob_wildcards("results/assemblies/{species}.fna.gz").species)
+		checks = expand("results/checkpoints/busco/busco_{species}.done", species=species)
 	output:
 		"results/checkpoints/busco.done"
 	shell:
@@ -130,7 +146,7 @@ rule extract_busco_table:
 		"""
 rule orthology:
 	input:
-		expand("results/checkpoints/busco/busco_{species}.done", species=glob_wildcards("results/assemblies/{species}.fna").species),
+		expand("results/checkpoints/busco/busco_{species}.done", species=species),
 		#"results/checkpoints/busco.done",
 		"results/busco_table/busco_table.txt",
 		#"results/checkpoints/create_sequence_files.done",
