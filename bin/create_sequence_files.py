@@ -68,13 +68,14 @@ buscos = list(busco_overview.columns.values)
 buscos.remove("percent_complete")
 
 target=int(args.batchid)
-gene_file = open(args.gene_stats, "w")
+gene_file = open(args.gene_stats, "w").close()
 for i in range(len(buscos)):
 	j = i+1
 #	print("i: %i; j: %i; target: %i" %(i,j, target))
 	if j != target:
 #		print("Don't do anything (i: %i)" %i)
 		continue
+	gene_file = open(args.gene_stats, "a")
 	target+=args.nbatches
 	busco = buscos[i]
 	print("Processing: " + busco)
@@ -101,14 +102,14 @@ for i in range(len(buscos)):
 				else:
 					print(busco, "not found for", species)
 					continue
-				if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-					print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
-					outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
-					outfile.write(outstring)
-					outfile.close()
-				else:
-					print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
-gene_file.close()
+	if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+		print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+		outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
+		outfile.write(outstring)
+		outfile.close()
+	else:
+		print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+	gene_file.close()
 #old working code when busco sequences are not tared.
 """
 	for species in species_list:
