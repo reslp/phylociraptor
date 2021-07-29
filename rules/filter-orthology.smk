@@ -6,31 +6,33 @@ rule create_sequence_files:
 		#checkpoint = rules.orthology.output
 		busco_table = "results/busco_table/busco_table.txt"
 	output:
-		sequence_dir = directory("results/busco_sequences"),
-		checkpoint = "results/checkpoints/create_sequence_files.done",
-		genome_statistics = "results/statistics/orthology_filtering_genomes_statistics.txt",
-		gene_statistics = "results/statistics/orthology_filtering_gene_statistics.txt"
+		sequence_dir=directory("results/busco_sequences/{batch}-"+str(+config["filtering"]["concurrency"])),
+		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(+config["filtering"]["concurrency"])+".done",
+		genome_statistics = "results/statistics/orthology_filtering_genomes_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt",
+		gene_statistics = "results/statistics/orthology_filtering_gene_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	benchmark:
-		"results/statistics/benchmarks/busco/create_sequence_files.txt"
+		"results/statistics/benchmarks/busco/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	params:
 		cutoff=config["filtering"]["cutoff"],
 		minsp=config["filtering"]["minsp"],
 		busco_dir = "results/busco",
-		seqtype = config["filtering"]["seq_type"]
+		seqtype = config["filtering"]["seq_type"],
+		nbatches = config["filtering"]["concurrency"],
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
+	log: "log/exSeqfiles_{batch}-"+str(config["filtering"]["concurrency"])+".log"
 	shell:
 		""" 
-		mkdir -p {output.sequence_dir}
+		if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
 		# remove files in case there are already some:
 		rm -f {output.sequence_dir}/*
-		python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics}
+		python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.busco_table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} &> {log}
 		touch {output.checkpoint}   
 		"""
 
 rule remove_duplicated_sequence_files:
 	input:
-		checkpoint = rules.create_sequence_files.output.checkpoint
+		checkpoint = expand(rules.create_sequence_files.output.checkpoint, batch=range(1 , config["filtering"]["concurrency"]+1))
 	output:
 		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
@@ -56,7 +58,7 @@ rule remove_duplicated_sequence_files:
 			echo "$(date) - BUSCO files will be filtered on a per BUSCO gene basis. This could lower the number of genes used to calculate the final tree." >> results/statistics/runlog.txt
 		fi
 		
-		for file in results/busco_sequences/*.fas;
+		for file in results/busco_sequences/*/*.fas;
 			do
 			if [[ {params.dupseq} == "persample" ]];
 			then
@@ -76,7 +78,6 @@ rule remove_duplicated_sequence_files:
 
 rule filter_orthology:
 	input:
-		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
 		"checkpoints/filter_orthology.done"

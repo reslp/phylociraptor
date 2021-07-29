@@ -22,6 +22,8 @@ pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number o
 pars.add_argument('--type' , dest="type", required=True, help="Type of sequences (aa or nu).")
 pars.add_argument('--genome_statistics' , dest="genome_stats", required=True, help="Path to genome statistics output file.")
 pars.add_argument('--gene_statistics' , dest="gene_stats", required=True, help="Path to gene statistics output file.")
+pars.add_argument('--batchID' , dest="batchid", default=1, type=int, help="Batch ID (start for subsampling)")
+pars.add_argument('--nbatches', dest="nbatches", default=1, type=int, help="Total number of batches (step size for subsampling)")
 
 args=pars.parse_args()
 
@@ -40,6 +42,7 @@ print("cutoff: ", args.cutoff)
 print("minsp: ", args.minsp)
 print("type: ", args.type)
 print("outdir: ", args.outdir)
+print("batchID: %i / %i" %(args.batchid, args.nbatches))
 
 species_list = busco_overview.species.tolist()
 print("Original number of species:", len(species_list))
@@ -64,8 +67,16 @@ genome_file.close()
 buscos = list(busco_overview.columns.values)
 buscos.remove("percent_complete")
 
+target=int(args.batchid)
 gene_file = open(args.gene_stats, "w")
-for busco in buscos:
+for i in range(len(buscos)):
+	j = i+1
+#	print("i: %i; j: %i; target: %i" %(i,j, target))
+	if j != target:
+#		print("Don't do anything (i: %i)" %i)
+		continue
+	target+=args.nbatches
+	busco = buscos[i]
 	print("Processing: " + busco)
 	numseqs = 0
 	outstring = ""
