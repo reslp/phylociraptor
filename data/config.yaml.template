@@ -21,6 +21,7 @@ busco:
 exclude_orthology:
 
 filtering:
+    concurrency: 10
     dupseq: "persample"
     cutoff: 0.5
     minsp: 3
