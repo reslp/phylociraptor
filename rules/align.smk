@@ -40,7 +40,7 @@ else:
 			config["alignment"]["parameters"]
 		shell:
 			"""
-			mafft {params} {input.sequence_file} > {output.alignment}
+			mafft --thread {threads} {params} {input.sequence_file} > {output.alignment}
 			"""
 
 

@@ -52,8 +52,18 @@ remove_duplicated_sequence_files:
 get_all_trimmed_files:
    job-name: gettrimfiles
    mem: 12G
+aggregate_align:
+   job-name: AGA
+   mem: 4G
+   time: "05:00:00"
+all_align:
+   job-name: ALA
+   mem: 4G
+   time: "00:00:10"
 get_alignment_statistics:
    job-name: getalnstat
+   mem: 4G
+   time: "02:00:00"
 get_trimmed_statistics:
    job-name: gettristat
 align:
