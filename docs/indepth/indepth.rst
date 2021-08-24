@@ -12,6 +12,7 @@
 .. _astral: https://github.com/smirarab/ASTRAL
 .. _NCBI Genome Browser: https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/
 .. _biomartr: https://github.com/ropensci/biomartr
+.. _quicktree: https://github.com/khowe/quicktree
  
 ======================
 phylociraptor runmodes
@@ -45,7 +46,7 @@ There are many additional approaches to infer orthology and in the future we pla
 For additional information on the inner workings of BUSCO please go `here <https://busco-archive.ezlab.org/>`_.
 
 --------------------------------------
-filter-orthology (Filter orthologs)
+filter-orthology Filter orthologs)
 --------------------------------------
 
 When orthology inferrence has successfully finished (after running :bash:`phylocirpator orthology`) it is necessary to filter the results. Due to a number of reasons (eg. low assembly quality, poor representation of taxonomic group in BUSCO set, etc.)  it can happen that BUSCO performance is low and we therefore want to remove samples with too-low performance from downstream analyses. To do this, phylociraptor offers the :bash:`phylociraptor filter-orthology` runmode. Here phylociraptor will perform two filtering steps, which can be set in the :bash:`config.yaml` file under the section :bash:`filtering` (see also the corresponding section above).
@@ -96,14 +97,24 @@ phylociraptor tries to resolve these discrepancies automatically to make sure th
 tree (Calculate ML phylogenies)
 -------------------------------------
 
+This runmode allows to calculate maximum-likelihood trees from concatenated (supermatrix) alignments of all genes which pass the filtering step.
+The trees can be calculated using iqtree or raxml. phylociraptor will create the partition file necessary for raxml (iqtree does this automatically).
+If `phylocripator model` has been run before, phylociraptor will pass the best models on to the tree inference software to save time.
+Otherwise a model (or modeltest) can be specified in the `config.yaml` file.
+
 -----------------------------------------
 speciestree (Calculate species trees)
 -----------------------------------------
+
+phylociraptor calculates a species tree using `astral`. Astral takes pre-calculated gene trees as input. Phylociraptor checks if gene-trees have been already calculated and creates them in case they are not yet available.
+
+To calculate individal gene trees phylociraptor uses iqtree.
 
 ------------------------------------------
 njtree (Calculate NJ tree)
 ------------------------------------------
 
+To get a fast first tree you can run `phylociraptor njtree`. This will calculate a Neighbor-Joining tree using `quicktree`. This usually only takes seconds.
 
 ------------------------------------------
 check (Check status of the run)
