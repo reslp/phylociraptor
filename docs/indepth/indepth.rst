@@ -21,11 +21,15 @@ A phylociraptor analysis is split into different parts, which also correspond to
 
 .. code-block:: bash
 
+	$ phylociraptor setup
 	$ phylociraptor orthology
 	$ phylociraptor filter-orthology
 	$ phylociraptor align
 	$ phylociraptor filter-align
+	$ phylociraptor model
 	$ phylociraptor njtree
+	$ phylociraptor check
+	$ phylociraptor report
 
 We will now talk about the different runmodes individually.
 
@@ -34,7 +38,7 @@ We will now talk about the different runmodes individually.
 orthology (Orthology inference)
 ------------------------------------
 
-A prerequisite of gene-based phylogenomics is to establish orthologous relationships and identify a set of suitable genes (usually single-copy orthologs). phylociraptor currently uses the BUSCO approach to search for complete single-copy orthologs (genes which are present with only a single copy in eah genome) in the specified set of assemblies. BUSCO is well established and widely used in contemporary genomic analyses. Phylociraptor will automatically run BUSCO on the set of specified genomes, extract single-copy genes and combine them into individual files for each BUSCO gene. This step is invoked by running :bash:`phylociraptor orthology`.  
+A prerequisite of gene-based phylogenomics is to establish orthologous relationships and identify a set of suitable genes (usually single-copy orthologs). phylociraptor currently uses the BUSCO approach to search for complete single-copy orthologs (genes which are present with only a single copy in eachh genome) in the specified set of assemblies. BUSCO is well established and widely used in contemporary genomic analyses. Phylociraptor will automatically run BUSCO on the set of specified genomes, extract single-copy genes and combine them into individual files for each BUSCO gene. This step is invoked by running :bash:`phylociraptor orthology`.  
 After this step you will see a new directory :bash:`results/busco_sequences` which contains a file for each BUSCO gene. Each gene file contains all the sequences of that gene which were found in the set of specified genomes. This selection is based on a table produced by phylocirpator which is found in :bash:`results/busco_table`. 
 There are many additional approaches to infer orthology and in the future we plan to add some of them to phylociraptor.
 
@@ -66,7 +70,7 @@ The corresponding runmode of phylociraptor is :bash:`phylociraptor align`
 
    Alignment and trimming are executed together in the runmode :bash:`-m align` . 
 
-After alignments have been generated, each alignment is trimmed to filter out positions and sequences (depending on the selected trimming strategy).Phylociraptor supports `trimal`_ and AliScore/Alicut for alignment trimming.
+After alignments have been generated, each alignment is trimmed to filter out positions and sequences (depending on the selected trimming strategy). Phylociraptor supports `trimal`_ and AliScore/Alicut for alignment trimming.
 
 -----------------------------------
 filter-align (Filter alignments)
@@ -83,7 +87,10 @@ phylociraptor will output filtered alignments to :bash:`results/filtered_alignme
 model (Substitution model testing)
 -------------------------------------
 
+During this step phylociraptor will determine the best substitution model for each gene. It uses the `iqtree -m TESTONLY` mode from IQ-Tree. Look `here <http://www.iqtree.org/doc/Tutorial#choosing-the-right-substitution-model>`_ for additional information on how this works.
 
+The information on the best substitution model is available in the `results/modeltest` directory. Due to the reason that iqtree and raxml support different numbers of substitution models and because they are named differently, some model names infered by iqtree may be incompatible with raxml.
+phylociraptor tries to resolve these discrepancies automatically to make sure that the models inferred with iqtree also work with raxml. This does not work in every case and it is hard to anticipate which models work and which don't. If you encounter a problematic model with raxml please let us know.
 
 -------------------------------------
 tree (Calculate ML phylogenies)
@@ -98,3 +105,10 @@ njtree (Calculate NJ tree)
 ------------------------------------------
 
 
+------------------------------------------
+check (Check status of the run)
+------------------------------------------
+
+------------------------------------------
+report (Create an HTML report summarizing the results)
+------------------------------------------

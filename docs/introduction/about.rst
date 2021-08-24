@@ -37,7 +37,7 @@ dependencies:
 
 **Orthology inference:**
 
-* BUSCO 3.0.2 - `https://busco.ezlab.org/ <https://busco.ezlab.org/>`_
+* BUSCO 3.0.2, 5.2.1  - `https://busco.ezlab.org/ <https://busco.ezlab.org/>`_
 
 **Alignment:**
 
@@ -55,6 +55,5 @@ dependencies:
 * raxml-ng 1.0 - `https://github.com/amkozlov/raxml-ng <https://github.com/amkozlov/raxml-ng>`_
 * astral 5.7.1 - `https://github.com/smirarab/ASTRAL <https://github.com/smirarab/ASTRAL>`_
 * quicktree 2.5 - `https://github.com/khowe/quicktree <https://github.com/khowe/quicktree>`_
-* (phylobayes-mpi git commit: dca7bdf - `http://www.atgc-montpellier.fr/phylobayes/ <http://www.atgc-montpellier.fr/phylobayes/>`_  This is still experimental!)
 
 
