@@ -307,7 +307,7 @@ def help_message(mes):
 def determine_submission_mode(flag):
 	cmd = []
 	if "serial" in flag:
-		return ["--cores"]
+		return ["--cores"+flag.replace("serial","")]
 	else:
 		return ["--cluster", 'bin/immediate-submit/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 
@@ -321,7 +321,7 @@ def get_flags(flags):
 	cmd = []
 	if debug:
 		print("(Debug): flags: ", flags)
-	if flags["cluster_config"] == None and flags["cluster"] != "serial": #in case no cluster config file was specified, get default value
+	if flags["cluster_config"] == None and not "serial" in flags["cluster"]: #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
 		flags["cluster_config"] = ccf
 		print("No cluster config file specified. Will try to use default file: %s" % ccf)	
