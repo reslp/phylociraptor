@@ -144,7 +144,7 @@ rule extract_busco_table:
 		echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
 		for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		"""
-rule orthology:
+rule all_orthology:
 	input:
 		expand("results/checkpoints/busco/busco_{species}.done", species=species),
 		#"results/checkpoints/busco.done",
