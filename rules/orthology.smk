@@ -35,7 +35,7 @@ rule run_busco:
 		#assembly = "results/assemblies/{species}.fna",
 		assembly = get_assemblies,
 		augustus_config_path = "results/augustus_config_path",
-		busco_set = "results/busco_set"
+		busco_set = "results/orthology/busco/busco_set"
 	output:
 		checkpoint = "results/checkpoints/busco/busco_{species}.done",
 		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
@@ -127,7 +127,7 @@ rule busco:
 
 rule extract_busco_table:
 	input:
-		busco_set = "results/busco_set",
+		busco_set = "results/orthology/busco/busco_set",
 		busco = rules.busco.output
 	output:
 		busco_table = "results/busco_table/busco_table.txt",

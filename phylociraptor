@@ -44,7 +44,7 @@ checkpoint_file_dict = {
 	
 
 outdir_dict = {
-	"setup": ["results/busco_set", "results/assemblies", "results/downloaded_genomes", "results/augustus_config_path"],
+	"setup": ["results/orthology/busco/busco_set", "results/assemblies", "results/downloaded_genomes", "results/augustus_config_path"],
 	"orthology": ["results/busco"],
 	"align": ["results/alignments"],
 	"filter-orthology": ["results"],
@@ -872,6 +872,13 @@ elif args.command=="report":
 	if check_required_files(args.command):
 		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
+
+	# combine files to produce final statistics file, this is necessary due to the new concurrency setting. 
+	#for line in execute_command(cmd, report_args.verbose):
+        #        print(line, end="\r")
+	#if debug:
+	#	print(cmd)
+	
 	rcommand = """ rmarkdown::render('./bin/report.Rmd') """
 	cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
 	#proc = subprocess.run(cmd)

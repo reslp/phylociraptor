@@ -146,7 +146,7 @@ rule rename_assemblies:
 
 rule download_busco_set:
 	output:
-		busco_set = directory("results/busco_set"),
+		busco_set = directory("results/orthology/busco/busco_set"),
 		checkpoint = "results/checkpoints/download_busco_set.done"
 	params:
 		set = config["busco"]["set"]

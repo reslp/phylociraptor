@@ -44,7 +44,7 @@ dhms <- function(t){
 busco_overview_image <- ""
 
 # orthology statistics file:
-busco_overview_file <- "../results/busco_set/dataset.cfg"
+busco_overview_file <- "../results/orthology/busco/busco_set/dataset.cfg"
 busco_summary_file <- "../results/statistics/busco_summary.txt"
 orthology_filtering_genomes_file <- "../results/statistics/orthology_filtering_genomes_statistics.txt"
 orthology_filtering_genes_file <- "../results/statistics/orthology_filtering_gene_statistics.txt"
@@ -258,7 +258,7 @@ if (busco_bench_df != "not_found") {
   
   #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 } else {
-  cat("no information on BUSCO runs found. Did you run phylociraptor busco?")
+  cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
 }
 
 
