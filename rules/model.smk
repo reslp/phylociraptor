@@ -1,6 +1,11 @@
 configfile: "data/config.yaml"
-BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fas")
 
+import os.path
+import glob
+
+BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
+
+#BUSCOS, = glob_wildcards("results/filtered_alignments/"+config["alignment"]["method"][0]+"/"+config["trimming"]["method"][0]+"/{busco}_aligned_trimmed.fas")
 
 # keep old modeltest rule for later reference. The Alignment info part may be necessary for raxml later...
 #rule modeltest:
@@ -36,55 +41,65 @@ BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fa
 #		touch {output.checkpoint}
 #		"""
 
+def return_target_modeltest_log(wildcards):
+	lis = []
+        for busco in BUSCOS:
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
+			lis.append("results/modeltest/"+busco+"/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+".log")
+#	input_files = glob.glob("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/*_aligned_trimmed.fas")
+#	for f in input_files:
+#		busco = f.split("/")[-1].replace("_aligned_trimmed.fas","")
+#		lis.append("results/modeltest/"+busco+"/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+".log")
+	return lis
 
 rule modeltest:
 	input:
-		alignment = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
+#		alignment = get_alignment
+		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
 	output:
-		logfile = "results/modeltest/{busco}/{busco}.log",
-		checkpoint = "results/checkpoints/modeltest/{busco}_modeltest.done"
+		logfile = "results/modeltest/{busco}/{aligner}-{alitrim}/{busco}.log",
+		checkpoint = "results/checkpoints/modeltest/{busco}_modeltest_{aligner}_{alitrim}.done"
 	benchmark:
-		"results/statistics/benchmarks/model/modeltest_{busco}.txt"
+		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd(),
 		busco = "{busco}"
 	singularity:
 		"docker://reslp/iqtree:2.0.7"
-	threads: config["iqtree"]["threads"]
+	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{params.busco}/{params.busco} -nt AUTO -ntmax {threads}
+		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{params.busco}/{wildcards.aligner}-{wildcards.alitrim}/{params.busco} -nt AUTO -ntmax {threads}
 		touch {output.checkpoint}
 		"""
 
 rule aggregate_best_models:
 	input:
-		checkpoints = expand("results/checkpoints/modeltest/{b}_modeltest.done", b = BUSCOS),
-		logfiles = expand("results/modeltest/{b}/{b}.log", b = BUSCOS)
+		logfiles = return_target_modeltest_log
 	output:
-		best_models = "results/modeltest/best_models.txt",
-		checkpoint = "results/checkpoints/modeltest/aggregate_best_models.done"
+		best_models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
+		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
 	benchmark:
-		"results/statistics/benchmarks/model/aggregate_best_models.txt"
+		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.txt"
 	params:
-		wd = os.getcwd()
+		wd = os.getcwd(),
 	shell:
 		"""
-		#echo "name\tmodel" > {output.best_models}
-		for file in {input.logfiles};
+		# echo "name\tmodel" > {output.best_models}
+		for file in $(ls -1 results/modeltest/*/{wildcards.aligner}-{wildcards.alitrim}/*.log)
 		do
-		outname=$(basename $file | awk -F "." '{{print $1}}')
-		printf "$outname\t" >> {output.best_models}
-		cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
+			outname=$(basename $file | awk -F "." '{{print $1}}')
+			printf "$outname\t" >> {output.best_models}
+			cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
 		done
 		touch {output.checkpoint}
 		"""
 
-rule part_modeltest:
+rule all_modeltest:
 	input:
-		"results/checkpoints/modeltest/aggregate_best_models.done"
+		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
-		"checkpoints/part_modeltest.done"
+		"checkpoints/modeltest.done"
 	shell:
 		"""
 		touch {output}
