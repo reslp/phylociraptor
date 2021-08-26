@@ -6,11 +6,20 @@ rule njtree:
 	input:
 		rules.concatenate.output.stockholm_alignment
 	output:
-		"results/phylogeny/njtree/njtree.tre"
+		"results/phylogeny/njtree/{aligner}-{alitrim}/njtree.tre"
 	singularity: "docker://reslp/quicktree:2.5"
 	shell:
 		"""
 		quicktree -in a {input} > {output}
-		echo "$(date) - Pipeline part ntree (njtree) done." >> results/statistics/runlog.txt
 		"""
 		
+rule all_njtree:
+	input:
+		expand("results/phylogeny/njtree/{aligner}-{alitrim}/njtree.tre", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
+	output:
+		"checkpoints/njtree.done"
+	shell:
+		"""
+		echo "$(date) - Pipeline part ntree (njtree) done." >> results/statistics/runlog.txt
+		touch {output}
+		"""

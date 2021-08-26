@@ -1,70 +1,97 @@
 configfile:  "data/config.yaml"
+
+import os.path
+import glob
+
+BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
+
+def return_trees(wildcards):
+	lis = []
+        for busco in BUSCOS:
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
+			lis.append("results/phylogeny/gene_trees/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+"_gt.treefile")
+	return lis
+
 rule iqtree_gene_trees:
 	input:
-		#rules.align_trim.output,
-		busco = "results/filtered_alignments/{busco}_aligned_trimmed.fas"
+		"results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
 	output:
-		checkpoint = "results/checkpoints/gene_trees/{busco}_genetree.done",
-		trees = "results/phylogeny/gene_trees/{busco}/{busco}_gt.treefile"
+		checkpoint = "results/checkpoints/gene_trees/{aligner}-{alitrim}/{busco}_genetree.done",
+		trees = "results/phylogeny/gene_trees/{aligner}-{alitrim}/{busco}/{busco}_gt.treefile"
 	benchmark:
-		"results/statistics/benchmarks/speciestree/iqtree_gene_tree_{busco}.txt"
+		"results/statistics/benchmarks/speciestree/iqtree_gene_tree_{busco}_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd(),
+		models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
 		maxmem = config["iqtree"]["maxmem"],
 		busco = "{busco}",
+		bb = config["genetree"]["boostrap"],
 		additional_params = config["iqtree"]["additional_params"]
 	threads:
-		config["iqtree"]["threads"]
+		config["genetree"]["threads"]
 	singularity:
 		"docker://reslp/iqtree:2.0.7"
 	shell:
 		"""
-		cd results/phylogeny/gene_trees/{params.busco}
-		cp {params.wd}/results/filtered_alignments/{params.busco}_aligned_trimmed.fas {params.busco}_aligned_trimmed.fas
+		cd results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}
+		cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}_aligned_trimmed.fas {params.busco}_aligned_trimmed.fas
 		
 		# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.
-		if [[ -f {params.wd}/results/modeltest/best_models.txt && {params.wd}/checkpoints/part_model.done ]]; then
-			model=$(cat {params.wd}/results/modeltest/best_models.txt | grep {params.busco} | awk '{{print $2}}')
+		if [[ -f {params.wd}/{params.models} && {params.wd}/checkpoints/modeltest.done ]]; then
+			model=$(cat {params.wd}/{params.models} | grep -P "^{params.busco}\\t" | awk '{{print $2}}')
 			echo "$(date) - phylociraptor was run with modeltesting before. Will run iqtree gene tree for {params.busco} with best model: $model" >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			else
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			fi
 		else
 			echo "$(date) - phylociraptor will run iqtree gene tree for {params.busco}  now, with automated model testing." >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			else
-				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem} {params.additional_params}
+				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			fi
 		fi
+		rm {params.busco}_aligned_trimmed.fas
 		touch {params.wd}/{output.checkpoint}
 		"""
-BUSCOS, = glob_wildcards("results/filtered_alignments/{busco}_aligned_trimmed.fas")
 
 rule aggregate_gene_trees:
 	input:
-		treefiles = expand("results/phylogeny/gene_trees/{busco}/{busco}_gt.treefile", busco=BUSCOS),
-		checkpoint = expand("results/checkpoints/gene_trees/{busco}_genetree.done", busco=BUSCOS)	
+		treefiles = return_trees
 	output:
-		trees = "results/gene_trees/all_gene_trees.tre",
-		checkpoint = "results/checkpoints/aggregate_gene_trees.done"
+		trees = "results/phylogeny/astral/{aligner}-{alitrim}/trees_{aligner}_{alitrim}.tre",
+		checkpoint = "results/checkpoints/aggregate_gene_trees_{aligner}_{alitrim}.done"
+	params:
+		include = config["speciestree"]["include"]
 	shell:
 		"""
-		cat {input.treefiles} > {output.trees}
+		if [[ "{params.include}" == "None" ]]
+		then
+			cat $(ls -1 results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*/*_gt.treefile) > {output.trees}
+		else
+			cat $(cat {params.include}) > {output.trees}
+		fi
 		touch {output.checkpoint}
 		"""
+#		for treefile in $treefiles
+#		do
+#			cat $treefile
+#		done > {output.trees}
+#		cat {input.treefiles} > {output.trees}
+
 
 rule astral_species_tree:
 	input:
-		trees = rules.aggregate_gene_trees.output.trees,
-		checkpoint = rules.aggregate_gene_trees.output.checkpoint
+		trees = "results/phylogeny/astral/{aligner}-{alitrim}/trees_{aligner}_{alitrim}.tre" 
+#		trees = rules.aggregate_gene_trees.output.trees,
+#		checkpoint = rules.aggregate_gene_trees.output.checkpoint
 	output:
-		species_tree = "results/phylogeny/astral/species_tree.tre",
-		checkpoint = "results/checkpoints/astral_species_tree.done"
+		species_tree = "results/phylogeny/astral/{aligner}-{alitrim}/species_tree.tre",
+		checkpoint = "results/checkpoints/astral_species_tree_{aligner}_{alitrim}.done"
 	benchmark:
-		"results/statistics/benchmarks/speciestree/astral_species_tree.txt"
+		"results/statistics/benchmarks/speciestree/astral_species_tree_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd()
 	singularity:
@@ -74,9 +101,9 @@ rule astral_species_tree:
 		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree}
 		touch {output.checkpoint}
 		"""
-rule speciestree:
+rule all_speciestree:
 	input:
-		"results/checkpoints/astral_species_tree.done"
+		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
 		"checkpoints/speciestree.done"
 	shell:
