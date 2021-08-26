@@ -55,8 +55,8 @@ rule get_alignment_statistics:
 	input:
 		rules.aggregate_align.output.checkpoint
 	output:
-		statistics_alignment = "results/statistics/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt",
-		overview_statistics = "results/statistics/{aligner}_align_trim_overview_statistics-{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		statistics_alignment = "results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt",
+		overview_statistics = "results/statistics/align-{aligner}/{aligner}_overview-{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
@@ -73,16 +73,22 @@ rule get_alignment_statistics:
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
 		concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(ls -1 {params.wd}/results/orthology/busco/busco_runs/) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
 		mv results/statistics/statistics.txt {output.statistics_alignment}
-		echo "Alignment method:\t{params.alignment_method}" > {output.overview_statistics}
-		if [[ "{wildcards.aligner}" == "mafft" ]]; then echo "Alignment parameters:\t{params.mafft_alignment_params}" >> {output.overview_statistics}; fi
-		if [[ "{wildcards.aligner}" == "clustalo" ]]; then echo "Alignment parameters:\t{params.clustalo_alignment_params}" >> {output.overview_statistics}; fi
-		echo "Min Parssites:\t{params.pars_sites}" >> {output.overview_statistics}
+		# make this output tab delimited so it is easier to parse
+		ovstats="{params.alignment_method}"
+		if [[ "{wildcards.aligner}" == "mafft" ]]; then 
+			ovstats="${{ovstats}}\t{params.mafft_alignment_params}"
+		fi
+		if [[ "{wildcards.aligner}" == "clustalo" ]]; then 
+			ovstats="${{ovstats}}\t{params.clustalo_alignment_params}"
+		fi
+		ovstats="${{ovstats}}\t{params.pars_sites}"
+		echo $ovstats > {output.overview_statistics}
 		"""
 rule all_align:
 	input:
 #		expand("results/alignments/full/{aligner}/{busco}_aligned.fas", aligner=config["alignment"]["method"], busco=BUSCOS),
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/statistics/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1)),
+		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1)),
 	output:
 		"checkpoints/align.done"
 	shell:
