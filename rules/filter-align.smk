@@ -121,11 +121,14 @@ rule filter_alignments:
                                         continue
                         fi
                         if [[ -s {params.wd}/$file ]]; then
-                                python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}" --statistics-file results/statistics/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt --min-parsimony {params.min_pars_sites} --minsp {params.minsp} >> {output.filter_info}
+                                python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}" --statistics-file results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt --min-parsimony {params.min_pars_sites} --minsp {params.minsp} >> {output.filter_info}
                         else #do nothing if file is empty (happens rarely when ALICUT fails)
                                 continue
                         fi
 		done
+		# remove unnecessary statistics file
+		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
+
 		echo "$(date) - Number of alignments ({wildcards.aligner}): $(ls results/alignments/full/{wildcards.aligner}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/*.fas | wc -l)" >> results/statistics/runlog.txt
