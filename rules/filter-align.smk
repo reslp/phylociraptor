@@ -70,8 +70,8 @@ rule get_trimmed_statistics:
 	input:
 		alignments = expand("results/alignments/trimmed/{{aligner}}-{{alitrim}}/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 	output:
-		statistics_trimmed = "results/statistics/statistics_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt",
-		checkpoint = "results/checkpoints/get_trim_statistics_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".done"
+		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}/statistics_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		#checkpoint = "results/checkpoints/trim/get_trim_statistics_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".done"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
@@ -84,15 +84,14 @@ rule get_trimmed_statistics:
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
 		concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(ls -1 {params.wd}/results/orthology/busco/busco_runs) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
 		mv results/statistics/statistics.txt {output.statistics_trimmed}
-		touch {output.checkpoint}
 		"""
 
 rule filter_alignments:
 	input:
-		expand("results/checkpoints/get_trim_statistics_{{alitrim}}_{{aligner}}-{batch}-"+str(config["filtering"]["concurrency"])+".done", aligner=config["alignment"]["method"], alitrim=config["alignment"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
+		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
 	output:
-		checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done",
-		filter_info = "results/statistics/alignment_filter_information_{alitrim}_{aligner}.txt"
+		#checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done",
+		filter_info = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
 	benchmark:
 		"results/statistics/benchmarks/align/filter_alignments_{alitrim}_{aligner}.txt"
 	singularity:
@@ -110,10 +109,10 @@ rule filter_alignments:
 		mkdir -p results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}
 
 		# concatenate the statistics files from the individual batches (for some reason snakemake complained if I did it all in one step, so this looks a bit ugly now, but it runs)
-		cat results/statistics/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
-		head -n 1 results/statistics/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt > results/statistics/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
-		cat results/statistics/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt | grep -v "^alignment" >> results/statistics/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
-		rm results/statistics/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
+		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
+		head -n 1 results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
+		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt | grep -v "^alignment" >> results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
+		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
 
 		for file in results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}/*.fas;
 		do
@@ -130,14 +129,13 @@ rule filter_alignments:
 		echo "$(date) - Number of alignments ({wildcards.aligner}): $(ls results/alignments/full/{wildcards.aligner}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/*.fas | wc -l)" >> results/statistics/runlog.txt
-		touch {output.checkpoint}
 		"""
 
 rule get_filter_statistics:
 	input:
-		rules.filter_alignments.output.checkpoint
+		rules.filter_alignments.output.filter_info
 	output:
-		statistics_filtered = "results/statistics/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt",	
+		statistics_filtered = "results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt",	
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
@@ -156,8 +154,8 @@ rule all_filter_align:
 	input:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
 		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/checkpoints/filter_alignments_{alitrim}_{aligner}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
-		expand("results/statistics/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
+		expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
+		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
 	output:
 		"checkpoints/filter_align.done"
 	shell:
