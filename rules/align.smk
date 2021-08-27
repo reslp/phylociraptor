@@ -82,7 +82,7 @@ rule get_alignment_statistics:
 			ovstats="${{ovstats}}\t{params.clustalo_alignment_params}"
 		fi
 		ovstats="${{ovstats}}\t{params.pars_sites}"
-		echo $ovstats > {output.overview_statistics}
+		echo -e $ovstats > {output.overview_statistics}
 		"""
 rule all_align:
 	input:
