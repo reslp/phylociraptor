@@ -203,7 +203,7 @@ Orthologous genes were inferred using BUSCO.
 **Location of BUSCO results:** 
 
 ```
-results/busco
+results/orthology/busco
 ```
 
 **Used BUSCO set:** `r busco_set`
@@ -279,51 +279,101 @@ if (file.exists(busco_overview_image)) {
 
 **Location of alignment files:** 
 ```
-results/alignments
+results/alignments/full
 ```
 
 
 ```{r stats_alignments, echo=FALSE}
-if (file.exists(align_trim_overview_statistics_file) == TRUE) {
-  ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
-  al_method <- ov[1,2]
-  al_params <- ov[2,2]
-  tr_method <- ov[3,2]
-  tr_params <- ov[4,2]
-  parsimony_cutoff <- as.numeric(ov[5,2])
-} else {
-  al_method <- "unknown (check if phylocraptor -m align has finished successfully)."
-  al_params <- ""
-  parsimony_cutoff <- 0
+dirs <- list.dirs("../results/statistics/", recursive=F)
+dirs <- grep("align-*", dirs, value = TRUE)
+
+read_my_overview <-function(dat) {
+	return(read.csv(dat,header=F,sep="\t"))
 }
-if (file.exists(alignment_statistics_file) == TRUE) {
-  data <- read.table(alignment_statistics_file, sep="\t", header=T)
-  few_npars <- data$alignment[data$nparsimony < parsimony_cutoff]
-} else {
-  few_npars <- ""
+
+if (length(dirs) != 0) {
+	dat <- list()
+	i <- 1
+	for (dir in dirs) { # this code needs to be expanded and the dataframe integrated into the one created in the next chunk
+		files <- list.files(path=dir, pattern="*overview*", full.names=T)
+		data <- do.call(rbind,lapply(files,read_my_overview))	
+		dat[[i]] <- data
+		i <- i + 1
+	}
+	
+	data_combined_overview <- do.call(cbind, dat)
+	#print(data_combined_overview)
 }
 ```
 
-**Alignment method:** `r al_method` `r al_params`  
-**Total number of alignments:** `r nrow(data)`  
-**Alignments with less than `r parsimony_cutoff` parsimony informative sites:** `r length(few_npars)`  
+```{r stats_alignments2, echo=FALSE, results="asis"} 
+if (length(dirs)==0) {
 
+cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
 
-```{r stats_alignments2, echo=FALSE}
-
-#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
-#print(rows)
-if (file.exists(alignment_statistics_file) == TRUE) {
-    rows <- which(data$nparsimony < 10)
-    data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
 } else {
-  print("Alignment statistics file not found. Did you run phylociraptor align?")
+	
+	read_my_csv <-function(dat) {
+		return(read.csv(dat,header=T,sep="\t"))
+	}
+	
+	dat <- list()
+	i <- 1
+	for (dir in dirs) {
+		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
+		data <- do.call(rbind,lapply(files,read_my_csv))	
+		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < 210, "red", ""))
+		if (i ==1) {
+			data <- data[,c(1,4:8)]
+		} else{
+			data <- data[,c(4:8)]
+		}
+		rows <- which(data$nparsimony < 10)
+		data <- as.data.frame(data)
+		dat[[i]] <- data 
+		i <- i + 1
+	}
+	
+	data_combined <- do.call(cbind, dat)
+	rownames(data_combined) <- data_combined$alignment
+	data_combined$alignment <- NULL
+	
+	get_headers <- function(dirs) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (dir in dirs) {
+		n <- tail(str_split(dir, "-")[[1]], n=1)
+		values <- c(values, 5)
+		names <- c(names, n)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+	
+	
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	
 }
-#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-  
-  
-  
+
+#if (length(dirs) > 0) {
+#cat(paste0("<br><b>Alignment statistics for ", dirs[1] ,"</b>"))
+#dat[[1]]
+#}
+#
+#if (length(dirs) > 1) {
+#cat(paste0("<br><b>Alignment statistics for ", dirs[2] ,"</b>"))
+#dat[[2]]
+#}
+#if (file.exists(alignment_statistics_file) == TRUE) {
+#    rows <- which(data$nparsimony < 10)
+#    data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+#} else {
+#  print("Alignment statistics file not found. Did you run phylociraptor align?")
+#}
+#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black")) 
   #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
@@ -331,10 +381,14 @@ if (file.exists(alignment_statistics_file) == TRUE) {
 
 **Location of trimmed alignment files:** 
 ```
-results/trimmed_alignments
+results/alignments/trimmed
 ```
 
 ```{r stats_trimmed, echo=FALSE}
+dirs <- list.dirs("../results/statistics/", recursive=F)
+dirs <- grep("/trim-*", dirs, value = TRUE)
+
+
 if (file.exists(align_trim_overview_statistics_file) == TRUE) {
   ov <- read.table(align_trim_overview_statistics_file, sep="\t", header=F)
   tr_method <- ov[3,2]
@@ -358,17 +412,95 @@ if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
 **Total number of alignments after trimming:** `r nrow(data)`  
 **Alignments with less than `r parsimony_cutoff` parsimony informative sites:** `r length(few_npars)`  
 
-```{r stats_trimmed2, echo=FALSE}
-if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
-rows <- which(data$nparsimony < parsimony_cutoff)
-#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
-#print(rows)
-data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+```{r stats_trimmed2, echo=FALSE, warning=FALSE}
+
+
+if (length(dirs)==0) {
+cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filter-align?</b>\n")
+
 } else {
-  print("Trimming statistics file not found. Did you run phylociraptor align?")
+	read_my_csv <-function(dat) {
+		return(read.csv(dat,header=T,sep="\t"))
+	}
+	
+	dat <- list()
+	i <- 1
+	for (dir in dirs) {
+		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
+		data <- do.call(rbind,lapply(files,read_my_csv))	
+		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < 210, "red", ""))
+		data <- data[,c(1,4:8)]
+		data <- as.data.frame(data)
+		dat[[i]] <- data 
+		i <- i + 1
+	}
+	
+	multi_merge <- function(d) {
+		df <- d[[1]]
+		if (length(d) >= 2) {
+			for (i in 2:length(dat)) {
+				df <- merge(df, d[[i]], by="alignment", all=T, suffixes=c("",""))
+				#df <- full_join(df, d[[i]], by="alignment", suffix = c(".x", ".y"))
+			}
+		}
+		return(df)
+	}
+
+	#data_combined <- merge(dat[[1]], dat[[2]], all=T, by="alignment")
+	data_combined <- do.call(multi_merge, list(dat))
+	data_combined[is.na(data_combined)] = ""
+
+
+	#rownames(data_combined) <- data_combined$alignment
+	#data_combined$alignment <- NULL
+	#print(data_combined %>% kbl())	
+	
+	get_headers_trimmer <- function(dirs) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (dir in dirs) {
+		vec <- str_split(dir, "-")[[1]]
+		n <- vec[length(vec)-1]
+		
+		values <- c(values, 5)
+		names <- c(names, n)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+		
+	get_headers_aligner <- function(dirs) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (dir in dirs) {
+		n <- tail(str_split(dir, "-")[[1]], n=1)
+		values <- c(values, 5)
+		names <- c(names, n)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+	
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	
 }
-#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+
+#if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
+#rows <- which(data$nparsimony < parsimony_cutoff)
+##data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
+##data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
+##print(rows)
+#data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+#} else {
+#  print("Trimming statistics file not found. Did you run phylociraptor align?")
+#}
+##%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
   
   
   
@@ -379,6 +511,9 @@ data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(r
 ### Filtering
 
 ```{r stats_filtered, echo=FALSE}
+dirs <- list.dirs("../results/statistics/", recursive=F)
+dirs <- grep("/filter-*", dirs, value = TRUE)
+
 if (file.exists(filtered_alignment_statistics_file) == TRUE) {
   data <- read.table(filtered_alignment_statistics_file, sep="\t", header=T)
   few_npars <- data$alignment[data$nparsimony < parsimony_cutoff]
@@ -403,9 +538,9 @@ if (file.exists(filtered_gene_information_file) == TRUE) {
 
 **Location of filtered alignment files:** 
 ```
-results/filtered_alignments
+results/alignments/filtered
 ```
-
+<!---
 **Total number of alignments after filtering:** `r nrow(data)`  
 **Number of discarded alignments:** `r length(uninformative_alignments)+length(too_few_seqs_alignments)+length(dup_align_removed)`  
 
@@ -423,35 +558,128 @@ _Removed alignments due to duplicated sequences:_
 _Alignments with removed (duplicated) sequences:_  
 `r if (length(dup_seqs_removed)==0){"none"}else{dup_seqs_removed}`
 
+--->
 
+```{r stats_filtered2, echo=FALSE, warning=FALSE}
 
-```{r stats_filtered2, echo=FALSE}
-if (file.exists(filtered_alignment_statistics_file) == TRUE) {
-rows <- which(data$nparsimony < 10)
-#data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-#data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
-#print(rows)
-data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red")%>% scroll_box(width = "100%", height = "600px")
+if (length(dirs)==0) {
+cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filter-align?</b>\n")
+
 } else {
-  print("Filtering statistics file not found. Did you run phylociraptor align?")
+	read_my_csv <-function(dat) {
+		return(read.csv(dat,header=T,sep="\t"))
+	}
+	
+	dat <- list()
+	i <- 1
+	for (dir in dirs) {
+		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
+		data <- do.call(rbind,lapply(files,read_my_csv))	
+		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < 210, "red", ""))
+		data <- data[,c(1,4:8)]
+		data <- as.data.frame(data)
+		dat[[i]] <- data 
+		i <- i + 1
+	}
+	
+	multi_merge <- function(d) {
+		df <- d[[1]]
+		if (length(d) >= 2) {
+			for (i in 2:length(dat)) {
+				df <- merge(df, d[[i]], by="alignment", all=T, suffixes=c("",""))
+				#df <- full_join(df, d[[i]], by="alignment", suffix = c(".x", ".y"))
+			}
+		}
+		return(df)
+	}
+
+	#data_combined <- merge(dat[[1]], dat[[2]], all=T, by="alignment")
+	data_combined <- do.call(multi_merge, list(dat))
+	data_combined[is.na(data_combined)] = ""
+
+	#rownames(data_combined) <- data_combined$alignment
+	#data_combined$alignment <- NULL
+	#print(data_combined %>% kbl())	
+	
+	get_headers_trimmer <- function(dirs) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (dir in dirs) {
+		vec <- str_split(dir, "-")[[1]]
+		n <- vec[length(vec)-1]
+		
+		values <- c(values, 5)
+		names <- c(names, n)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+		
+	get_headers_aligner <- function(dirs) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (dir in dirs) {
+		n <- tail(str_split(dir, "-")[[1]], n=1)
+		values <- c(values, 5)
+		names <- c(names, n)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+	
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	
 }
-#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-  
-  
-  
-  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
 ### Modeltesting
 
-```{r stats_modeltest, echo=FALSE}
-if (file.exists(best_models_file) == TRUE) {
-  data <- read.table(best_models_file, sep="\t", header=F)
-  colnames(data) <- c("busco", "model")
-  models <- table(data$model)
-  p <- ggplot(data, aes(x=factor(1), fill=factor(model))) +geom_bar(stat="count") + coord_polar(theta="y") +theme_void() + scale_fill_viridis(discrete=T, option="B")
-  print(p)
-  data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")
+**Location of modeltesting files:** 
+```
+results/modeltest
+```
+
+```{r stats_modeltest, echo=FALSE, results="asis", out.width="50%", warning=F}
+files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
+multi_merge <- function(d) {
+	df <- d[[1]]
+	if (length(d) >= 2) {
+		for (i in 2:length(dat)) {
+			df <- merge(df, d[[i]], by="alignment", all=T, suffixes=c("",""))
+			#df <- full_join(df, d[[i]], by="alignment", suffix = c("", ""))
+		}
+	}
+	return(df)
+}
+if (length(files) > 0) {
+	i <- 1
+	dat <- list()
+	all_genes <- c()
+	names <- c("alignment")
+	for (file in files) {
+		# get reusable and meaningful name
+		title <- str_split(file, "_")[[1]][3:4]
+		# use other stringsplit function which supports fixed=T
+		title[2] <- strsplit(title[2], ".", fixed=T)[[1]][1]
+		title <- paste(title, collapse="-")
+ 		names <- c(names, title)
+		dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
+  		colnames(dat[[i]]) <- c("alignment", "model")
+  		all_genes <- c(all_genes,dat[[i]]$alignment)
+		models <- table(dat[[i]]$model)
+  		p <- ggplot(dat[[i]], aes(x=factor(1), fill=factor(model))) + geom_bar(stat="count") + coord_polar(theta="y") + theme_void() + scale_fill_viridis(title,discrete=T, option="B") 
+  		print(p)
+		i <- i + 1
+	}
+	data_combined <- do.call(multi_merge, list(dat))
+	colnames(data_combined) <- names
+	data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 }
 ```
 
