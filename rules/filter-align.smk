@@ -5,9 +5,23 @@ import glob
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
+def determine_concurrency_limit():
+	fname = "results/alignments/full"
+	if os.path.isdir(fname):
+		ngenes = glob.glob(fname+"/*/*.fas")
+		ngenes = len(ngenes)
+		if ngenes < config["filtering"]["concurrency"]:
+			return range(1, ngenes + 1)
+		else:
+			return range(1, config["filtering"]["concurrency"] + 1)
+	else:
+		return
+
+batches = determine_concurrency_limit()
+
 rule trim_trimal:
 		input:
-			checkpoint = "checkpoints/align.done",
+			checkpoint = "results/checkpoints/modes/align.done",
 			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
 		output:
 			trimmed_alignment = "results/alignments/trimmed/{aligner}-trimal/{busco}_aligned_trimmed.fas",
@@ -23,7 +37,7 @@ rule trim_trimal:
 			"""
 rule trim_aliscotri:
 		input:
-			checkpoint = "checkpoints/align.done",
+			checkpoint = "results/checkpoints/modes/align.done",
 			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
 		output:
 			trimmed_alignment = "results/alignments/trimmed/{aligner}-aliscore/{busco}_aligned_trimmed.fas",
@@ -88,7 +102,7 @@ rule get_trimmed_statistics:
 
 rule filter_alignments:
 	input:
-		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
+		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 	output:
 		#checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done",
 		filter_info = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
@@ -158,9 +172,9 @@ rule all_filter_align:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
 		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
 		expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
-		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
+		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 	output:
-		"reults/checkpoints/modes/filter_align.done"
+		"results/checkpoints/modes/filter_align.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
