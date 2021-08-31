@@ -1,12 +1,28 @@
 configfile:  "data/config.yaml"
 import subprocess
+import glob
+
 
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
+def determine_concurrency_limit():
+	fname = "results/orthology/busco/busco_sequences_deduplicated"
+	if os.path.isdir(fname):
+		ngenes = glob.glob("results/orthology/busco/busco_sequences_deduplicated"+"/*.fas")
+		ngenes = len(ngenes)
+		if ngenes < config["filtering"]["concurrency"]:
+			return range(1, ngenes + 1)
+		else:
+			return range(1, config["filtering"]["concurrency"] + 1)
+	else:
+		return
+
+batches = determine_concurrency_limit()
+
 rule align_clustalo:
 		input:
-			checkpoint = "checkpoints/filter_orthology.done",
+			checkpoint = "results/checkpoints/modes/filter_orthology.done",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas"
 		output:
 			alignment = "results/alignments/full/clustalo/{busco}_aligned.fas",
@@ -25,7 +41,7 @@ rule align_clustalo:
 
 rule align_mafft:
 		input:
-			checkpoint = "checkpoints/filter_orthology.done",
+			checkpoint = "results/checkpoints/modes/filter_orthology.done",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas"
 		output:
 			alignment = "results/alignments/full/mafft/{busco}_aligned.fas",
@@ -88,7 +104,7 @@ rule all_align:
 	input:
 #		expand("results/alignments/full/{aligner}/{busco}_aligned.fas", aligner=config["alignment"]["method"], busco=BUSCOS),
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1)),
+		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=batches)
 	output:
 		"results/checkpoints/modes/align.done"
 	shell:
