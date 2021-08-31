@@ -59,7 +59,7 @@ rule raxmlng:
 			"""
 rule iqtree:
 		input:
-			"results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
+			"results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt" 
 		output:
 			checkpoint = "results/checkpoints/iqtree_{aligner}_{alitrim}.done",
 			statistics = "results/statistics/iqtree_{aligner}_{alitrim}_statistics.txt"
