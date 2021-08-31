@@ -204,7 +204,7 @@ rule setup:
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)
 	output:
-		".phylogenomics_setup.done"
+		"results/checkpoints/modes/phylogenomics_setup.done"
 
 	shell:
 		"""
@@ -220,7 +220,7 @@ rule add_genomes:
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 	output:
-		".add_genomes.done"
+		"results/checkpoints/modes/add_genomes.done"
 	shell:
 		"""
 		touch {output}

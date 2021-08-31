@@ -160,7 +160,7 @@ rule all_filter_align:
 		expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
 		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1))
 	output:
-		"checkpoints/filter_align.done"
+		"reults/checkpoints/modes/filter_align.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt

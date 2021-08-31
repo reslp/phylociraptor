@@ -18,28 +18,28 @@ debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 outfile_dict = {
 	"setup": ["data/config.yaml"],
-	"orthology": [".phylogenomics_setup.done"],
-	"filter-orthology": [".phylogenomics_setup.done", "checkpoints/orthology.done"],
-	"align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done"],
-	"filter-align": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align.done"],
-	"speciestree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align.done", "checkpoints/filter_align.done"],
-	"njtree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align.done", "checkpoints/filter_align.done"],
-	"tree": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align.done", "checkpoints/filter_align.done"],
-	"model": [".phylogenomics_setup.done", "checkpoints/orthology.done", "checkpoints/filter_orthology.done", "checkpoints/align.done", "checkpoints/filter_align.done"],
-	"report": [".phylogenomics_setup.done"]
+	"orthology": ["results/checkpoints/modes/phylogenomics_setup.done"],
+	"filter-orthology": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done"],
+	"align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done"],
+	"filter-align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done"],
+	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"tree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"model": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
 	}
 
 steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "tree", "speciestree"]
 checkpoint_file_dict = {
-	"setup": ".phylogenomics_setup.done",
-	"orthology": "checkpoints/orthology.done",
-	"filter-orthology": "checkpoints/filter_orthology.done",
-	"align": "checkpoints/align.done",
-	"filter-align": "checkpoints/filter_align.done",
-	"speciestree": "checkpoints/speciestree.done",
-	"njtree": "checkpoints/njtree.done",
-	"tree": "checkpoints/trees.done",
-	"model": "checkpoints/modeltest.done"
+	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
+	"orthology": "results/checkpoints/modes/orthology.done",
+	"filter-orthology": "results/checkpoints/modes/filter_orthology.done",
+	"align": "results/checkpoints/modes/align.done",
+	"filter-align": "results/checkpoints/modes/filter_align.done",
+	"speciestree": "results/checkpoints/modes/speciestree.done",
+	"njtree": "results/checkpoints/modes/njtree.done",
+	"tree": "results/checkpoints/modes/trees.done",
+	"model": "results/checkpoints/modes/modeltest.done"
 }
 	
 

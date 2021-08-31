@@ -17,7 +17,7 @@ rule all_njtree:
 	input:
 		expand("results/phylogeny/njtree/{aligner}-{alitrim}/njtree.tre", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
-		"checkpoints/njtree.done"
+		"results/checkpoints/modes/njtree.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part ntree (njtree) done." >> results/statistics/runlog.txt

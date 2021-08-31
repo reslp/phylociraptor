@@ -152,7 +152,7 @@ rule all_orthology:
 		#"results/checkpoints/create_sequence_files.done",
 		#"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
-		"checkpoints/orthology.done"
+		"results/checkpoints/modes/orthology.done"
 	shell:
 		"""
 		touch {output}

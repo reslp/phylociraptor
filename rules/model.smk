@@ -99,7 +99,7 @@ rule all_modeltest:
 	input:
 		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
-		"checkpoints/modeltest.done"
+		"results/checkpoints/modes/modeltest.done"
 	shell:
 		"""
 		touch {output}

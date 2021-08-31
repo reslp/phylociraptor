@@ -183,7 +183,7 @@ rule all_trees:
 	input:
 		expand("results/checkpoints/{treeinfer}_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], treeinfer=config["tree"]["method"])
 	output:
-		"checkpoints/trees.done"
+		"results/checkpoints/modes/trees.done"
 	shell:
 		"""
 		touch {output}

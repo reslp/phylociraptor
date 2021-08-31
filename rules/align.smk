@@ -90,7 +90,7 @@ rule all_align:
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
 		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=range(1 , config["filtering"]["concurrency"]+1)),
 	output:
-		"checkpoints/align.done"
+		"results/checkpoints/modes/align.done"
 	shell:
 		"""
 		touch {output}

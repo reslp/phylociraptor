@@ -81,7 +81,7 @@ rule all_filter_orthology:
 	input:
 		"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
-		"checkpoints/filter_orthology.done"
+		"results/checkpoints/modes/filter_orthology.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt

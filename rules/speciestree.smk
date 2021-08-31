@@ -105,7 +105,7 @@ rule all_speciestree:
 	input:
 		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
-		"checkpoints/speciestree.done"
+		"results/checkpoints/modes/speciestree.done"
 	shell:
 		"""
 		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt
