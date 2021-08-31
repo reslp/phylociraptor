@@ -14,7 +14,7 @@ def return_trees(wildcards):
 
 rule iqtree_gene_trees:
 	input:
-		"results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
+		"results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
 	output:
 		checkpoint = "results/checkpoints/gene_trees/{aligner}-{alitrim}/{busco}_genetree.done",
 		trees = "results/phylogeny/gene_trees/{aligner}-{alitrim}/{busco}/{busco}_gt.treefile"
