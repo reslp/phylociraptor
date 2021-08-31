@@ -1,13 +1,29 @@
 configfile: "data/config.yaml"
 
+
+def determine_concurrency_limit():
+	fname = "results/orthology/busco/busco_table.txt"
+	if os.path.isfile(fname):
+		handle = open(fname, "r")
+		ngenes = 0
+		ngenes = len(handle.readline().split("\t")) - 2 #minus 2 because there are two extra columns
+		if ngenes < config["filtering"]["concurrency"]:
+			return range(1, ngenes + 1)
+		else:
+			return range(1, config["filtering"]["concurrency"] + 1)
+	else:
+		return
+
+batches = determine_concurrency_limit()
+
 rule create_sequence_files:
 	input:
 		#busco_table = rules.extract_busco_table.output.busco_table,
 		#checkpoint = rules.orthology.output
 		table = "results/orthology/busco/busco_table.txt"
 	output:
-		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(+config["filtering"]["concurrency"])),
-		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(+config["filtering"]["concurrency"])+".done",
+		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["filtering"]["concurrency"])),
+		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".done",
 		genome_statistics = "results/statistics/orthology_filtering_genomes_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt",
 		gene_statistics = "results/statistics/orthology_filtering_gene_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	benchmark:
@@ -32,7 +48,7 @@ rule create_sequence_files:
 
 rule remove_duplicated_sequence_files:
 	input:
-		checkpoint = expand(rules.create_sequence_files.output.checkpoint, batch=range(1 , config["filtering"]["concurrency"]+1))
+		checkpoint = expand(rules.create_sequence_files.output.checkpoint, batch=batches)
 	output:
 		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
