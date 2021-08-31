@@ -1,6 +1,7 @@
 rule concatenate:
 	input:
-		checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
+#		checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
+		checkpoint = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
 	output:
 		alignment = "results/phylogeny/concatenate/{aligner}-{alitrim}/concat.fas",
 		phylip_alignment = "results/phylogeny/concatenate/{aligner}-{alitrim}/concat.phy",
