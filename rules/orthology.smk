@@ -38,14 +38,14 @@ rule run_busco:
 		busco_set = "results/orthology/busco/busco_set"
 	output:
 		checkpoint = "results/checkpoints/busco/busco_{species}.done",
-		augustus_output = "results/orthology/busco/{species}/run_busco/augustus_output.tar.gz",
-		blast_output = "results/orthology/busco/{species}/run_busco/blast_output.tar.gz",
-		hmmer_output = "results/orthology/busco/{species}/run_busco/hmmer_output.tar.gz",
-		full_table = "results/orthology/busco/{species}/run_busco/full_table_busco.tsv",
-		short_summary ="results/orthology/busco/{species}/run_busco/short_summary_busco.txt",
-		missing_busco_list ="results/orthology/busco/{species}/run_busco/missing_busco_list_busco.tsv",
-		single_copy_buscos = "results/orthology/busco/{species}/run_busco/single_copy_busco_sequences.tar",
-		single_copy_buscos_tarlist = "results/orthology/busco/{species}/run_busco/single_copy_busco_sequences.txt"
+		augustus_output = "results/orthology/busco/busco_runs/{species}/run_busco/augustus_output.tar.gz",
+		blast_output = "results/orthology/busco/busco_runs/{species}/run_busco/blast_output.tar.gz",
+		hmmer_output = "results/orthology/busco/busco_runs/{species}/run_busco/hmmer_output.tar.gz",
+		full_table = "results/orthology/busco/busco_runs/{species}/run_busco/full_table_busco.tsv",
+		short_summary ="results/orthology/busco/busco_runs/{species}/run_busco/short_summary_busco.txt",
+		missing_busco_list ="results/orthology/busco/busco_runs/{species}/run_busco/missing_busco_list_busco.tsv",
+		single_copy_buscos = "results/orthology/busco/busco_runs/{species}/run_busco/single_copy_busco_sequences.tar",
+		single_copy_buscos_tarlist = "results/orthology/busco/busco_runs/{species}/run_busco/single_copy_busco_sequences.txt"
 
 	benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
 	threads: int(config["busco"]["threads"])
@@ -107,7 +107,7 @@ rule run_busco:
 		mv run_busco/missing_busco_list_busco.tsv {output.missing_busco_list}
 		#mv run_busco/single_copy_busco_sequences {output.single_copy_buscos}
 		
-		buscos=$(tail -n +6 results/busco/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
+		buscos=$(tail -n +6 results/orthology/busco/busco_runs/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
 		name="{params.species}"
 		echo "$(date) $name $buscos" >> results/statistics/runlog.txt
 		
@@ -136,12 +136,12 @@ rule extract_busco_table:
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
 	params:
-		busco_dir = "results/orthology/busco/"
+		busco_dir = "results/orthology/busco/busco_runs/"
 	shell:
 		"""
 		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} -o {output.busco_table}
 		echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
-		for file in $(ls results/busco/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
+		for file in $(ls results/orthology/busco/busco_runs/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		"""
 rule all_orthology:
 	input:
