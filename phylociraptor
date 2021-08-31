@@ -4,6 +4,7 @@ import sys, os, io
 import time
 import subprocess
 import argparse
+import glob
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
@@ -11,7 +12,7 @@ if sys.version_info[0] < 3:
 
 
 #some basic variables needed:
-njobs = "10"
+njobs = "10000"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
 debug = False #turn debugging mode on (True) and off (False)
@@ -24,12 +25,12 @@ outfile_dict = {
 	"filter-align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done"],
 	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"tree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"mltree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"model": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
 	}
 
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "tree", "speciestree"]
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "mltree", "speciestree"]
 checkpoint_file_dict = {
 	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
 	"orthology": "results/checkpoints/modes/orthology.done",
@@ -38,21 +39,21 @@ checkpoint_file_dict = {
 	"filter-align": "results/checkpoints/modes/filter_align.done",
 	"speciestree": "results/checkpoints/modes/speciestree.done",
 	"njtree": "results/checkpoints/modes/njtree.done",
-	"tree": "results/checkpoints/modes/trees.done",
+	"mltree": "results/checkpoints/modes/trees.done",
 	"model": "results/checkpoints/modes/modeltest.done"
 }
 	
 
 outdir_dict = {
-	"setup": ["results/orthology/busco/busco_set", "results/assemblies", "results/downloaded_genomes", "results/augustus_config_path"],
-	"orthology": ["results/busco"],
+	"setup": ["results/orthology/busco/busco_set", "results/assemblies", "results/downloaded_genomes"],
+	"orthology": ["results/orthology/busco"],
 	"align": ["results/alignments"],
 	"filter-orthology": ["results"],
 	"align": ["results"],
-	"filter-align": ["results/trimmed_alignments", "results/filtered_alignments"],
+	"filter-align": ["results/alignments/trimmed", "results/alignments/filtered"],
 	"speciestree": ["results/phylogeny/astral"],
 	"njtree": ["results/phylogeny/njtree"],
-	"tree": ["results/phylogeny/concatenated"],
+	"mltree": ["results/phylogeny/concatenated"],
 	"model": ["results/modeltest"]
 }
 
@@ -69,7 +70,7 @@ Commands:
 	align			Create alignments for orthologous genes
 	filter-align		Trim and filter alignments
 	model			Perform modeltesting
-	tree			Calculate Maximum-Likelihood phylogenomic trees
+	mltree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate gene trees and species tree
 	njtree			Calculate Neighbor-Joining tree
 
@@ -348,18 +349,24 @@ def get_flags(flags):
 def check_required_files(runmode):
 	for f in outfile_dict[runmode]:
 		if not os.path.isfile(f):
+			if debug:
+				print("(debug, check_required_files): File not found:", f)
 			return f
 	return
 
 def check_directories(mode):
 	for directory in outdir_dict[mode]:
 		if not os.path.isdir(directory):
+			if debug:
+				print("(debug, check_directories): Directory not found:", directory)
 			return directory
 	return
 
 def check_hasrun(mode):
 	f = checkpoint_file_dict[mode]
 	if not os.path.isfile(f):
+		if debug:
+			print("(debug, check_hasrun): Not found:", f)
 		return f
 	else:
 		return
@@ -481,10 +488,14 @@ def execute_command(cmd, verbose):
 				line=""
 		
 pars = argparse.ArgumentParser(usage=help_message(default_help))
+pars.add_argument('--debug', action='store_true', dest="debug")
 pars.add_argument('command', action='store')
 pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
 
 args = pars.parse_args()
+
+if args.debug == True:
+	debug=True
 
 if args.command == "setup":
 	print("Welcome to phylociraptor setup")
@@ -800,9 +811,9 @@ elif args.command=="njtree":
                 print(line, end="\r")
 	if debug:
 		print(cmd)
-elif args.command=="tree":
-	print("Welcome to phylociraptor tree.")
-	tree_parser = argparse.ArgumentParser(prog="phylociraptor tree", description = """Description: phylociraptor tree - Will calculate a ML tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
+elif args.command=="mltree":
+	print("Welcome to phylociraptor mltree.")
+	tree_parser = argparse.ArgumentParser(prog="phylociraptor tree", description = """Description: phylociraptor tree - Will calculate a Maximum-likelihood tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
 	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
 	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
 	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
@@ -971,108 +982,128 @@ elif args.command == "check":
 				# first get all sequences files after filter-orthology
 				if not os.path.isdir("results/alignments"):
 					continue
-				for gene in os.listdir("results/busco_sequences_deduplicated"):
+				for gene in os.listdir("results/orthology/busco/busco_sequences_deduplicated"):
 					gene = os.path.splitext(gene)[0]
 					genes.append(gene.split("_")[0])
 				# now check if the same files are in align
 				total_genes = len(genes)
-				for gene in os.listdir("results/alignments"):
-					gene = os.path.splitext(gene)[0]
-					gene = gene.split("_")[0]
-					if gene in genes:
-						genes.remove(gene)	
-				missing = ",".join(genes)
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing alignments for", len(missing.split(",")), "of", total_genes, "genes.")
-					if check_args.verbose:
-						print("\tThese alignments are missing:")
-						print("\t", missing)
+				for directory in os.listdir("results/alignments/full"):
+					for gene in os.listdir("results/alignments/full/"+directory):
+						gene = os.path.splitext(gene)[0]
+						gene = gene.split("_")[0]
+						if gene in genes:
+							genes.remove(gene)	
+					missing = ",".join(genes)
+					missing = missing.strip(",")
+					if missing:
+						print("\tMissing", directory, "alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+						if check_args.verbose:
+							print("\t These alignments are missing:")
+							print("\t", missing)
 			if mode == "filter-align":
 				# first look for missing trimmed files
-				missing = ""
-				genes = []
-				if not os.path.isdir("results/trimmed_alignments"):
+				if not os.path.isdir("results/alignments/trimmed"):
 					continue
-				for gene in os.listdir("results/alignments"):
-					gene = os.path.splitext(gene)[0]
-					genes.append(gene.split("_")[0])
-				total_genes = len(genes)
-				for gene in os.listdir("results/trimmed_alignments"):
-					gene = os.path.splitext(gene)[0]
-					gene = gene.split("_")[0]
-					if gene in genes:
-						genes.remove(gene)	
-				missing = ",".join(genes)
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing trimmed alignments for", len(missing.split(",")), "of", total_genes, "genes.")
-					if check_args.verbose:
-						print("\tThese trimmed alignments are missing:")
-						print("\t", missing)
+				aligners = os.listdir("results/alignments/full")
+				for aligner in aligners:
+					for directory in glob.glob("results/alignments/trimmed/"+aligner+"-*"):
+						missing = ""
+						genes = []
+						for gene in os.listdir("results/alignments/full/"+aligner):
+							gene = os.path.splitext(gene)[0]
+							genes.append(gene.split("_")[0])
+						total_genes = len(genes)
+						genes_all = genes
+						for gene in glob.glob(directory+"/*.fas"):
+							gene = os.path.basename(gene)
+							gene = os.path.splitext(gene)[0]
+							gene = gene.split("_")[0]
+							if gene in genes_all:
+								genes_all.remove(gene)	
+						missing = ",".join(genes_all)
+						missing = missing.strip(",")
+						if missing:
+							print("\tMissing",aligner,directory.split("-")[-1],"trimmed alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+							if check_args.verbose:
+								print("\t These trimmed alignments are missing:")
+								print("\t", missing)
 				# second check missing filtered files (after trimming)
-				missing = ""
-				genes = []
-				if not os.path.isdir("results/filtered_alignments"):
+				if not os.path.isdir("results/alignments/filtered"):
 					continue
-				for gene in os.listdir("results/alignments"):
-					gene = os.path.splitext(gene)[0]
-					genes.append(gene.split("_")[0])
-				total_genes = len(genes)
-				for gene in os.listdir("results/filtered_alignments"):
-					gene = os.path.splitext(gene)[0]
-					gene = gene.split("_")[0]
-					if gene in genes:
-						genes.remove(gene)	
-				missing = ",".join(genes)
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing filtered alignments for", len(missing.split(",")), "of", total_genes, "genes. (Automatically filtered out alignments will also show up here)")
-					if check_args.verbose:
-						print("\tThese filtered alignments are missing:")
-						print("\t", missing)
+				aligners = os.listdir("results/alignments/trimmed")
+				for aligner in aligners:
+					for directory in glob.glob("results/alignments/filtered/"+aligner+"-*"):
+						missing = ""
+						genes = []
+						for gene in os.listdir("results/alignments/trimmed/"+aligner):
+							gene = os.path.splitext(gene)[0]
+							genes.append(gene.split("_")[0])
+						total_genes = len(genes)
+						genes_all = genes
+						for gene in glob.glob(directory+"/*.fas"):
+							gene = os.path.basename(gene)
+							gene = os.path.splitext(gene)[0]
+							gene = gene.split("_")[0]
+							if gene in genes_all:
+								genes_all.remove(gene)	
+						missing = ",".join(genes_all)
+						missing = missing.strip(",")
+						if missing:
+							print("\tMissing",aligner,directory.split("-")[-1],"filtered alignments for", len(missing.split(",")), "of", total_genes, "genes.")
+							print("(Automatically filtered alignments will also show up here)")
+							if check_args.verbose:
+								print("\t These filtered alignments are missing:")
+								print("\t", missing)
 			if mode == "model":
-				missing = ""
-				genes = []
 				if not os.path.isdir("results/checkpoints/modeltest"):
 					continue
-				for gene in os.listdir("results/filtered_alignments"):
-					gene = os.path.splitext(gene)[0]
-					genes.append(gene.split("_")[0])
-				total_genes = len(genes)
-				for gene in os.listdir("results/checkpoints/modeltest"):
-					gene = os.path.splitext(gene)[0]
-					gene = gene.split("_")[0]
-					if gene in genes:
-						genes.remove(gene)	
-				missing = ",".join(genes)
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing modeltest results for", len(missing.split(",")), "of", total_genes, "genes.")
-					if check_args.verbose:
-						print("\tThese modeltest results are missing:")
-						print("\t", missing)
+				units = os.listdir("results/alignments/filtered")
+				for unit in units:
+					if not os.path.isdir("results/checkpoints/modeltest/"+unit):
+						continue
+					genes = []
+					missing = ""
+					for gene in os.listdir("results/alignments/filtered/"+unit):
+						gene = os.path.splitext(gene)[0]
+						genes.append(gene.split("_")[0])
+					total_genes = len(genes)
+					for gene in os.listdir("results/checkpoints/modeltest/"+unit):
+						gene = os.path.splitext(gene)[0]
+						gene = gene.split("_")[0]
+						if gene in genes:
+							genes.remove(gene)	
+					missing = ",".join(genes)
+					missing = missing.strip(",")
+					if missing:
+						print("\tMissing",unit,"modeltest results for", len(missing.split(",")), "of", total_genes, "genes.")
+						if check_args.verbose:
+							print("\t These modeltest results are missing:")
+							print("\t", missing)
 			if mode == "speciestree":
-				missing = ""
-				genes = []
 				if not os.path.isdir("results/checkpoints/gene_trees"):
 					continue
-				for gene in os.listdir("results/filtered_alignments"):
-					gene = os.path.splitext(gene)[0]
-					genes.append(gene.split("_")[0])
-				total_genes = len(genes)
-				for gene in os.listdir("results/checkpoints/gene_trees"):
-					gene = os.path.splitext(gene)[0]
-					gene = gene.split("_")[0]
-					if gene in genes:
-						genes.remove(gene)	
-				missing = ",".join(genes)
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing gene tree for", len(missing.split(",")), "of", total_genes, "genes.")
-					if check_args.verbose:
-						print("\tThese gene trees are missing:")
-						print("\t", missing)
+				units = os.listdir("results/alignments/filtered")
+				for unit in units:
+					missing = ""
+					genes = []
+					if not os.path.isdir("results/checkpoints/gene_trees/"+unit):
+						continue
+					for gene in os.listdir("results/alignments/filtered/"+unit):
+						gene = os.path.splitext(gene)[0]
+						genes.append(gene.split("_")[0])
+					total_genes = len(genes)
+					for gene in os.listdir("results/checkpoints/gene_trees/"+unit):
+						gene = os.path.splitext(gene)[0]
+						gene = gene.split("_")[0]
+						if gene in genes:
+							genes.remove(gene)	
+					missing = ",".join(genes)
+					missing = missing.strip(",")
+					if missing:
+						print("\tMissing",unit,"gene tree for", len(missing.split(",")), "of", total_genes, "genes.")
+						if check_args.verbose:
+							print("\t These gene trees are missing:")
+							print("\t", missing)
 						
 				
 		elif failed == 2:	
