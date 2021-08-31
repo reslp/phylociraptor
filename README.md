@@ -66,7 +66,7 @@ Commands:
     align               Create alignments for orthologous genes
     filter-align        Trim and filter alignments
     model               Perform modeltesting
-    tree                Calculate Maximum-Likelihood phylogenomic trees
+    mltree              Calculate Maximum-Likelihood phylogenomic trees
     speciestree         Calculate gene trees and species tree
     njtree              Calculate Neighbor-Joining tree
     report              Create a HTML report of the run
@@ -190,7 +190,7 @@ $ ./phylociraptor model -t sge -c data/cluster_config-sauron.yaml
 
 ```
 $ ./phylociraptor njtree -t sge -c data/cluster_config-sauron.yaml
-$ ./phylociraptor tree -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor mltree -t sge -c data/cluster_config-sauron.yaml
 $ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
 ```
 
