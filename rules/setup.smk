@@ -161,19 +161,19 @@ rule download_busco_set:
 		touch {output.checkpoint}
 		"""
 
-rule prepare_augustus:
-	output:
-		augustus_config_path = directory("results/augustus_config_path"),
-		checkpoint = "results/checkpoints/prepare_augustus.done"
-	singularity:
-		"docker://reslp/busco:3.0.2"
-	benchmark:
-		"results/statistics/benchmarks/setup/prepare_augustus.txt"
-	shell:
-		"""
-		cp -r /opt/conda/config {output.augustus_config_path}
-		touch {output.checkpoint}
-		"""
+#rule prepare_augustus:
+#	output:
+#		augustus_config_path = directory("results/augustus_config_path"),
+#		checkpoint = "results/checkpoints/prepare_augustus.done"
+#	singularity:
+#		"docker://reslp/busco:3.0.2"
+#	benchmark:
+#		"results/statistics/benchmarks/setup/prepare_augustus.txt"
+#	shell:
+#		"""
+#		cp -r /opt/conda/config {output.augustus_config_path}
+#		touch {output.checkpoint}
+#		"""
 
 rule get_genome_download_statistics:
 	input:
@@ -199,7 +199,7 @@ rule setup:
 	input:
 		"results/checkpoints/download_genomes.done",
 		"results/checkpoints/download_busco_set.done",
-		"results/checkpoints/prepare_augustus.done",
+		#"results/checkpoints/prepare_augustus.done",
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)
