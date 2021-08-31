@@ -45,7 +45,7 @@ def return_target_modeltest_log(wildcards):
 	lis = []
         for busco in BUSCOS:
 		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
-			lis.append("results/modeltest/"+busco+"/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+".log")
+			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
 #	input_files = glob.glob("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/*_aligned_trimmed.fas")
 #	for f in input_files:
 #		busco = f.split("/")[-1].replace("_aligned_trimmed.fas","")
@@ -57,8 +57,8 @@ rule modeltest:
 #		alignment = get_alignment
 		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
 	output:
-		logfile = "results/modeltest/{busco}/{aligner}-{alitrim}/{busco}.log",
-		checkpoint = "results/checkpoints/modeltest/{busco}_modeltest_{aligner}_{alitrim}.done"
+		logfile = "results/modeltest/{aligner}-{alitrim}/{busco}/{busco}.log",
+		checkpoint = "results/checkpoints/modeltest/{aligner}-{alitrim}/{busco}_modeltest_{aligner}_{alitrim}.done"
 	benchmark:
 		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.txt"
 	params:
@@ -69,7 +69,7 @@ rule modeltest:
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{params.busco}/{wildcards.aligner}-{wildcards.alitrim}/{params.busco} -nt AUTO -ntmax {threads}
+		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt AUTO -ntmax {threads}
 		touch {output.checkpoint}
 		"""
 
@@ -86,7 +86,7 @@ rule aggregate_best_models:
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
-		for file in $(ls -1 results/modeltest/*/{wildcards.aligner}-{wildcards.alitrim}/*.log)
+		for file in $(ls -1 results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/*/*.log)
 		do
 			outname=$(basename $file | awk -F "." '{{print $1}}')
 			printf "$outname\t" >> {output.best_models}
