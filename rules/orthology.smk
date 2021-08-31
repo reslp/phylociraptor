@@ -34,18 +34,18 @@ rule run_busco:
 	input:
 		#assembly = "results/assemblies/{species}.fna",
 		assembly = get_assemblies,
-		augustus_config_path = "results/augustus_config_path",
+		#augustus_config_path = "results/augustus_config_path",
 		busco_set = "results/orthology/busco/busco_set"
 	output:
 		checkpoint = "results/checkpoints/busco/busco_{species}.done",
-		augustus_output = "results/busco/{species}/run_busco/augustus_output.tar.gz",
-		blast_output = "results/busco/{species}/run_busco/blast_output.tar.gz",
-		hmmer_output = "results/busco/{species}/run_busco/hmmer_output.tar.gz",
-		full_table = "results/busco/{species}/run_busco/full_table_busco.tsv",
-		short_summary ="results/busco/{species}/run_busco/short_summary_busco.txt",
-		missing_busco_list ="results/busco/{species}/run_busco/missing_busco_list_busco.tsv",
-		single_copy_buscos = "results/busco/{species}/run_busco/single_copy_busco_sequences.tar",
-		single_copy_buscos_tarlist = "results/busco/{species}/run_busco/single_copy_busco_sequences.txt"
+		augustus_output = "results/orthology/busco/{species}/run_busco/augustus_output.tar.gz",
+		blast_output = "results/orthology/busco/{species}/run_busco/blast_output.tar.gz",
+		hmmer_output = "results/orthology/busco/{species}/run_busco/hmmer_output.tar.gz",
+		full_table = "results/orthology/busco/{species}/run_busco/full_table_busco.tsv",
+		short_summary ="results/orthology/busco/{species}/run_busco/short_summary_busco.txt",
+		missing_busco_list ="results/orthology/busco/{species}/run_busco/missing_busco_list_busco.tsv",
+		single_copy_buscos = "results/orthology/busco/{species}/run_busco/single_copy_busco_sequences.tar",
+		single_copy_buscos_tarlist = "results/orthology/busco/{species}/run_busco/single_copy_busco_sequences.txt"
 
 	benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
 	threads: int(config["busco"]["threads"])
@@ -111,7 +111,6 @@ rule run_busco:
 		name="{params.species}"
 		echo "$(date) $name $buscos" >> results/statistics/runlog.txt
 		
-		#touch checkpoint
 		touch {output.checkpoint}
 		"""
 
@@ -130,14 +129,14 @@ rule extract_busco_table:
 		busco_set = "results/orthology/busco/busco_set",
 		busco = rules.busco.output
 	output:
-		busco_table = "results/busco_table/busco_table.txt",
+		busco_table = "results/orthology/busco/busco_table.txt",
 		#checkpoint = "results/checkpoints/extract_busco_table.done"
 	benchmark:
 		"results/statistics/benchmarks/busco/extract_busco_table.txt"
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
 	params:
-		busco_dir = "results/busco/"
+		busco_dir = "results/orthology/busco/"
 	shell:
 		"""
 		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} -o {output.busco_table}
@@ -148,7 +147,7 @@ rule all_orthology:
 	input:
 		expand("results/checkpoints/busco/busco_{species}.done", species=species),
 		#"results/checkpoints/busco.done",
-		"results/busco_table/busco_table.txt",
+		"results/orthology/busco/busco_table.txt",
 		#"results/checkpoints/create_sequence_files.done",
 		#"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
