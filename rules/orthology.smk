@@ -132,7 +132,7 @@ rule extract_busco_table:
 		busco_table = "results/orthology/busco/busco_table.txt",
 		#checkpoint = "results/checkpoints/extract_busco_table.done"
 	benchmark:
-		"results/statistics/benchmarks/busco/extract_busco_table.txt"
+		"results/statistics/benchmarks/extract_busco_table.txt"
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
 	params:
@@ -141,7 +141,10 @@ rule extract_busco_table:
 		"""
 		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {params.busco_dir} -o {output.busco_table}
 		echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
-		for file in $(ls results/orthology/busco/busco_runs/*/run_busco/short_summary_busco.txt);do  name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
+		for file in $(ls results/orthology/busco/busco_runs/*/run_busco/short_summary_busco.txt);
+		do  
+			name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); 
+			printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		"""
 rule all_orthology:
 	input:

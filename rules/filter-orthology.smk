@@ -27,7 +27,7 @@ rule create_sequence_files:
 		genome_statistics = "results/statistics/orthology_filtering_genomes_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt",
 		gene_statistics = "results/statistics/orthology_filtering_gene_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	benchmark:
-		"results/statistics/benchmarks/busco/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
 	params:
 		cutoff=config["filtering"]["cutoff"],
 		minsp=config["filtering"]["minsp"],
@@ -53,7 +53,7 @@ rule remove_duplicated_sequence_files:
 		checkpoint = "results/checkpoints/remove_duplicated_sequence_files.done",
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
 	benchmark:
-		"results/statistics/benchmarks/busco/remove_duplicated_sequence_files.txt"
+		"results/statistics/benchmarks/remdupseq/remove_duplicated_sequence_files.txt"
 	singularity: "docker://reslp/biopython_plus:1.77"
 	params:
 		wd = os.getcwd(),
@@ -87,7 +87,7 @@ rule remove_duplicated_sequence_files:
 			fi
 		done
 		#gather runtime statistics
-		for file in $(ls results/statistics/benchmarks/busco/); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
+		for file in $(ls results/statistics/benchmarks/busco/run_busco_*); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
 		echo "$(date) - Number of BUSCO sequence files: $(ls results/orthology/busco/busco_sequences/*/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/orthology/busco/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
 		touch {output.checkpoint}
