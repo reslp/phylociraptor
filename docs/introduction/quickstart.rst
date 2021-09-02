@@ -102,7 +102,7 @@ Optionally you can run extensive model testing for individual alignments. This i
 
 .. code-block:: bash
 
-	$ ./phylociraptor tree -t sge -c data/cluster-config-SGE.yaml
+	$ ./phylociraptor mltree -t sge -c data/cluster-config-SGE.yaml
 	$ ./phylociraptor njtree -t sge -c data/cluster-config-SGE.yaml
 	$ ./phylociraptor speciestree -t sge -c data/cluster-config-SGE.yaml
 

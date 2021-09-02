@@ -13,12 +13,13 @@ Phylociraptor performs every step of a typical phylogenomic analysis.
 * It automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. 
 * It identifies single-copy orthologs for a set of genomes (locally provided or downloaded automatically).
 * It creates alignments for single-copy genes.
-* It allows to trim alignments and filter orthologous genes.
+* It allows to trim and filter alignments in various ways.
 * It calculates gene-trees for each alignment.
 * It creates a species tree from gene-trees using ASTRAL.
 * It creates Neighbor-Joining trees using quicktree.
+* It calculates the best substitution model for single-gene alignments.
 * It automatically produces all input and runs iqtree and raxml to create concatenated Maximum-Likelihood phylogenies.
-* It provides extensive reports for each analysis step.
+* It provides extensive reports for each analysis step combined in a single HTML file which can be viewed in a Web Browser.
 * Most steps are highly parallelized and it is possible to get from a list of hundreds of taxa to a phylogenomic tree in a few days. 
 
 ---------------------------------------------
@@ -28,7 +29,7 @@ Phylociraptor has the following dependencies:
 **General:**
 
 * Singularity 3.4.1+ - `https://sylabs.io/ <https://sylabs.io/>`_
-* Snakemake 5.19.3 - `https://snakemake.github.io/ <https://snakemake.github.io/>`_
+* Snakemake 6.0.2 - `https://snakemake.github.io/ <https://snakemake.github.io/>`_
 
 dependencies:
   

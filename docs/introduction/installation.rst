@@ -45,7 +45,7 @@ The probably best way is to clone the repository directly using git (if availabl
 		align			Create alignments for orthologous genes
 		filter-align		Trim and filter alignments
 		model			Perform modeltesting
-		tree			Calculate Maximum-Likelihood phylogenomic trees
+		mltree			Calculate Maximum-Likelihood phylogenomic trees
 		speciestree		Calculate gene trees and species tree
 		njtree			Calculate Neighbor-Joining tree
 

@@ -29,6 +29,8 @@ A phylociraptor analysis is split into different parts, which also correspond to
 	$ phylociraptor filter-align
 	$ phylociraptor model
 	$ phylociraptor njtree
+        $ phylocirpator mltree
+        $ phylocirpator speciestree
 	$ phylociraptor check
 	$ phylociraptor report
 
@@ -94,7 +96,7 @@ The information on the best substitution model is available in the `results/mode
 phylociraptor tries to resolve these discrepancies automatically to make sure that the models inferred with iqtree also work with raxml. This does not work in every case and it is hard to anticipate which models work and which don't. If you encounter a problematic model with raxml please let us know.
 
 -------------------------------------
-tree (Calculate ML phylogenies)
+mltree (Calculate ML phylogenies)
 -------------------------------------
 
 This runmode allows to calculate maximum-likelihood trees from concatenated (supermatrix) alignments of all genes which pass the filtering step.
@@ -120,6 +122,14 @@ To get a fast first tree you can run `phylociraptor njtree`. This will calculate
 check (Check status of the run)
 ------------------------------------------
 
+`phylciraptor check` will give a quick (and dirty) overview about which steps have already been run. This can be helpful to keep an overview of how many steps have already finished in cases where there are hundreds or thousands of jobs submitted to a cluster. `phylociraptor check` is however superficial and can only help to quickly assess the status of the pipeline. It shows DONE for each step that has finsihed, INCOMPLETE for steps which have either not finished or not run at all and NOT EVALUATED for steps which require other steps to have been run before.
+
+
 ------------------------------------------
 report (Create an HTML report summarizing the results)
 ------------------------------------------
+
+`phylociraptor report` will create an HTML report of the run. It includes statistics calculated during each step. It can be run after each step of phylociraptor and is intended to help to decide on meaningful setting for the next analysis steps.
+
+
+
