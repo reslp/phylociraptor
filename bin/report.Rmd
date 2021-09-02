@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, echo=FALSE, message=FALSE}
 library(kableExtra)
-#library(formattable)
+library(formattable)
 library(dplyr)
 library(knitr)
 #library(tidyverse)
@@ -21,7 +21,7 @@ library(data.table)
 
 parsimony_cutoff <- 3
 
-
+#knitr::opts_chunk$set(dev = 'pdf')
 # function to convert seconds to better formated time:
 # from here: https://stackoverflow.com/a/51156986
 
@@ -235,32 +235,90 @@ if (busco_bench_df != "not_found") {
 ```
 
 
-```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F}
-#if (file.exists("../results/statistics/busco_summary.txt"))
+```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F, results="asis"}
 if (file.exists(busco_summary_file))
-{
+{	
   data <- read.table(busco_summary_file, sep="\t", header=T)
-  data <- data[ order(row.names(data)), ]
+  data <- data[ order(data$species), ]
+  rownames(data) <- NULL
+  # clean up name
+  spnames <- c()
+  #for (element in strsplit(data$species, "/")) {
+  #spnames <- c(spnames, element[5])
+  #}
+  #data$species <- spnames
   data$total <- NULL
   data$complete <- NULL
-  nrows <- nrow(data)
-  mdata <- reshape2::melt(data, id.vars="species")
-
-  colnames(mdata) <- c("species", "BUSCO category", "no. of genes")
-  p2 <- ggplot(mdata, aes_string(fill="`BUSCO category`", x="`no. of genes`", y="`species`")) +geom_bar(position="stack", stat="identity")+theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"),,axis.text.y=element_blank())+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))#+ggtitle(paste("Overview of BUSCO results (total genes=", 
-
-if (busco_bench_df != "not_found") {
-  subplot(ggplotly(p, height=15*nrows), ggplotly(p2, height=15*nrows))
-} else {
-  p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
-  ggplotly(p2, height=15*nrows)
+  data$single_copy <- color_bar("#6198B8")(data$single_copy)
+  data$duplicated <- color_bar("#E37332")(data$duplicated)
+  data$fragmented <- color_bar("#C6E88B")(data$fragmented)
+  data$missing <- color_bar("#BCB2CF")(data$missing)
+  data %>% kbl(escape=F) %>% kable_styling("hover", full_width=F, fixed_thead = T) 
 }
-  
-  #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
-} else {
-  cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
+else {
+	cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
 }
 
+## this is the old version of plotting BUSCO results, it is difficult to get right for different numbers of genomes.
+## I will keep this though in case we want to add the possibility to output PDFs of BUSCO results.
+##function to create subchunks. from here: http://michaeljw.com/blog/post/subchunkify/
+#subchunkify <- function(g, fig_height=7, fig_width=5) {
+#  g_deparsed <- paste0(deparse(
+#    function() {g}
+#  ), collapse = '')
+#  dpi <- 150
+#  sub_chunk <- paste0("
+#  `","``{r sub_chunk_", floor(runif(1) * 10000), ",fig.height=",fig_height,", fig_width=",fig_width,", out.height='", fig_height*dpi, "px', out.width='", 1500, "px', echo=FALSE}",
+#  "\n(", 
+#    g_deparsed
+#    , ")()",
+#  "\n`","``
+#  ")
+#  
+#  cat(knitr::knit(text = knitr::knit_expand(text = sub_chunk), quiet = TRUE))
+#}
+#
+##if (file.exists("../results/statistics/busco_summary.txt"))
+#if (file.exists(busco_summary_file))
+#{
+#  data <- read.table(busco_summary_file, sep="\t", header=T)
+#  data <- data[ order(row.names(data)), ]
+#  # clean up name
+#  spnames <- c()
+#  #for (element in strsplit(data$species, "/")) {
+#  #spnames <- c(spnames, element[5])
+#  #}
+#  #data$species <- spnames
+#  data$total <- NULL
+#  data$complete <- NULL
+#  nrows <- nrow(data)
+#  mdata <- reshape2::melt(data, id.vars="species")
+#  colnames(mdata) <- c("species", "BUSCO category", "no. of genes")
+#  p2 <- ggplot(mdata, aes_string(fill="`BUSCO category`", x="`no. of genes`", y="`species`")) +geom_bar(position="stack", stat="identity")+theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 1,vjust=0.5, colour = "grey50"),axis.text.y=element_blank())+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))#+ggtitle(paste("Overview of BUSCO results (total genes=", 
+#
+#modifier <- 0.5
+#print(nrows)
+#print(modifier)
+#myheight=(nrows/modifier)*(1/30)
+#print(myheight)
+#if (busco_bench_df != "not_found") {
+#  pp <- subplot(ggplotly(p, height=myheight), ggplotly(p2, height=myheight))
+#  subchunkify(pp, height=myheight, fig_width=10)	
+#  #subplot(ggplotly(p), ggplotly(p2))
+#  #p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.8, hjust = 0, vjust=1, colour = "grey50"))
+#} else {
+#  p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.5, hjust = 1, vjust=0.5, colour = "grey50"))
+#  #aa <- ggplotly(p2, height=modifier*nrows )
+#  subchunkify(p2, fig_height=myheight, fig_width=10)
+#  #print(aa$height)
+#  #print(aa$width)
+#}
+#  
+#  #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+#} else {
+#  cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
+#}
+#
 
 ```
 
