@@ -53,7 +53,7 @@ outdir_dict = {
 	"filter-align": ["results/alignments/trimmed", "results/alignments/filtered"],
 	"speciestree": ["results/phylogeny/astral"],
 	"njtree": ["results/phylogeny/njtree"],
-	"mltree": ["results/phylogeny/concatenated"],
+	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"model": ["results/modeltest"]
 }
 
