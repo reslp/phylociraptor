@@ -17,7 +17,9 @@ library(readr)
 library(plotly)
 library(stringr)
 library(data.table)
-#library(ggpubr)
+library(ggpubr)
+library(gridExtra)
+library(RColorBrewer)
 
 parsimony_cutoff <- 3
 
@@ -254,8 +256,7 @@ if (file.exists(busco_summary_file))
   data$fragmented <- color_bar("#C6E88B")(data$fragmented)
   data$missing <- color_bar("#BCB2CF")(data$missing)
   data %>% kbl(escape=F) %>% kable_styling("hover", full_width=F, fixed_thead = T) 
-}
-else {
+} else {
 	cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
 }
 
@@ -703,7 +704,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 results/modeltest
 ```
 
-```{r stats_modeltest, echo=FALSE, results="asis", out.width="50%", warning=F}
+```{r stats_modeltest, echo=FALSE, out.width="50%", warning=F}
 files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
 multi_merge <- function(d) {
 	df <- d[[1]]
@@ -720,6 +721,9 @@ if (length(files) > 0) {
 	dat <- list()
 	all_genes <- c()
 	names <- c("alignment")
+	titles <- c()
+	plots <- list()
+	models <- c()
 	for (file in files) {
 		# get reusable and meaningful name
 		title <- str_split(file, "_")[[1]][3:4]
@@ -727,13 +731,36 @@ if (length(files) > 0) {
 		title[2] <- strsplit(title[2], ".", fixed=T)[[1]][1]
 		title <- paste(title, collapse="-")
  		names <- c(names, title)
+		titles <- c(titles, title)
 		dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
   		colnames(dat[[i]]) <- c("alignment", "model")
   		all_genes <- c(all_genes,dat[[i]]$alignment)
-		models <- table(dat[[i]]$model)
-  		p <- ggplot(dat[[i]], aes(x=factor(1), fill=factor(model))) + geom_bar(stat="count") + coord_polar(theta="y") + theme_void() + scale_fill_viridis(title,discrete=T, option="B") 
-  		print(p)
+		models <- c(models, unique(dat[[i]]$model))
+#scale_fill_viridis(discrete=T, option="B") 
 		i <- i + 1
+	}
+	# get unqiue number of models in dataset and create colors for them:
+	models <- unique(models)
+	cols <- brewer.pal(length(models), "BrBG")	
+	names(cols) <- models
+	for (i in 1:length(dat)) {
+		dd <- as.data.frame(table(dat[[i]]$model))
+		colnames(dd) <- c("model", "count")
+		p <- ggplot(dd, aes(x="", y=count, fill=model)) + geom_bar(stat="identity", width=1) + coord_polar("y", start=0) + theme_void() + ggtitle(titles[i]) + scale_fill_manual(limits=models, values=cols)
+
+		plots[[i]] <- p
+	}		
+	if (length(plots) == 4) {
+	print(ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], common.legend = TRUE, legend="right"))
+	}
+	if (length(plots) == 3) {	
+	print(ggarrange(plots[[1]], plots[[2]], plots[[3]], common.legend = TRUE, legend="right"))
+	}
+	if (length(plots) == 2) {	
+	print(ggarrange(plots[[1]], plots[[2]], common.legend = TRUE, legend="right"))
+	}
+	if (length(plots) == 1) {	
+	print(ggarrange(plots[[1]], common.legend = TRUE, legend="right"))
 	}
 	data_combined <- do.call(multi_merge, list(dat))
 	colnames(data_combined) <- names
