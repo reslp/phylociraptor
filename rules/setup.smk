@@ -113,7 +113,8 @@ rule download_genomes:
 	output:
 		checkpoint = "results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done",
 		download_overview = "results/downloaded_genomes/download_overview_{batch}.txt",
-		success = "results/downloaded_genomes/successfully_downloaded_{batch}.txt"
+		success = "results/downloaded_genomes/successfully_downloaded_{batch}.txt",
+		failed = "results/downloaded_genomes/not_downloaded_{batch}.txt"
 #	benchmark:
 #		"results/statistics/benchmarks/setup/download_genomes.txt"
 	singularity: "docker://reslp/biopython_plus:1.77"
@@ -126,7 +127,7 @@ rule download_genomes:
 		batch = "{batch}"
 	shell:
 		"""
-		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
+		if [[ ! -f results/statistics/runlog.txt ]]; then if [[ ! -d results/statistics ]]; then mkdir -p results/statistics; fi; touch results/statistics/runlog.txt; fi
 		if [[ "{params.species}" != "" ]]; then
 			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
 			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} --batch {params.batch} 2>&1 | tee {log}
@@ -144,7 +145,7 @@ rule get_genome_download_statistics:
 		checkpoints = expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
 		success = expand("results/downloaded_genomes/successfully_downloaded_{b}.txt", b=batches),
 		overview = expand("results/downloaded_genomes/download_overview_{b}.txt", b=batches),
-		failed = expand("results/downloaded_genomes/not_downloaded{b}.txt", b=batches)
+		failed = expand("results/downloaded_genomes/not_downloaded_{b}.txt", b=batches)
 	output:
 		statistics = "results/statistics/downloaded_genomes_statistics.txt",
 		success = "results/downloaded_genomes/successfully_downloaded.txt",
