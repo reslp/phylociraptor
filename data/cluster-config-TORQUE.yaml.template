@@ -7,6 +7,8 @@ __default__:
    mem: 2gb #make sure to adjust so that this fits your cluster
    pe: shm # change this according your cluster configuration
    walltime: "12:00:00"
+download_genome_overview:
+   N: dloverview
 download_genomes:
    N: dlgenomes
    mem: 12gb

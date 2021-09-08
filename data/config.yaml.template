@@ -1,7 +1,8 @@
+# general settings:
 species: data/vertebrata.csv
-
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
-
+concurrency: 1 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
+ 
 # settings realted to busco
 busco:
     set: "vertebrata_odb10"

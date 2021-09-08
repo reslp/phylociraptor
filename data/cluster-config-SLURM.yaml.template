@@ -8,9 +8,12 @@ __default__:
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
+download_genome_overview:
+   job-name: dloverview
 download_genomes:
    job-name: dlgenomes
-   mem: 12G
+   time: "01:00:00"
+   mem: 2G
 rename_assemblies:
    job-name: renasse
 download_busco_set:
@@ -39,7 +42,7 @@ get_filter_statistics:
    job-name: getfilstat 
 run_busco:
    job-name: rBUSCO
-   mem: 32G
+   mem: 16G
 extract_busco_table:
    job-name: exBUSCO
    mem: 12G
