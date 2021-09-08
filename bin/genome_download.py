@@ -268,7 +268,7 @@ print(overview)
 print(now(), "Writing overview statistics files")
 statsfile = open(args.outdir + "download_overview_"+str(args.batch)+".txt", "w")
 successfile = open(args.outdir + "successfully_downloaded_"+str(args.batch)+".txt", "w")
-failedfile = open(args.outdir + "not_downloaded"+str(args.batch)+".txt", "w")
+failedfile = open(args.outdir + "not_downloaded_"+str(args.batch)+".txt", "w")
 for sp in overview.keys():
 	print(sp.replace(" ","_"), ",", overview[sp], sep="", file=statsfile)
 	if overview[sp] == "success":
