@@ -104,11 +104,12 @@ rule download_genome_overview:
 		email = config["email"]
 	shell:
 		"""
-		python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only
+		python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only &> {log}
 		"""
 
 rule download_genomes:
 	input:
+		config["species"],
 		rules.download_genome_overview.output.overview
 	output:
 		checkpoint = "results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done",
@@ -129,13 +130,14 @@ rule download_genomes:
 		"""
 		if [[ ! -f results/statistics/runlog.txt ]]; then if [[ ! -d results/statistics ]]; then mkdir -p results/statistics; fi; touch results/statistics/runlog.txt; fi
 		if [[ "{params.species}" != "" ]]; then
-			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
+			echo "$(date) - Setup: Will download species now" >> results/statistics/runlog.txt
 			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} --batch {params.batch} 2>&1 | tee {log}
 		else
 			# need to touch these files, since they are usually produced by the python script.
 			touch {output.success}
 			touch {output.download_overview}
-			echo "(date) - Setup: No species to download." >> results/statistics/runlog.txt
+			touch {output.failed}
+			echo "$(date) - Setup: No species to download." >> results/statistics/runlog.txt
 		fi
 		touch {output.checkpoint}
 		"""
@@ -269,7 +271,7 @@ rule setup:
 		touch {output}
 		mkdir -p results/statistics
 		touch "results/statistics/runlog.txt"
-		echo "$(date) - Pipeline setup done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor setup done." >> results/statistics/runlog.txt
 		"""
 
 rule add_genomes:
