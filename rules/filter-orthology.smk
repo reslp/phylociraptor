@@ -7,10 +7,10 @@ def determine_concurrency_limit():
 		handle = open(fname, "r")
 		ngenes = 0
 		ngenes = len(handle.readline().split("\t")) - 2 #minus 2 because there are two extra columns
-		if ngenes < config["filtering"]["concurrency"]:
+		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
 		else:
-			return range(1, config["filtering"]["concurrency"] + 1)
+			return range(1, config["concurrency"] + 1)
 	else:
 		return
 
@@ -22,21 +22,21 @@ rule create_sequence_files:
 		#checkpoint = rules.orthology.output
 		table = "results/orthology/busco/busco_table.txt"
 	output:
-		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["filtering"]["concurrency"])),
-		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".done",
-		genome_statistics = "results/statistics/orthology_filtering_genomes_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt",
-		gene_statistics = "results/statistics/orthology_filtering_gene_statistics_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["concurrency"])),
+		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["concurrency"])+".done",
+		genome_statistics = "results/statistics/orthology_filtering/orthology_filtering_genomes_statistics_{batch}-"+str(config["concurrency"])+".txt",
+		gene_statistics = "results/statistics/orthology_filtering/orthology_filtering_gene_statistics_{batch}-"+str(config["concurrency"])+".txt"
 	benchmark:
-		"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["concurrency"])+".txt"
 	params:
 		cutoff=config["filtering"]["cutoff"],
 		minsp=config["filtering"]["minsp"],
 		busco_dir = "results/orthology/busco/busco_runs",
 		seqtype = config["filtering"]["seq_type"],
-		nbatches = config["filtering"]["concurrency"],
+		nbatches = config["concurrency"],
 	singularity:
 		"docker://reslp/biopython_plus:1.77"
-	log: "log/exSeqfiles_{batch}-"+str(config["filtering"]["concurrency"])+".log"
+	log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
 	shell:
 		""" 
 		if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
@@ -86,8 +86,14 @@ rule remove_duplicated_sequence_files:
 				python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/results/orthology/busco/busco_sequences_deduplicated" >> {output.statistics}
 			fi
 		done
-		#gather runtime statistics
-		for file in $(ls results/statistics/benchmarks/busco/run_busco_*); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
+		#gather runtime statistics currently not activated. This needs some more work.
+		#for file in $(ls results/statistics/benchmarks/busco/run_busco_*); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
+
+		# get statistics files for report. This is still a bit hacky and could be solved better, especially for the genomes file:
+		cat results/statistics/orthology_filtering/orthology_filtering_gene_* > results/statistics/orthology_filtering_gene_statistics.txt
+		files=$(ls results/statistics/orthology_filtering/orthology_filtering_genomes_*)
+		cat $(echo $files | awk '{{print $1}}') > results/statistics/orthology_filtering_genomes_statistics.txt		
+		
 		echo "$(date) - Number of BUSCO sequence files: $(ls results/orthology/busco/busco_sequences/*/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of deduplicated BUSCO sequence files: $(ls results/orthology/busco/busco_sequences_deduplicated/*.fas | wc -l)" >> results/statistics/runlog.txt
 		touch {output.checkpoint}

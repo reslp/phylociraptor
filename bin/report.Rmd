@@ -170,15 +170,16 @@ if (file.exists(busco_overview_file)){
   nbuscos <- "unknown (maybe BUSCO set was not downloaded yet)"
 }
 
-if (file.exists(benchmarkfile_run_busco)) {
-  busco_bench_df <- read.table(benchmarkfile_run_busco, sep="\t", header=F)
-  colnames(busco_bench_df) <- c("job", "seconds", "time", "max_vss", "max_vms", "max_uss", "max_pss", "io_in", "io_out", "mean_load")
-  busco_bench_df$minutes <- busco_bench_df$seconds/60
-  busco_bench_df$job <- str_replace(busco_bench_df$job, "run_busco_", "")
-  busco_bench_df$job <- str_replace(busco_bench_df$job, ".txt", "")
-} else {
-  busco_bench_df <- "not_found"
-}
+# display of benchmarking results needs more work
+#if (file.exists(benchmarkfile_run_busco)) {
+#  busco_bench_df <- read.table(benchmarkfile_run_busco, sep="\t", header=F)
+#  colnames(busco_bench_df) <- c("job", "seconds", "time", "max_vss", "max_vms", "max_uss", "max_pss", "io_in", "io_out", "mean_load")
+#  busco_bench_df$minutes <- busco_bench_df$seconds/60
+#  busco_bench_df$job <- str_replace(busco_bench_df$job, "run_busco_", "")
+#  busco_bench_df$job <- str_replace(busco_bench_df$job, ".txt", "")
+#} else {
+#  busco_bench_df <- "not_found"
+#}
 
 if (file.exists(orthology_filtering_genomes_file)) {
   ortho_filter_genomes <- read.table(orthology_filtering_genomes_file, sep="\t", header=F)
@@ -219,20 +220,16 @@ results/orthology/busco
 **Genomes below threshold:**  
 `r failed_genomes`
 
-**Runtime Statistics:**  
-
-|        Total (cumulative) runtime:
-|        `r if (busco_bench_df != "not_found") { dhms(sum(busco_bench_df$seconds)) }`
-
 ```{r, echo=F, message=F, warning=F, fig.width=8}
-if (busco_bench_df != "not_found") {
-  nrows <- nrow(busco_bench_df)
-  busco_bench_df <- busco_bench_df[ order(row.names(busco_bench_df)), ]
-  p <- ggplot(busco_bench_df, aes(x=minutes, y=job)) +geom_bar(stat="identity") +theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
-  
-  #+theme_bw()+ theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())
-  
-  }
+# display of benchmark results need more work
+#if (busco_bench_df != "not_found") {
+#  nrows <- nrow(busco_bench_df)
+#  busco_bench_df <- busco_bench_df[ order(row.names(busco_bench_df)), ]
+#  p <- ggplot(busco_bench_df, aes(x=minutes, y=job)) +geom_bar(stat="identity") +theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
+#  
+#  #+theme_bw()+ theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())
+#  
+#  }
 
 ```
 
@@ -245,10 +242,10 @@ if (file.exists(busco_summary_file))
   rownames(data) <- NULL
   # clean up name
   spnames <- c()
-  #for (element in strsplit(data$species, "/")) {
-  #spnames <- c(spnames, element[5])
-  #}
-  #data$species <- spnames
+  for (element in strsplit(data$species, "/")) {
+  spnames <- c(spnames, element[5])
+  }
+  data$species <- spnames
   data$total <- NULL
   data$complete <- NULL
   data$single_copy <- color_bar("#6198B8")(data$single_copy)
