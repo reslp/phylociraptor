@@ -11,10 +11,10 @@ def determine_concurrency_limit():
 	if os.path.isdir(fname):
 		ngenes = glob.glob("results/orthology/busco/busco_sequences_deduplicated"+"/*.fas")
 		ngenes = len(ngenes)
-		if ngenes < config["filtering"]["concurrency"]:
+		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
 		else:
-			return range(1, config["filtering"]["concurrency"] + 1)
+			return range(1, config["concurrency"] + 1)
 	else:
 		return
 
@@ -71,8 +71,8 @@ rule get_alignment_statistics:
 	input:
 		rules.aggregate_align.output.checkpoint
 	output:
-		statistics_alignment = "results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt",
-		overview_statistics = "results/statistics/align-{aligner}/{aligner}_overview-{batch}-"+str(config["filtering"]["concurrency"])+".txt"
+		statistics_alignment = "results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["concurrency"])+".txt",
+		overview_statistics = "results/statistics/align-{aligner}/{aligner}_overview-{batch}-"+str(config["concurrency"])+".txt"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
@@ -81,7 +81,7 @@ rule get_alignment_statistics:
 		mafft_alignment_params = config["alignment"]["mafft_parameters"],
 		clustalo_alignment_params = config["alignment"]["clustalo_parameters"],
 		pars_sites = config["filtering"]["min_parsimony_sites"],
-		nbatches = config["filtering"]["concurrency"],
+		nbatches = config["concurrency"],
 	singularity: "docker://reslp/concat:0.21"
 	shadow: "minimal"
 	shell:
@@ -104,7 +104,7 @@ rule all_align:
 	input:
 #		expand("results/alignments/full/{aligner}/{busco}_aligned.fas", aligner=config["alignment"]["method"], busco=BUSCOS),
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=batches)
+		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=batches)
 	output:
 		"results/checkpoints/modes/align.done"
 	shell:

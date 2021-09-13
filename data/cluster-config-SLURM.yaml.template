@@ -69,8 +69,12 @@ get_alignment_statistics:
    time: "02:00:00"
 get_trimmed_statistics:
    job-name: gettristat
-align:
-   job-name: align
+align_mafft:
+   job-name: alnm
+   time: "02:00:00"
+   mem: 10G
+align_clustalo:
+   job-name: alnc
    time: "02:00:00"
    mem: 10G
 trim:

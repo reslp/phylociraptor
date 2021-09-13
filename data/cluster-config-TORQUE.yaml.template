@@ -55,8 +55,11 @@ remove_duplicated_sequence_files:
 get_all_trimmed_files:
    N: gettrimfiles
    mem: 12gb
-align:
-   N: align
+align_mafft:
+   N: alnm
+   mem: 10gb
+align_clustalo:
+   N: alnc
    mem: 10gb
 get_alignment_statistics:
    N: alignstats

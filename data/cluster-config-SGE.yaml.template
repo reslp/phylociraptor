@@ -54,8 +54,11 @@ remove_duplicated_sequence_files:
 get_all_trimmed_files:
    N: gettrimfiles
    h_vmem: 12G
-align:
-   N: align
+align_mafft:
+   N: alnm
+   h_vmem: 10G
+align_clustalo:
+   N: alnc
    h_vmem: 10G
 get_alignment_statistics:
    N: alignstats
