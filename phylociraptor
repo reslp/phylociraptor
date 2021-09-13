@@ -309,6 +309,8 @@ def determine_submission_mode(flag):
 	cmd = []
 	if "serial" in flag:
 		return ["--cores"+flag.replace("serial","")]
+	elif "sge" in flag: # for SGE the dependencies need to be under quotes, because there are () characters in the dependency string.
+		return ["--cluster", "bin/immediate-submit/immediate_submit.py '{dependencies}' %s" % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 	else:
 		return ["--cluster", 'bin/immediate-submit/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 
