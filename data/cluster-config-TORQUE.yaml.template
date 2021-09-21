@@ -63,8 +63,11 @@ align_clustalo:
    mem: 10gb
 get_alignment_statistics:
    N: alignstats
-trim:
-   N: trim
+trim_trimal:
+   N: trimal
+   mem: 10gb
+trim_aliscotri:
+   N: aliscore
    mem: 10gb
 iqtree:
    N: iqtree
