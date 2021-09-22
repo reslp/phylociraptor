@@ -1,13 +1,15 @@
 # general settings:
-species: data/vertebrata.csv
+species: data/all_fungi_test.csv
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
-concurrency: 1 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
+concurrency: 3 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
  
-# settings realted to busco
+# settings related to busco
 busco:
-    set: "vertebrata_odb10"
-    threads: 22
-    augustus_species: "human"
+    set: "fungi_odb9"
+    version: "3.0.2" #possible is "3.0.2" or "5.2.1"
+    mode: "genome"
+    threads: 2
+    augustus_species: "saccharomyces"
     additional_parameters: ""
 
 # Setting filtering options for orthology and alignments:
@@ -18,13 +20,13 @@ busco:
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
 
-exclude_orthology: data/exclude.csv
+exclude_orthology: 
 
 filtering:
     concurrency: 50
     dupseq: "persample"
-    cutoff: 0.4
-    minsp: 10
+    cutoff: 0.05
+    minsp: 2
     seq_type: "aa"
     min_parsimony_sites: 200
 

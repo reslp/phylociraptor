@@ -226,18 +226,39 @@ rule rename_assemblies:
 
 rule download_busco_set:
 	output:
-		busco_set = directory("results/orthology/busco/busco_set"),
+		busco_set = directory("results/orthology/busco/busco_set/"+config["busco"]["set"]),
 		checkpoint = "results/checkpoints/download_busco_set.done"
 	params:
-		set = config["busco"]["set"]
+		set = config["busco"]["set"],
+		busco_version = config["busco"]["version"]
+	log:
+		"log/download_busco_set.log"
 	benchmark:
 		"results/statistics/benchmarks/setup/dowload_busco_set.txt"
 	shell:
 		"""
-		echo {params.set}
+		echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
 		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
-		if [ ! -d {output.busco_set} ]; then mkdir {output.busco_set}; fi
-		wget -c {params.set} -O - | tar -xz --strip-components 1 -C {output.busco_set}/
+		mkdir {output.busco_set}
+
+		if [ "{params.busco_version}" == "3.0.2" ]
+		then
+			base_url="http://busco.ezlab.org/v3/datasets"
+			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
+			wget -q -c $base_url/{params.set}.tar.gz -O - | tar -xz --strip-components 1 -C {output.busco_set}/
+		elif [ "{params.busco_version}" == "5.2.1" ]
+		then
+			base_url="https://busco-data.ezlab.org/v5/data/lineages"
+			current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
+			echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
+			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
+			wget -q -c $base_url/$current -O - | tar -xz --strip-components 1 -C {output.busco_set}/
+		else
+			echo -e "\\n######\\nPlease specify a valid BUSCO version in your config file - supported are '3.0.2' and '5.0.2'\\n######" 2>&1 | tee -a {log}
+			exit 1
+		fi
+
+		echo -ne "[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
 		touch {output.checkpoint}
 		"""
 
