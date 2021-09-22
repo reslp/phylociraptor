@@ -3,9 +3,10 @@
 destination=$1
 folder=$2
 
-tar -zcvf $destination $folder
+echo -e "[$(date)\ttaring $folder to $destination"
+tar -zcf $destination $folder
 
-if [ ! $? -e 0 ]
+if [ "$?" -ne 0 ]
 then
 	echo "Command returned non-zero return value. File should be checked. $destination"
 fi
