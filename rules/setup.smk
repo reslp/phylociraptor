@@ -130,7 +130,7 @@ rule download_genomes:
 		"""
 		if [[ ! -f results/statistics/runlog.txt ]]; then if [[ ! -d results/statistics ]]; then mkdir -p results/statistics; fi; touch results/statistics/runlog.txt; fi
 		if [[ "{params.species}" != "" ]]; then
-			echo "$(date) - Setup: Will download species now" >> results/statistics/runlog.txt
+			echo "$(date) - Setup: Will download species now - batch: {params.batch}" >> results/statistics/runlog.txt
 			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} --batch {params.batch} 2>&1 | tee {log}
 		else
 			# need to touch these files, since they are usually produced by the python script.
