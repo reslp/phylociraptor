@@ -93,7 +93,9 @@ if config["busco"]["version"] == "3.0.2":
 			fi
 			echo "Assembly used for BUSCO is "$filename 2>&1 | tee {log}
 			run_busco -i $filename -f --out busco -c {threads} -sp {params.sp} --lineage_path {input.busco_set} -m {params.mode} {params.additional_params} 2>&1 | tee -a {log}
+
 			# do some cleanup to save space
+			echo -e "\\n[$(date)]\\tCleaning up after BUSCO to save space" 2>&1 | tee -a {log}
 			bin/tar_folder.sh {output.blast_output} run_busco/blast_output 2>&1 | tee -a {log}
 			bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output 2>&1 | tee -a {log}
 			bin/tar_folder.sh {output.augustus_output} run_busco/augustus_output 2>&1 | tee -a {log}
@@ -101,9 +103,6 @@ if config["busco"]["version"] == "3.0.2":
 			tar -tvf {output.single_copy_buscos} > {output.single_copy_buscos_tarlist} 2>&1 | tee -a {log}
 			
 			#move output files:
-			#mv run_busco/augustus_output.tar.gz {output.augustus_output}
-			#mv run_busco/blast_output.tar.gz {output.blast_output}
-			#mv run_busco/hmmer_output.tar.gz {output.hmmer_output}
 			mv run_busco/full_table_busco.tsv {output.full_table}
 			mv run_busco/short_summary_busco.txt {output.short_summary}
 			mv run_busco/missing_busco_list_busco.tsv {output.missing_busco_list}
@@ -180,19 +179,20 @@ if config["busco"]["version"] == "5.2.1":
 			else
 				filename="{input.assembly}"
 			fi
-			#echo "Assembly used for BUSCO is "$filename 2>&1 | tee {log}
+			echo "Assembly used for BUSCO is "$filename 2>&1 | tee {log}
 			busco -i $filename -f --out {params.species} -c {threads} --augustus --augustus_species {params.sp} --lineage_dataset $(pwd)/{input.busco_set} -m {params.mode} {params.additional_params} 2>&1 | tee -a {log}
 			# do some cleanup to save space
+			echo -e "\\n[$(date)]\\tCleaning up after BUSCO to save space" 2>&1 | tee -a {log}
 			basedir=$(pwd)
 			cd {params.species}/run_{params.set}
-			$basedir/bin/tar_folder.sh $basedir/{output.blast_output} blast_output 2>&1 | tee -a {log}
-			$basedir/bin/tar_folder.sh $basedir/{output.hmmer_output} hmmer_output 2>&1 | tee -a {log}
-			$basedir/bin/tar_folder.sh $basedir/{output.augustus_output} augustus_output 2>&1 | tee -a {log}
+			$basedir/bin/tar_folder.sh $basedir/{output.blast_output} blast_output 2>&1 | tee -a $basedir/{log}
+			$basedir/bin/tar_folder.sh $basedir/{output.hmmer_output} hmmer_output 2>&1 | tee -a $basedir/{log}
+			$basedir/bin/tar_folder.sh $basedir/{output.augustus_output} augustus_output 2>&1 | tee -a $basedir/{log}
 			cd ..
-			$basedir/bin/tar_folder.sh $basedir/{output.logs} logs 2>&1 | tee -a {log}
+			$basedir/bin/tar_folder.sh $basedir/{output.logs} logs 2>&1 | tee -a $basedir/{log}
 			cd ..
 			tar -pcf {output.single_copy_buscos} -C {params.species}/run_{params.set}/busco_sequences single_copy_busco_sequences 
-			tar -tvf {output.single_copy_buscos} > {output.single_copy_buscos_tarlist} 2>&1 | tee -a {log}
+			tar -tvf {output.single_copy_buscos} > {output.single_copy_buscos_tarlist} 2>&1 | tee -a $basedir/{log}
 
 			#move output files:
 			mv {params.species}/run_{params.set}/full_table.tsv {output.full_table}
