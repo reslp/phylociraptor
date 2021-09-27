@@ -22,6 +22,8 @@ library(gridExtra)
 library(RColorBrewer)
 
 parsimony_cutoff <- 3
+#set random seed for consistent colors
+set.seed(1000)
 
 #knitr::opts_chunk$set(dev = 'pdf')
 # function to convert seconds to better formated time:
@@ -738,7 +740,14 @@ if (length(files) > 0) {
 	}
 	# get unqiue number of models in dataset and create colors for them:
 	models <- unique(models)
-	cols <- brewer.pal(length(models), "BrBG")	
+	if (length(models) <= 11) {
+		# prettier colors when there are not too many different models
+		cols <- brewer.pal(length(models), "BrBG")	
+	} else {
+		# we need more colors
+		color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+		cols <- sample(color, length(models))
+	}
 	names(cols) <- models
 	for (i in 1:length(dat)) {
 		dd <- as.data.frame(table(dat[[i]]$model))
