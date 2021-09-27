@@ -62,8 +62,11 @@ align_clustalo:
    h_vmem: 10G
 get_alignment_statistics:
    N: alignstats
-trim:
-   N: trim
+trim_trimal:
+   N: trimal
+   h_vmem: 10G
+trim_aliscotri:
+   N: aliscore
    h_vmem: 10G
 iqtree:
    N: iqtree

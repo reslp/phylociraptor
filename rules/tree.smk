@@ -46,7 +46,8 @@ rule raxmlng:
 		threads: config["raxmlng"]["threads"]
 		params:
 			bs = config["raxmlng"]["bootstrap"],
-			wd = os.getcwd()
+			wd = os.getcwd(),
+			additional_params = config["raxml"]["additional_params"]
 		shell:
 			"""
 			cp {input.alignment} {output.alignment}
@@ -54,7 +55,7 @@ rule raxmlng:
 			cd results/phylogeny/raxml/{wildcards.aligner}-{wildcards.alitrim}
 			# this is just a placeholder:
 			echo "RAXML STATISTICS - STILL A PLACEHOLDER" > {params.wd}/{output.statistics}
-			raxml-ng --msa {params.wd}/{output.alignment} --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all
+			raxml-ng --msa {params.wd}/{output.alignment} --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
 			touch {params.wd}/{output.checkpoint}
 			"""
 rule iqtree:
@@ -73,7 +74,8 @@ rule iqtree:
 			nt = "AUTO",
 			bb = config["iqtree"]["bootstrap"],
 			m = config["iqtree"]["model"],
-			maxmem = config["iqtree"]["maxmem"]
+			maxmem = config["iqtree"]["maxmem"],
+			additional_params = config["iqtree"]["additional_params"]
 		threads:
 			config["iqtree"]["threads"]
 		shell:
@@ -99,18 +101,18 @@ rule iqtree:
 				echo "end;" >> concat.nex
 				echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 				if [[ -z "{params.maxmem}" ]]; then
-					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo
+					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo {params.additional_params}
 				else
-					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem}
+					iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} {params.additional_params}
 				fi
 			else
 				echo "Model: {params.m}" >> {params.wd}/{output.statistics}
 				echo "$(date) - phylociraptor will run iqtree now, with model testing as specified in the config.yaml file" >> {params.wd}/results/statistics/runlog.txt
 
 				if [[ -z "{params.maxmem}" ]]; then
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo {params.additional_params}
 				else
-					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo -mem {params.maxmem}
+					iqtree -p algn/ --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -m {params.m} -redo -mem {params.maxmem} {params.additional_params}
 				fi
 			fi
 			rm -r algn

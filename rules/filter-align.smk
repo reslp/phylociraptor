@@ -10,10 +10,10 @@ def determine_concurrency_limit():
 	if os.path.isdir(fname):
 		ngenes = glob.glob(fname+"/*/*.fas")
 		ngenes = len(ngenes)
-		if ngenes < config["filtering"]["concurrency"]:
+		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
 		else:
-			return range(1, config["filtering"]["concurrency"] + 1)
+			return range(1, config["concurrency"] + 1)
 	else:
 		return
 
@@ -84,13 +84,13 @@ rule get_trimmed_statistics:
 	input:
 		alignments = expand("results/alignments/trimmed/{{aligner}}-{{alitrim}}/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 	output:
-		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}/statistics_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt"
-		#checkpoint = "results/checkpoints/trim/get_trim_statistics_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".done"
+		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}/statistics_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt"
+		#checkpoint = "results/checkpoints/trim/get_trim_statistics_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".done"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],
-		nbatches = config["filtering"]["concurrency"],
+		nbatches = config["concurrency"],
 	singularity: "docker://reslp/concat:0.21"
 	shadow: "minimal"
 	shell:
@@ -102,7 +102,7 @@ rule get_trimmed_statistics:
 
 rule filter_alignments:
 	input:
-		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
+		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 	output:
 		#checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done",
 		filter_info = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
@@ -152,12 +152,12 @@ rule get_filter_statistics:
 	input:
 		rules.filter_alignments.output.filter_info
 	output:
-		statistics_filtered = "results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt",	
+		statistics_filtered = "results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt",	
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],
-		nbatches = config["filtering"]["concurrency"],
+		nbatches = config["concurrency"],
 	singularity: "docker://reslp/concat:0.21"
 	shadow: "minimal"
 	shell:
@@ -172,7 +172,7 @@ rule all_filter_align:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
 		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
 		expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
-		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["filtering"]["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
+		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 	output:
 		"results/checkpoints/modes/filter_align.done"
 	shell:
