@@ -144,23 +144,33 @@ rule download_genomes:
 
 rule get_genome_download_statistics:
 	input:
-		checkpoints = expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
-		success = expand("results/downloaded_genomes/successfully_downloaded_{b}.txt", b=batches),
-		overview = expand("results/downloaded_genomes/download_overview_{b}.txt", b=batches),
-		failed = expand("results/downloaded_genomes/not_downloaded_{b}.txt", b=batches)
+		checkpoints = expand(rules.download_genomes.output.checkpoint, batch=batches)
 	output:
 		statistics = "results/statistics/downloaded_genomes_statistics.txt",
 		success = "results/downloaded_genomes/successfully_downloaded.txt",
 		failed = "results/downloaded_genomes/not_downloaded.txt",
 		overview = "results/downloaded_genomes/download_overview.txt"
+	params:
+		checkpoints = expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
+		success = expand("results/downloaded_genomes/successfully_downloaded_{b}.txt", b=batches),
+		overview = expand("results/downloaded_genomes/download_overview_{b}.txt", b=batches),
+		failed = expand("results/downloaded_genomes/not_downloaded_{b}.txt", b=batches)
+		
 	benchmark:
 		"results/statistics/setup/get_genome_download_statistics.txt"
 	shell:
 		"""
-		cat {input.success} > {output.success}
-		cat {input.failed} > {output.failed}	
-		cat {input.overview} > {output.overview}
-		echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
+		if [[ -z "{input}" ]]; then
+			echo "All genomes local. Will touch empty output files."
+			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
+			touch {output.success}
+			touch {output.failed}
+			touch {output.overview}
+		else
+			cat {params.success} > {output.success}
+			cat {params.failed} > {output.failed}	
+			cat {params.overview} > {output.overview}
+			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
 				do
 					echo "---- Adding info ----"
@@ -173,6 +183,7 @@ rule get_genome_download_statistics:
 						echo $species"\t""$output" >> {output.statistics}
 					fi
 				done
+		fi
 		"""
 
 
