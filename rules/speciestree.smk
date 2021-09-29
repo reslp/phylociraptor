@@ -41,16 +41,16 @@ rule iqtree_gene_trees:
 			model=$(cat {params.wd}/{params.models} | grep -P "^{params.busco}\\t" | awk '{{print $2}}')
 			echo "$(date) - phylociraptor was run with modeltesting before. Will run iqtree gene tree for {params.busco} with best model: $model" >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt {threads} -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			else
-				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas -m $model --prefix {params.busco}_gt -nt {threads} -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			fi
 		else
 			echo "$(date) - phylociraptor will run iqtree gene tree for {params.busco}  now, with automated model testing." >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
+				iqtree -s {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt {threads} -m MFP -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			else
-				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt AUTO -ntmax {threads} -m MFP -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
+				iqtree {params.busco}_aligned_trimmed.fas --prefix {params.busco}_gt -nt {threads} -m MFP -redo -mem {params.maxmem} $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 			fi
 		fi
 		rm {params.busco}_aligned_trimmed.fas
