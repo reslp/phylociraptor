@@ -280,7 +280,7 @@ def get_flags(flags):
 	if flags["cluster_config"] == None and not "serial" in flags["cluster"]: #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
 		flags["cluster_config"] = ccf
-		print(now(), "No cluster config file specified. Will try to use default file: %s" % ccf)	
+		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
 	else:
 		ccf = flags["cluster_config"]
 	for flag in flags.keys():
@@ -330,7 +330,7 @@ def check_config_file(f):
 	if os.path.isfile(f):
 		return ["--configfile", f]
 	else:
-		print("Config file specified with --config-file not found:", f)
+		print(now(), "ERROR: Config file specified with --config-file not found:", f)
 		sys.exit(0)
 
 def check_for_errors(result):
@@ -359,7 +359,7 @@ def execute_command(cmd, verbose):
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	print(now(), "If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
+	print(now(), "INFO: If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
@@ -367,7 +367,7 @@ def execute_command(cmd, verbose):
 	nline = 0
 	curr_task = 0
 	if "-n" in cmd:
-		print(now(), "Info: --dry specified, will only perform a dry run of the analysis")
+		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
@@ -435,14 +435,14 @@ def execute_command(cmd, verbose):
 
 def get_additional_snakemake_flags(flags):
 	if flags:
-		print(now(), "Info: Additional flags will be passed on to snakemake: ", flags)
+		print(now(), "INFO: Additional flags will be passed on to snakemake: ", flags)
 		return flags.split(" ")
 	else:
 		return []
 
 def get_additional_singularity_flags(flags):
 	if flags:
-		print(now(), "Info: Additional flags will be passed on to singularity: ", flags)
+		print(now(), "INFO: Additional flags will be passed on to singularity: ", flags)
 		return ["--singularity-args"]+flags.split(" ")
 	else:
 		return []
@@ -471,7 +471,7 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 
 if args.command == "setup":
-	print("Welcome to phylociraptor setup")
+	print(now(), "Welcome to phylociraptor setup")
 	setup_parser = PhyloParser(usage=help_message(setup_help), add_help=False)
 #	setup_parser.add_argument("-f", "--force", action="store_true" )
 #	setup_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -515,11 +515,11 @@ if args.command == "setup":
 	for line in execute_command(cmd, setup_args.verbose):
 		print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 	#print(p.stdout)
 	#print(p.stderr)
 elif args.command=="orthology":
-	print("Welcome to phylociraptor orthology.")
+	print(now(), "Welcome to phylociraptor orthology.")
 	orthology_parser = PhyloParser(usage=help_message(orthology_help),add_help=False)	
 #	orthology_parser.add_argument("-f", "--force", action="store_true")
 #	orthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -568,9 +568,9 @@ elif args.command=="orthology":
 	for line in execute_command(cmd, orthology_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="filter-orthology":
-	print("Welcome to phylociraptor filter-orthology.")
+	print(now(), "Welcome to phylociraptor filter-orthology.")
 	forthology_parser = PhyloParser(add_help=False)
 #	forthology_parser.add_argument("-f", "--force", action="store_true")
 #	forthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -633,9 +633,9 @@ elif args.command=="filter-orthology":
 	for line in execute_command(cmd, forthology_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="align":
-	print("Welcome to phylociraptor align.")
+	print(now(), "Welcome to phylociraptor align.")
 	align_parser = PhyloParser(usage=help_message(align_help), add_help=False)
 #	align_parser.add_argument("-f", "--force", action="store_true")
 #	align_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -687,9 +687,9 @@ elif args.command=="align":
 	for line in execute_command(cmd, align_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="filter-align":
-	print("Welcome to phylociraptor filter-align.")
+	print(now(), "Welcome to phylociraptor filter-align.")
 	falign_parser = PhyloParser(usage=help_message(falign_help), add_help=False)
 #	falign_parser.add_argument("-f", "--force", action="store_true")
 #	falign_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -738,9 +738,9 @@ elif args.command=="filter-align":
 	for line in execute_command(cmd, falign_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="speciestree":
-	print("Welcome to phylociraptor speciestree.")
+	print(now(), "Welcome to phylociraptor speciestree.")
 	sptree_parser = PhyloParser(add_help=False)
 #	sptree_parser.add_argument("-f", "--force", action="store_true")
 #	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -769,9 +769,9 @@ elif args.command=="speciestree":
 	for line in execute_command(cmd, sptree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="njtree":
-	print("Welcome to phylociraptor njtree.")
+	print(now(), "Welcome to phylociraptor njtree.")
 	njtree_parser = PhyloParser(add_help=False)
 #	njtree_parser.add_argument("-f", "--force", action="store_true")
 #	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -800,9 +800,9 @@ elif args.command=="njtree":
 	for line in execute_command(cmd, njtree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="mltree":
-	print("Welcome to phylociraptor mltree.")
+	print(now(), "Welcome to phylociraptor mltree.")
 	tree_parser = PhyloParser(add_help=False)
 #	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
 #	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
@@ -832,9 +832,9 @@ elif args.command=="mltree":
 	for line in execute_command(cmd, tree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)
+		print(now(),"DEBUG:", cmd)
 elif args.command=="model":
-	print("Welcome to phylociraptor model.")
+	print(now(), "Welcome to phylociraptor model.")
 	model_parser = PhyloParser(add_help=False)
 #	model_parser.add_argument("-f", "--force", action="store_true")
 #	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -863,21 +863,21 @@ elif args.command=="model":
 	for line in execute_command(cmd, model_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(now(), cmd)	
+		print(now(),"DEBUG:", cmd)	
 elif args.command=="report":
-	print("Welcome to phylociraptor report.")
+	print(now(), "Welcome to phylociraptor report.")
 	report_parser = argparse.ArgumentParser(add_help=False)
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
 	report_args = report_parser.parse_args(args.arguments)
-	print("Will create a phylociraptor report...")
+	print(now(), "Will create a phylociraptor report...")
 	
 	if report_args.help: # help is specified
 		print(help_message(report_help))
 		sys.exit(0)
 
 	if check_required_files(args.command):
-		print(now(), "ERROR Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	# combine files to produce final statistics file, this is necessary due to the new concurrency setting. 
@@ -892,12 +892,12 @@ elif args.command=="report":
 	for line in execute_command(cmd, report_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), "DEBUG:", cmd)
 	if os.path.isfile("bin/report.html"):
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print(now(), "Your phylociraptor report has been created in the results folder.")
 elif args.command == "check":
-	print("Welcome to phylociraptor check.")
+	print(now(), "Welcome to phylociraptor check.")
 	check_parser = argparse.ArgumentParser(add_help=False)
 	check_parser.add_argument("-h", "--help", action="store_true")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
@@ -1116,4 +1116,4 @@ else:
 
 
 
-print("")	
+print(now(), "DONE")	
