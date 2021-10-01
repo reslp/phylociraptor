@@ -7,6 +7,7 @@
 .. _Augustus: http://bioinf.uni-greifswald.de/augustus/
 .. _mafft: https://mafft.cbrc.jp/alignment/server/
 .. _trimal: http://trimal.cgenomics.org/
+.. _aliscore: https://bonn.leibniz-lib.de/en/research/research-centres-and-groups/aliscore
 .. _raxml-ng: https://github.com/amkozlov/raxml-ng
 .. _iqtree: http://www.iqtree.org/
 .. _astral: https://github.com/smirarab/ASTRAL
@@ -65,7 +66,7 @@ The second filtering step is also important. For each gene used in a phylogenomi
 align (Create and trim alignments)
 -------------------------------------
 
-During this step phylociraptor creates individual alignments for each recovered single-copy orthologous gene. Alignment is currently done using `mafft`_ but we plan to add additional aligners in the future. According to the setting specified in the :bash:`config.yaml` file (see above) mafft will be run for each gene. Each alignment will be placed in the directory `results/alignments`. Individual alignments are in FASTA format and can be downloaded and inspected.
+During this step phylociraptor creates individual alignments for each recovered single-copy orthologous gene. Alignment is currently done using `mafft`_ but we plan to add additional aligners in the future. According to the setting specified in the :bash:`config.yaml` file (see above) mafft will be run for each gene. Each alignment will be placed in the directory `results/alignments/full`. Individual alignments are in FASTA format and can be downloaded and inspected.
 
 The corresponding runmode of phylociraptor is :bash:`phylociraptor align`
 
@@ -79,12 +80,12 @@ After alignments have been generated, each alignment is trimmed to filter out po
 filter-align (Filter alignments)
 -----------------------------------
 
-When alignment and trimming is finished, phylociraptor provides an additional step to filter alignments by running :bash:`phylociraptor filter-align` .
+When alignment is finished, phylociraptor provides an additional step to filter alignments by running :bash:`phylociraptor filter-align`. This runmode performs two steps. First it will trim alignments using `trimal`_ or `aliscore`_ or both depending on what was specified in the `config.yaml` file. Trimal and aliscore will remove sites and/or sequences from the alignments based on the specified settings. Thus, as a second step after trimming, the alignments have to be reevalueated if they should be kept for the subsequent phylogenetic reconstructions. Trimmed alignments are filtered based on two criteria:
 
-1. First, alignments can be filtered based on the number of parsimony informative sites in the alignment. This value can be set in the :bash:`config.yaml` file.
-2. Second, alignments can be filtered again for the number of sequences they contain. This step is similar to the filtering down in :bash:`phylociraptor filter-orthology`. It is necessary to do this twice, since the number of sequences in each alignment could have changed after trimming.
+1. First, alignments will be filtered based on the number of parsimony informative sites in the alignment. This value can be set in the :bash:`config.yaml` file.
+2. Second, alignments will be filtered again for the number of sequences they contain. This step is similar to the filtering down in :bash:`phylociraptor filter-orthology`. It is necessary to do this twice, since the number of sequences in each alignment could have changed after trimming.
 
-phylociraptor will output filtered alignments to :bash:`results/filtered_alignments` . The files in this folder will be used for tree calculation and modeltesting.
+phylociraptor will output trimmed alignments to :bash:`results/alignments/trimmed` and filtered alignments to :bash:`results/alignments/filtered`. The files in the later folder will be used for subsequent steps.
 
 -------------------------------------
 model (Substitution model testing)

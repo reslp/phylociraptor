@@ -25,13 +25,13 @@ On a HPC cluster (when utilizing parallel job execution):
 Obtaining phylocirator
 -------------------------
 
-Phylociraptor is housed on GitHub. You can download it `here <https://github.com/reslp/phylociraptor>`_ .
+Phylociraptor is available on GitHub. You can download it `here <https://github.com/reslp/phylociraptor>`_ .
 
 The probably best way is to clone the repository directly using git (if available).
 
 .. code-block:: bash
 
-	$ git clone --recurse-submodules https://github.com/reslp/phylociraptor.git
+	$ git clone --recursive https://github.com/reslp/phylociraptor.git
 	$ cd phylocirpator
 	$ ./phylociraptor
 	Welcome to phylociraptor, the rapid phylogenomic tree calculator
@@ -69,7 +69,7 @@ The probably best way is to clone the repository directly using git (if availabl
 
 .. note::
 
-    If you don't have git available, you can also download phylociraptor directly as ZIP file.
+    If you don't have git available, you can also download phylociraptor directly as ZIP file and unpack it to the desired location.
 
 -------------------------------------------
 Create a conda environment for snakemake
@@ -83,7 +83,8 @@ If you don't have conda installed, first look `here <https://docs.conda.io/en/la
 
 .. code-block:: bash
 
-	$ conda create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
+        $ conda install -n base -c conda-forge mamba
+        $ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 	$ conda activate snakemake
 
 
