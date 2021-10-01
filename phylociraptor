@@ -101,12 +101,7 @@ Examples:
 	./phylciraptor filter-align --npars_cutoff 12
         
 """
-
-setup_help = """
-phylociraptor setup - will prepare your analysis
-
-Usage: phylociraptor setup <arguments>
-
+standard_arguments= """
 Argumemts:
 	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, serial.
 	-c, --cluster-config	Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
@@ -115,8 +110,21 @@ Argumemts:
 	--dry			Make a dry run.
 	--verbose		Display more output.
 	-h, --help		Display help.
+"""
 
-Additonal customization:
+additional_arguments = """
+
+Additonal customization (optional):
+	--singularity=		Pass additional arguments to the singularity containers (eg. additional bindpoints).
+				Have to be put under quotes " or '
+	--snakemake=		Pass additional arguments to snakemake.
+				Have to be put under quotes " or ' """
+
+setup_help = """
+phylociraptor setup - will prepare your analysis
+
+Usage: phylociraptor setup <arguments>
+""" + standard_arguments + additional_arguments + """
 	--config-file		Custom config-file path. (Default: data/config.yaml)	
 	--busco_set		BUSCO set to download. (Default: value from config.yaml)
 	--samples_csv		Samples CSV file path. (Default: value from config.yaml)
@@ -127,17 +135,7 @@ orthology_help = """
 phylociraptor orthology - Will infer orthologous genes in a set of genomes.
 
 Usage: phylociraptor orthology <arguments>
-
-Argumemts:
-        -t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial.
-        -c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-        -f, --force             Force run this part in case it has already been run.
-        
-        --dry                   Make a dry run.
-        --verbose               Display more output.
-        -h, --help              Display help.
-
-Additonal customization:
+""" + standard_arguments + additional_arguments + """
 	--config-file           Custom config-file path. (Default: data/config.yaml)
 	--busco_threads		Number of threads for each BUSCO run. (Default: value from config.yaml)
 	--augustus_species	Pretrained species for Augustus. (Deafult: value from config.yaml)
@@ -150,16 +148,7 @@ phylociraptor filter-orthology - Will filter orthology results produced by phylo
 
 Usage: phylociraptor filter-orthology <arguments>
 
-Argumemts:
-        -t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-        -c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-        -f, --force             Force run this part in case it has already been run.
-        
-        --dry                   Make a dry run.
-        --verbose               Display more output.
-        -h, --help              Display help.
-
-Additional customization:
+""" + standard_arguments + additional_arguments + """
 	--config-file           Custom config-file path. (Default: data/config.yaml)
 	--dupseq		Set how occasionally found duplicated sequences should be handled.
 				Options: persample; remove only samples with duplicated sequences
@@ -179,16 +168,7 @@ phylociraptor align - Will create alignments for a set of single-copy orthologou
 
 Usage: phylociraptor align <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
-Additional customization:
+""" + standard_arguments + additional_arguments + """
 	--config-file           Custom config-file path. (Default: data/config.yaml)
 	--method		Alignment method. Options: mafft (Default: mafft; read from config.yaml)
 	--parameters        	Commandline arguments for alignment method. (Default: read from config.yaml)
@@ -201,16 +181,7 @@ phylociraptor filter-align - Will filter alignments.
 
 Usage: phylociraptor filter-align <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
-Additional customization:
+""" + standard_arguments + additional_arguments + """
 	--config-file           Custom config-file path. (Default: data/config.yaml)
 	--min_parsimony_sites	Minimum number of parsimony informative sites in each alignments.
 	--method		Trimming method. Options: trimal, aliscore (Default: read from config.yaml)
@@ -223,15 +194,7 @@ phylociraptor tree - Will calculate phylogenomic trees based on supermatrix (con
 
 Usage: phylociraptor tree <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
+""" + standard_arguments + additional_arguments + """
 """
 
 sptree_help = """
@@ -239,15 +202,7 @@ phylociraptor speciestree - Will calculate single-gene trees and a species tree.
 
 Usage: phylociraptor speciestree <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
+""" + standard_arguments + additional_arguments + """
 """
 
 njtree_help = """
@@ -255,32 +210,18 @@ phylociraptor njtree - Will calculate a NJ tree.
 
 Usage: phylociraptor njtree <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
+""" + standard_arguments + additional_arguments + """
 """
+
 
 model_help = """
 phylociraptor model - Will perform substitution model tests for each alignment.
 
 Usage: phylociraptor model <arguments>
 
-Argumemts:
-	-t, --cluster           Specify cluster type. Options: slurm, sge, torque, serial. Default: serial
-	-c, --cluster-config    Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
-	-f, --force             Force run this part in case it has already been run.
-
-	--dry                   Make a dry run.
-	--verbose               Display more output.
-	-h, --help              Display help.
-
+""" + standard_arguments + additional_arguments + """
 """
+
 report_help = """
 phylociraptor report - Will create a HTML report of the run
 
@@ -291,6 +232,7 @@ Argumemts:
 	-h, --help              Display help.
 
 """
+
 check_help = """
 phylociraptor check - Quickly check the status of the run.
 
@@ -303,7 +245,8 @@ Argumemts:
 """
 
 
-
+def now():
+	return time.strftime("%Y-%m-%d %H:%M") + " -"
 
 def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
 	count = len(it)
@@ -333,11 +276,11 @@ def get_flags(flags):
 	}
 	cmd = []
 	if debug:
-		print("(Debug): flags: ", flags)
+		print(now(), "DEBUG: flags: ", flags)
 	if flags["cluster_config"] == None and not "serial" in flags["cluster"]: #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
 		flags["cluster_config"] = ccf
-		print("No cluster config file specified. Will try to use default file: %s" % ccf)	
+		print(now(), "No cluster config file specified. Will try to use default file: %s" % ccf)	
 	else:
 		ccf = flags["cluster_config"]
 	for flag in flags.keys():
@@ -362,7 +305,7 @@ def check_required_files(runmode):
 	for f in outfile_dict[runmode]:
 		if not os.path.isfile(f):
 			if debug:
-				print("(debug, check_required_files): File not found:", f)
+				print(now(),"DEBUG, check_required_files: File not found:", f)
 			return f
 	return
 
@@ -370,7 +313,7 @@ def check_directories(mode):
 	for directory in outdir_dict[mode]:
 		if not os.path.isdir(directory):
 			if debug:
-				print("(debug, check_directories): Directory not found:", directory)
+				print(now(), "DEBUG, check_directories: Directory not found:", directory)
 			return directory
 	return
 
@@ -378,7 +321,7 @@ def check_hasrun(mode):
 	f = checkpoint_file_dict[mode]
 	if not os.path.isfile(f):
 		if debug:
-			print("(debug, check_hasrun): Not found:", f)
+			print(now(), "DEBUG, check_hasrun: Not found:", f)
 		return f
 	else:
 		return
@@ -392,23 +335,23 @@ def check_config_file(f):
 
 def check_for_errors(result):
 	if result.startswith("WorkflowError"):
-		return "phylociraptor encountered an error. You may try to run with --verbose to diagnose what has gone wrong.\n"
+		return now()+" ERROR: phylociraptor encountered an error. You may try to run with --verbose to diagnose what has gone wrong.\n"
 	if result.startswith("The singularity command"):
 		return result
 	if result.startswith("Error") or result.startswith("error"):
-		return "There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result	
+		return now()+" ERROR: There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result	
 	if result.startswith("Directory cannot be locked."):
-		return result	
+		return now()+" ERROR: "+result	
 	if result.startswith("IncompleteFilesException"):
-		return "There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
+		return now()+" ERROR: There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
 	if result.startswith("KeyError"):
-		return result
+		return now()+" ERROR: "+result
 	return ""
 
 
 def check_snakemake():
 	if subprocess.call(["which", "snakemake"]) == 1:
-		print("Snakemake needs to be installed and in your PATH to run phylociraptor.")
+		print(nate(),"ERROR: Snakemake needs to be installed and in your PATH to run phylociraptor.")
 		exit(1)
 
 def execute_command(cmd, verbose):
@@ -416,7 +359,7 @@ def execute_command(cmd, verbose):
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	print("If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
+	print(now(), "If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
@@ -424,31 +367,22 @@ def execute_command(cmd, verbose):
 	nline = 0
 	curr_task = 0
 	if "-n" in cmd:
+		print(now(), "Info: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				#yield line[:-1] +"\n"
 				yield line
-				#if char != "\n":
-				#	line += char
-				#else:
-				#	result = line
-				#	line = ""
-				#	yield result
-					#sys.stdout.flush()
 			else:
 				result = line
-				#print(result)
 				if check_for_errors(result):
 					yield check_for_errors(result)
 				if result.startswith("Nothing"):
-					yield "There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True
-					#yield result
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of tasks to run/submit: %s\n" % result.split("\t")[1].strip() 
+						yield now()+" Total number of tasks to run/submit: %s\n" % result.split("\t")[1].strip() 
 				elif jobcounts and result == "":
 					jobcounts = False
 				line=""
@@ -467,7 +401,7 @@ def execute_command(cmd, verbose):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
+						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
 						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
@@ -485,12 +419,12 @@ def execute_command(cmd, verbose):
 				if check_for_errors(result):
 					yield check_for_errors(result)
 				if result.startswith("Nothing"):
-					yield "There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now()+" There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield "Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
+						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
 						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
@@ -498,7 +432,21 @@ def execute_command(cmd, verbose):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				line=""
-		
+
+def get_additional_snakemake_flags(flags):
+	if flags:
+		print(now(), "Info: Additional flags will be passed on to snakemake: ", flags)
+		return flags.split(" ")
+	else:
+		return []
+
+def get_additional_singularity_flags(flags):
+	if flags:
+		print(now(), "Info: Additional flags will be passed on to singularity: ", flags)
+		return ["--singularity-args"]+flags.split(" ")
+	else:
+		return []
+	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
 pars.add_argument('--debug', action='store_true', dest="debug")
 pars.add_argument('command', action='store')
@@ -509,28 +457,41 @@ args = pars.parse_args()
 if args.debug == True:
 	debug=True
 
+# create own argparse class to include some standard options:
+class PhyloParser(argparse.ArgumentParser):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.add_argument("-f", "--force", action="store_true" )
+		self.add_argument("-t", "--cluster",  action="store", default="serial")
+		self.add_argument("-c", "--cluster-config", action="store")
+		self.add_argument("--dry", action="store_true")
+		self.add_argument("-h", "--help", action="store_true")
+		self.add_argument("--verbose", action="store_true", default=False)	
+		self.add_argument("--singularity", action="store",dest="si_args", default="")
+		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
+
 if args.command == "setup":
 	print("Welcome to phylociraptor setup")
-	setup_parser = argparse.ArgumentParser(usage=help_message(setup_help), add_help=False)
-	setup_parser.add_argument("-f", "--force", action="store_true" )
-	setup_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	setup_parser.add_argument("-c", "--cluster-config", action="store")
-	setup_parser.add_argument("--dry", action="store_true")
-	setup_parser.add_argument("-h", "--help", action="store_true")
-	setup_parser.add_argument("--verbose", action="store_true", default=False)
+	setup_parser = PhyloParser(usage=help_message(setup_help), add_help=False)
+#	setup_parser.add_argument("-f", "--force", action="store_true" )
+#	setup_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	setup_parser.add_argument("-c", "--cluster-config", action="store")
+#	setup_parser.add_argument("--dry", action="store_true")
+#	setup_parser.add_argument("-h", "--help", action="store_true")
+#	setup_parser.add_argument("--verbose", action="store_true", default=False)
 	setup_parser.add_argument("--config-file", action="store", dest="config_file")
 	setup_parser.add_argument("--samples-csv", action="store", dest="samples_file")
 	setup_parser.add_argument("--busco-set", action="store", dest="busco_set")
 	setup_parser.add_argument("--add_genomes", action="store_true",default=False, dest="add_genomes")
 
 	setup_args = setup_parser.parse_args(args.arguments)
-	
+	print(setup_args)	
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
 	
 	if (setup_args.add_genomes):
-		print("Will only add genomes")
+		print(now(),"Will only add genomes")
 		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "add_genomes", "--latency-wait", latency_wait]
 	else:
 		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
@@ -543,32 +504,29 @@ if args.command == "setup":
 	if setup_args.busco_set or setup_args.samples_file:
 		cmd += ["--config"]
 		if not os.path.isfile(setup_args.samples_file):
-			print("File specified with --samples-csv not found:", setup_args.samples_file)
+			print(now(), "ERROR: File specified with --samples-csv not found:", setup_args.samples_file)
 			sys.exit(0)
 		cmd += ["busco={set: %s}" % setup_args.busco_set]
 		cmd += ["species='%s'" % setup_args.samples_file]
 	
-	#args=""
-	#if setup_args.busco_set:
-	#	args += "busco={set: %s}"%setup_args.busco_set
-	#if setup_args.samples_file:
-	#	args += ",species={%s}"%setup_args.samples_file	
-	#execute_command(cmd)
+	cmd += get_additional_snakemake_flags(setup_args.sm_args)
+	cmd += get_additional_singularity_flags(setup_args.si_args)
+
 	for line in execute_command(cmd, setup_args.verbose):
 		print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 	#print(p.stdout)
 	#print(p.stderr)
 elif args.command=="orthology":
 	print("Welcome to phylociraptor orthology.")
-	orthology_parser = argparse.ArgumentParser(usage=help_message(orthology_help),add_help=False)	
-	orthology_parser.add_argument("-f", "--force", action="store_true")
-	orthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	orthology_parser.add_argument("-c", "--cluster-config", action="store")
-	orthology_parser.add_argument("--dry", action="store_true")
-	orthology_parser.add_argument("-h", "--help", action="store_true")
-	orthology_parser.add_argument("--verbose", action="store_true", default=False)	
+	orthology_parser = PhyloParser(usage=help_message(orthology_help),add_help=False)	
+#	orthology_parser.add_argument("-f", "--force", action="store_true")
+#	orthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	orthology_parser.add_argument("-c", "--cluster-config", action="store")
+#	orthology_parser.add_argument("--dry", action="store_true")
+#	orthology_parser.add_argument("-h", "--help", action="store_true")
+#	orthology_parser.add_argument("--verbose", action="store_true", default=False)	
 	orthology_parser.add_argument("--busco_threads", action="store")
 	orthology_parser.add_argument("--config-file", action="store", dest="config_file")
 	orthology_parser.add_argument("--augustus_species", action="store")
@@ -581,7 +539,8 @@ elif args.command=="orthology":
 		print(help_message(orthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
+		sys.exit(0)
 	#print(orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(orthology_args.cluster)
@@ -601,21 +560,24 @@ elif args.command=="orthology":
 			arg += "additional_parameters: %s " % orthology_args.additional_params
 		arg+="}"
 		cmd += [arg]
+	
+	cmd += get_additional_snakemake_flags(orthology_args.sm_args)
+	cmd += get_additional_singularity_flags(orthology_args.si_args)
 
 	
 	for line in execute_command(cmd, orthology_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="filter-orthology":
 	print("Welcome to phylociraptor filter-orthology.")
-	forthology_parser = argparse.ArgumentParser(add_help=False)
-	forthology_parser.add_argument("-f", "--force", action="store_true")
-	forthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	forthology_parser.add_argument("-c", "--cluster-config", action="store")
-	forthology_parser.add_argument("--dry", action="store_true")
-	forthology_parser.add_argument("-h", "--help", action="store_true")
-	forthology_parser.add_argument("--verbose", action="store_true", default=False)
+	forthology_parser = PhyloParser(add_help=False)
+#	forthology_parser.add_argument("-f", "--force", action="store_true")
+#	forthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	forthology_parser.add_argument("-c", "--cluster-config", action="store")
+#	forthology_parser.add_argument("--dry", action="store_true")
+#	forthology_parser.add_argument("-h", "--help", action="store_true")
+#	forthology_parser.add_argument("--verbose", action="store_true", default=False)
 	forthology_parser.add_argument("--config-file", action="store", dest="config_file")
 	forthology_parser.add_argument("--dupseq", action="store")
 	forthology_parser.add_argument("--cutoff", action="store")
@@ -630,7 +592,7 @@ elif args.command=="filter-orthology":
 		print(help_message(forthology_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_filter_orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(forthology_args.cluster)
@@ -646,13 +608,13 @@ elif args.command=="filter-orthology":
 			if forthology_args.dupseq in ["persample", "perfile"]:
 				arg += "dupseq: %s, "% forthology_args.dupseq
 			else:
-				print("Wrong parameter specified for --dupseq: ", forthology_args.dupseq)
+				print(now(), "ERROR: Wrong parameter specified for --dupseq: ", forthology_args.dupseq)
 				sys.exit(0)
 		if forthology_args.cutoff:
 			if float(forthology_args.cutoff) >=0 and float(forthology_args.cutoff) <=1:
 				arg += "cutoff: %s, " % forthology_args.cutoff
 			else:
-				print("Wrong parameter specified for --cutoff: ", forthology_args.dubseq)	
+				print(now(), "ERROR: Wrong parameter specified for --cutoff: ", forthology_args.dubseq)	
 				sys.exit(0)
 		if forthology_args.minsp:
 			arg += "minsp: %s, " %forthology_args.minsp
@@ -660,24 +622,27 @@ elif args.command=="filter-orthology":
 			if forthology_args.seqtype in ["aa", "nu"]:
 				arg += "seq_type: %s " % forthology_args.seqtype
 			else:
-				print("Wrong parameter specified for --seqtype: ", forthology_args.seqtype)
+				print(now(), "ERROR: Wrong parameter specified for --seqtype: ", forthology_args.seqtype)
 				sys.exit(0)
 		arg += "}"
 		cmd += [arg]
 	
+	cmd += get_additional_snakemake_flags(forthology_args.sm_args)
+	cmd += get_additional_singularity_flags(forthology_args.si_args)
+	
 	for line in execute_command(cmd, forthology_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="align":
 	print("Welcome to phylociraptor align.")
-	align_parser = argparse.ArgumentParser(usage=help_message(align_help), add_help=False)
-	align_parser.add_argument("-f", "--force", action="store_true")
-	align_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	align_parser.add_argument("-c", "--cluster-config", action="store")
-	align_parser.add_argument("--dry", action="store_true")
-	align_parser.add_argument("-h", "--help", action="store_true")
-	align_parser.add_argument("--verbose", action="store_true", default=False)
+	align_parser = PhyloParser(usage=help_message(align_help), add_help=False)
+#	align_parser.add_argument("-f", "--force", action="store_true")
+#	align_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	align_parser.add_argument("-c", "--cluster-config", action="store")
+#	align_parser.add_argument("--dry", action="store_true")
+#	align_parser.add_argument("-h", "--help", action="store_true")
+#	align_parser.add_argument("--verbose", action="store_true", default=False)
 	align_parser.add_argument("--config-file", action="store", dest="config_file")
 	align_parser.add_argument("--method", action="store")
 	align_parser.add_argument("--threads", action="store")
@@ -690,7 +655,7 @@ elif args.command=="align":
 		print(help_message(align_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_align", "--latency-wait", latency_wait]
@@ -707,7 +672,7 @@ elif args.command=="align":
 			if align_args.method in ["mafft"]:
 				arg += "method: %s, " % align_args.method
 			else:
-				print("Wrong parameter specified with --method:", align_args.method)
+				print(now(), "ERROR: Wrong parameter specified with --method:", align_args.method)
 				sys.exit(0)	
 		if align_args.threads:
 			arg += "threads: %s, " % align_args.threads
@@ -715,19 +680,23 @@ elif args.command=="align":
 			arg += "parameters: '%s'" % align_args.parameters
 		arg += " }"
 		cmd += [arg]	
+	
+	cmd += get_additional_snakemake_flags(align_args.sm_args)
+	cmd += get_additional_singularity_flags(align_args.si_args)
+	
 	for line in execute_command(cmd, align_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="filter-align":
 	print("Welcome to phylociraptor filter-align.")
-	falign_parser = argparse.ArgumentParser(usage=help_message(falign_help), add_help=False)
-	falign_parser.add_argument("-f", "--force", action="store_true")
-	falign_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	falign_parser.add_argument("-c", "--cluster-config", action="store")
-	falign_parser.add_argument("--dry", action="store_true")
-	falign_parser.add_argument("-h", "--help", action="store_true")
-	falign_parser.add_argument("--verbose", action="store_true", default=False)
+	falign_parser = PhyloParser(usage=help_message(falign_help), add_help=False)
+#	falign_parser.add_argument("-f", "--force", action="store_true")
+#	falign_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	falign_parser.add_argument("-c", "--cluster-config", action="store")
+#	falign_parser.add_argument("--dry", action="store_true")
+#	falign_parser.add_argument("-h", "--help", action="store_true")
+#	falign_parser.add_argument("--verbose", action="store_true", default=False)
 	falign_parser.add_argument("--config-file", action="store", dest="config_file")
 	falign_parser.add_argument("--method", action="store")
 	falign_parser.add_argument("--parameters", action="store")
@@ -741,7 +710,7 @@ elif args.command=="filter-align":
 		print(help_message(falign_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_filter_align", "--latency-wait", latency_wait]
@@ -763,19 +732,22 @@ elif args.command=="filter-align":
 		arg += "}"
 		cmd += [arg]
 
+	cmd += get_additional_snakemake_flags(falign_args.sm_args)
+	cmd += get_additional_singularity_flags(falign_args.si_args)
+
 	for line in execute_command(cmd, falign_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="speciestree":
 	print("Welcome to phylociraptor speciestree.")
-	sptree_parser = argparse.ArgumentParser(add_help=False)
-	sptree_parser.add_argument("-f", "--force", action="store_true")
-	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	sptree_parser.add_argument("-c", "--cluster-config", action="store")
-	sptree_parser.add_argument("--dry", action="store_true")
-	sptree_parser.add_argument("-h", "--help", action="store_true")
-	sptree_parser.add_argument("--verbose", action="store_true", default=False)
+	sptree_parser = PhyloParser(add_help=False)
+#	sptree_parser.add_argument("-f", "--force", action="store_true")
+#	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	sptree_parser.add_argument("-c", "--cluster-config", action="store")
+#	sptree_parser.add_argument("--dry", action="store_true")
+#	sptree_parser.add_argument("-h", "--help", action="store_true")
+#	sptree_parser.add_argument("--verbose", action="store_true", default=False)
 	sptree_args = sptree_parser.parse_args(args.arguments)	
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
@@ -784,26 +756,29 @@ elif args.command=="speciestree":
 		print(help_message(sptree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_speciestree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
+	cmd += get_additional_snakemake_flags(sptree_args.sm_args)
+	cmd += get_additional_singularity_flags(sptree_args.si_args)
+	
 	for line in execute_command(cmd, sptree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="njtree":
 	print("Welcome to phylociraptor njtree.")
-	njtree_parser = argparse.ArgumentParser(add_help=False)
-	njtree_parser.add_argument("-f", "--force", action="store_true")
-	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	njtree_parser.add_argument("-c", "--cluster-config", action="store")
-	njtree_parser.add_argument("--dry", action="store_true")
-	njtree_parser.add_argument("-h", "--help", action="store_true")
-	njtree_parser.add_argument("--verbose", action="store_true", default=False)
+	njtree_parser = PhyloParser(add_help=False)
+#	njtree_parser.add_argument("-f", "--force", action="store_true")
+#	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	njtree_parser.add_argument("-c", "--cluster-config", action="store")
+#	njtree_parser.add_argument("--dry", action="store_true")
+#	njtree_parser.add_argument("-h", "--help", action="store_true")
+#	njtree_parser.add_argument("--verbose", action="store_true", default=False)
 	njtree_args = njtree_parser.parse_args(args.arguments)	
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
@@ -812,28 +787,31 @@ elif args.command=="njtree":
 		print(help_message(njtree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_njtree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
+	cmd += get_additional_snakemake_flags(njtree_args.sm_args)
+	cmd += get_additional_singularity_flags(njtree_args.si_args)
+	
 	for line in execute_command(cmd, njtree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="mltree":
 	print("Welcome to phylociraptor mltree.")
-	tree_parser = argparse.ArgumentParser(prog="phylociraptor tree", description = """Description: phylociraptor tree - Will calculate a Maximum-likelihood tree.""", epilog = """written by Philipp Resl and Christoph Hahn""", add_help=False)
-	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
-	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
-	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
-	tree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
-	tree_parser.add_argument("-h", "--help", action="store_true")
-	tree_parser.add_argument("--verbose", action="store_true", default=False)
+	tree_parser = PhyloParser(add_help=False)
+#	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
+#	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
+#	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
+#	tree_parser.add_argument("--dry", action="store_true", help="Only a dry run")
+#	tree_parser.add_argument("-h", "--help", action="store_true")
+#	tree_parser.add_argument("--verbose", action="store_true", default=False)
 	tree_args = tree_parser.parse_args(args.arguments)	
-	print(sys.argv)
+	
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
 	#	sys.exit(0)
@@ -841,26 +819,29 @@ elif args.command=="mltree":
 		print(help_message(tree_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_trees", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
+	cmd += get_additional_snakemake_flags(tree_args.sm_args)
+	cmd += get_additional_singularity_flags(tree_args.si_args)
+	
 	for line in execute_command(cmd, tree_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)
+		print(now(), cmd)
 elif args.command=="model":
 	print("Welcome to phylociraptor model.")
-	model_parser = argparse.ArgumentParser(add_help=False)
-	model_parser.add_argument("-f", "--force", action="store_true")
-	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
-	model_parser.add_argument("-c", "--cluster-config", action="store")
-	model_parser.add_argument("--dry", action="store_true")
-	model_parser.add_argument("-h", "--help", action="store_true")
-	model_parser.add_argument("--verbose", action="store_true", default=False)
+	model_parser = PhyloParser(add_help=False)
+#	model_parser.add_argument("-f", "--force", action="store_true")
+#	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
+#	model_parser.add_argument("-c", "--cluster-config", action="store")
+#	model_parser.add_argument("--dry", action="store_true")
+#	model_parser.add_argument("-h", "--help", action="store_true")
+#	model_parser.add_argument("--verbose", action="store_true", default=False)
 	model_args = model_parser.parse_args(args.arguments)	
 	#if len(sys.argv) < 3: # too few argument
 	#	print(help_message(forthology_help))
@@ -869,17 +850,20 @@ elif args.command=="model":
 		print(help_message(model_help))
 		sys.exit(0)
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "--singularity-args", "%s"% singularity_bindpoints,"-r", "all_modeltest", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	
+	cmd += get_additional_snakemake_flags(model_args.sm_args)
+	cmd += get_additional_singularity_flags(model_args.si_args)
+
 	for line in execute_command(cmd, model_args.verbose):
                 print(line, end="\r")
 	if debug:
-		print(cmd)	
+		print(now(), cmd)	
 elif args.command=="report":
 	print("Welcome to phylociraptor report.")
 	report_parser = argparse.ArgumentParser(add_help=False)
@@ -893,7 +877,7 @@ elif args.command=="report":
 		sys.exit(0)
 
 	if check_required_files(args.command):
-		print("Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+		print(now(), "ERROR Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
 	# combine files to produce final statistics file, this is necessary due to the new concurrency setting. 
@@ -911,7 +895,7 @@ elif args.command=="report":
 		print(cmd)
 	if os.path.isfile("bin/report.html"):
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
-		print("Your phylociraptor report has been created in the results folder.")
+		print(now(), "Your phylociraptor report has been created in the results folder.")
 elif args.command == "check":
 	print("Welcome to phylociraptor check.")
 	check_parser = argparse.ArgumentParser(add_help=False)
@@ -923,7 +907,7 @@ elif args.command == "check":
 		print(help_message(check_help))
 		sys.exit(0)
 
-	print("Checking the status of the pipeline:")
+	print(now(), "Checking the status of the pipeline:")
 
 	check_rest = True
 	filter_align_done = False
