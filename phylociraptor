@@ -350,11 +350,21 @@ def check_for_errors(result):
 	return ""
 
 
-def check_snakemake():
-	if subprocess.call(["which", "snakemake"]) == 1:
-		print(nate(),"ERROR: Snakemake needs to be installed and in your PATH to run phylociraptor.")
-		exit(1)
-
+def check_required_software():	
+	try:
+		singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
+		print(now(), "Singularity version:", singularity_version)
+	except FileNotFoundError:
+		print(now(), "ERROR: Singularity command not found.")
+		sys.exit(1)
+	try:
+		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
+		print(now(), "Snakemake version:", snakemake_version)
+	except FileNotFoundError:
+		print(now(),"ERROR: Snakemake command not found.")
+		sys.exit(1)
+	
+	
 def execute_command(cmd, verbose):
 	# this should also correctly parse and display:
 	# IncompleteFilesException
@@ -464,16 +474,6 @@ if args.version == True:
 
 if args.debug == True:
 	print(now(), "DEBUG: Addditional debugging output enabled.")
-	try:
-		singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
-	except FileNotFoundError:
-		singularity_version = "DEBUG: Singularity command not found."
-	try:
-		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
-	except FileNotFoundError:
-		snakemake_version = "DEBUG: Snakemake command not found."
-	print(now(), "DEBUG: Singularity version: ", singularity_version)
-	print(now(), "DEBUG: Snakemake version: ", snakemake_version)
 	debug=True
 
 if not args.command:
@@ -511,6 +511,8 @@ if args.command == "setup":
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
+	
+	check_required_software()
 	
 	if (setup_args.add_genomes):
 		print(now(),"Will only add genomes")
@@ -560,6 +562,7 @@ elif args.command=="orthology":
 	if orthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(orthology_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -613,6 +616,7 @@ elif args.command=="filter-orthology":
 	if forthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(forthology_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -676,6 +680,7 @@ elif args.command=="align":
 	if align_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(align_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -731,6 +736,7 @@ elif args.command=="filter-align":
 	if falign_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(falign_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -777,6 +783,7 @@ elif args.command=="speciestree":
 	if sptree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(sptree_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -808,6 +815,7 @@ elif args.command=="njtree":
 	if njtree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(njtree_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -840,6 +848,7 @@ elif args.command=="mltree":
 	if tree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(tree_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -871,6 +880,7 @@ elif args.command=="model":
 	if model_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(model_help))
 		sys.exit(0)
+	check_required_software()
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
@@ -897,6 +907,7 @@ elif args.command=="report":
 	if report_args.help: # help is specified
 		print(help_message(report_help))
 		sys.exit(0)
+	check_required_software()
 
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
