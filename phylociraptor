@@ -456,15 +456,26 @@ pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
 
 args = pars.parse_args()
 
-if args.debug == True:
-	print(now(), "Addditional debugging output enabled.")
-	debug=True
-
 if args.version == True:
 	commit = str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
 	print("Version:", version)
 	print("Git commit:", commit)
 	sys.exit(0)
+
+if args.debug == True:
+	print(now(), "DEBUG: Addditional debugging output enabled.")
+	try:
+		singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
+	except FileNotFoundError:
+		singularity_version = "DEBUG: Singularity command not found."
+	try:
+		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
+	except FileNotFoundError:
+		snakemake_version = "DEBUG: Snakemake command not found."
+	print(now(), "DEBUG: Singularity version: ", singularity_version)
+	print(now(), "DEBUG: Snakemake version: ", snakemake_version)
+	debug=True
+
 if not args.command:
 	print(default_help)
 	sys.exit(0)
