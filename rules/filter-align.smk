@@ -171,12 +171,35 @@ rule all_filter_align:
 	input:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
 		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
-		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
+		expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches),
+		algntrim = expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
 		"results/checkpoints/modes/filter_align.done"
+	params:
+		dupseq = config["filtering"]["dupseq"],
+		cutoff = config["filtering"]["cutoff"],
+		minsp = config["filtering"]["minsp"],
+		seq_type = config["filtering"]["seq_type"],
+    		min_parsimony_sites = config["filtering"]["min_parsimony_sites"],
+		algn_trim = expand("{al}__{tr}", al=config["alignment"]["method"], tr=config["trimming"]["method"]),
+		trimal_params = config["trimming"]["trimal_parameters"],
+		aliscore_params = config["trimming"]["aliscore_parameters"]
 	shell:
 		"""
+		# gather aligner and trimming combinations and corresponding settings for statistics:	
+		combs="{params.algn_trim}"
+		echo "aligner\ttrimmer\ttrimming_params\tdupseq\tcutoff\tminsp\tseq_type\tmin_parsimony_sites" > results/statistics/trim-filter-overview.txt
+		for combination in ${{combs}}; do
+			if [[ $combination == *"trimal"* ]]; then
+				out=$combination"__{params.trimal_params}"
+			elif [[ $combination == *"aliscore"* ]]; then
+				out=$combination"__{params.aliscore_params}"
+			else
+				out=$combination"__no parameters"
+			fi
+			out=$out"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}"
+			echo $out | sed 's/__/\t/g' >> results/statistics/trim-filter-overview.txt
+		done  
 		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
 		touch {output}
 		"""	
