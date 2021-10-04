@@ -12,6 +12,7 @@ if sys.version_info[0] < 3:
 
 
 #some basic variables needed:
+version = "0.9"
 njobs = "10000"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
@@ -66,8 +67,8 @@ phylociraptor = """
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	       the rapid phylogenomic tree calculator
-"""
+	  the rapid phylogenomic tree calculator, ver.%s
+""" % version
 
 default_help = phylociraptor + """
 
@@ -448,14 +449,25 @@ def get_additional_singularity_flags(flags):
 		return []
 	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
-pars.add_argument('--debug', action='store_true', dest="debug")
-pars.add_argument('command', action='store')
+pars.add_argument('--debug', action='store_true', dest="debug", required=False)
+pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
+pars.add_argument('command', action='store', nargs="?")
 pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
 
 args = pars.parse_args()
 
 if args.debug == True:
+	print(now(), "Addditional debugging output enabled.")
 	debug=True
+
+if args.version == True:
+	commit = str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
+	print("Version:", version)
+	print("Git commit:", commit)
+	sys.exit(0)
+if not args.command:
+	print(default_help)
+	sys.exit(0)
 
 # create own argparse class to include some standard options:
 class PhyloParser(argparse.ArgumentParser):
@@ -485,7 +497,6 @@ if args.command == "setup":
 	setup_parser.add_argument("--add_genomes", action="store_true",default=False, dest="add_genomes")
 
 	setup_args = setup_parser.parse_args(args.arguments)
-	print(setup_args)	
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
