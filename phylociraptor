@@ -12,7 +12,7 @@ if sys.version_info[0] < 3:
 
 
 #some basic variables needed:
-version = "0.9"
+version = "0.9.0"
 njobs = "10000"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp:/usertmp"
