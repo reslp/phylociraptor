@@ -47,7 +47,7 @@ rule raxmlng:
 		params:
 			bs = config["raxmlng"]["bootstrap"],
 			wd = os.getcwd(),
-			additional_params = config["raxml"]["additional_params"]
+			additional_params = config["raxmlng"]["additional_params"]
 		shell:
 			"""
 			cp {input.alignment} {output.alignment}
