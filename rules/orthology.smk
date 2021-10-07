@@ -29,7 +29,7 @@ def select_species(dir="results/assemblies"):
 	return sps
 
 species = select_species()
-
+print(species)
 if config["busco"]["version"] == "3.0.2":
 	rule run_busco:
 		input:
@@ -37,9 +37,7 @@ if config["busco"]["version"] == "3.0.2":
 			busco_set = "results/orthology/busco/busco_set/"+config["busco"]["set"]
 		output:
 			checkpoint = "results/checkpoints/busco/busco_{species}.done",
-			augustus_output = "results/orthology/busco/busco_runs/{species}/run_busco/augustus_output.tar.gz",
-			blast_output = "results/orthology/busco/busco_runs/{species}/run_busco/blast_output.tar.gz",
-			hmmer_output = "results/orthology/busco/busco_runs/{species}/run_busco/hmmer_output.tar.gz",
+			output = "results/orthology/busco/busco_runs/{species}/run_busco/software_output.tar.gz",
 			full_table = "results/orthology/busco/busco_runs/{species}/run_busco/full_table_busco.tsv",
 			short_summary ="results/orthology/busco/busco_runs/{species}/run_busco/short_summary_busco.txt",
 			missing_busco_list ="results/orthology/busco/busco_runs/{species}/run_busco/missing_busco_list_busco.tsv",
@@ -80,7 +78,7 @@ if config["busco"]["version"] == "3.0.2":
 			fi		
 
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
-			echo $AUGUSTUS_CONFIG_PATH
+			#echo $AUGUSTUS_CONFIG_PATH
 			
 			# handle gzipped and other assemblies differently
 			if echo $(file $(readlink -f "{input.assembly}")) | grep compressed ;
@@ -96,9 +94,12 @@ if config["busco"]["version"] == "3.0.2":
 
 			# do some cleanup to save space
 			echo -e "\\n[$(date)]\\tCleaning up after BUSCO to save space" 2>&1 | tee -a {log}
-			bin/tar_folder.sh {output.blast_output} run_busco/blast_output 2>&1 | tee -a {log}
-			bin/tar_folder.sh {output.hmmer_output} run_busco/hmmer_output 2>&1 | tee -a {log}
-			bin/tar_folder.sh {output.augustus_output} run_busco/augustus_output 2>&1 | tee -a {log}
+			basedir=$(pwd)
+			cd run_busco
+			mkdir software_outputs
+			mv *_output software_outputs
+			$basedir/bin/tar_folder.sh $basedir/{output.output} software_outputs 2>&1 | tee -a $basedir/{log}
+			cd ..
 			tar -pcf {output.single_copy_buscos} -C run_busco/ single_copy_busco_sequences
 			tar -tvf {output.single_copy_buscos} > {output.single_copy_buscos_tarlist} 2>&1 | tee -a {log}
 			
@@ -122,9 +123,7 @@ if config["busco"]["version"] == "5.2.1":
 			busco_set = "results/orthology/busco/busco_set/"+config["busco"]["set"]
 		output:
 			checkpoint = "results/checkpoints/busco/busco_{species}.done",
-			augustus_output = "results/orthology/busco/busco_runs/{species}/run_busco/augustus_output.tar.gz",
-			blast_output = "results/orthology/busco/busco_runs/{species}/run_busco/blast_output.tar.gz",
-			hmmer_output = "results/orthology/busco/busco_runs/{species}/run_busco/hmmer_output.tar.gz",
+			output = "results/orthology/busco/busco_runs/{species}/run_busco/software_output.tar.gz",
 			logs = "results/orthology/busco/busco_runs/{species}/run_busco/logs.tar.gz",
 			full_table = "results/orthology/busco/busco_runs/{species}/run_busco/full_table_busco.tsv",
 			short_summary ="results/orthology/busco/busco_runs/{species}/run_busco/short_summary_busco.txt",
@@ -168,7 +167,7 @@ if config["busco"]["version"] == "5.2.1":
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
 			#export AUGUSTUS_SCRIPTS_PATH=/usr/local/bin/ #might be necessary in ezlabgva/busco:v5.2.1_cv1 image
 			#export AUGUSTUS_BIN_PATH=/usr/local/bin/
-			echo $AUGUSTUS_CONFIG_PATH
+			#echo $AUGUSTUS_CONFIG_PATH
 			
 			# handle gzipped and other assemblies differently
 			if [[ "{input.assembly}" =~ \.gz$ ]]
@@ -185,9 +184,9 @@ if config["busco"]["version"] == "5.2.1":
 			echo -e "\\n[$(date)]\\tCleaning up after BUSCO to save space" 2>&1 | tee -a {log}
 			basedir=$(pwd)
 			cd {params.species}/run_{params.set}
-			$basedir/bin/tar_folder.sh $basedir/{output.blast_output} blast_output 2>&1 | tee -a $basedir/{log}
-			$basedir/bin/tar_folder.sh $basedir/{output.hmmer_output} hmmer_output 2>&1 | tee -a $basedir/{log}
-			$basedir/bin/tar_folder.sh $basedir/{output.augustus_output} augustus_output 2>&1 | tee -a $basedir/{log}
+			mkdir software_outputs
+			mv *_output software_outputs
+			$basedir/bin/tar_folder.sh $basedir/{output.output} software_outputs 2>&1 | tee -a $basedir/{log}
 			cd ..
 			$basedir/bin/tar_folder.sh $basedir/{output.logs} logs 2>&1 | tee -a $basedir/{log}
 			cd ..
