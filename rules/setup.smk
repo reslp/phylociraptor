@@ -254,16 +254,16 @@ rule download_busco_set:
 
 		if [ "{params.busco_version}" == "3.0.2" ]
 		then
-			base_url="http://busco.ezlab.org/v3/datasets"
+			base_url="https://busco.ezlab.org/v3/datasets"
 			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
-			wget -q -c $base_url/{params.set}.tar.gz -O - | tar -xz --strip-components 1 -C {output.busco_set}/
+			wget -q -c $base_url/{params.set}.tar.gz -O --no-check-certificate - | tar -xz --strip-components 1 -C {output.busco_set}/
 		elif [ "{params.busco_version}" == "5.2.1" ]
 		then
 			base_url="https://busco-data.ezlab.org/v5/data/lineages"
 			current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
 			echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
 			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
-			wget -q -c $base_url/$current -O - | tar -xz --strip-components 1 -C {output.busco_set}/
+			wget -q -c $base_url/$current -O --no-check-certificate - | tar -xz --strip-components 1 -C {output.busco_set}/
 		else
 			echo -e "\\n######\\nPlease specify a valid BUSCO version in your config file - supported are '3.0.2' and '5.0.2'\\n######" 2>&1 | tee -a {log}
 			exit 1
