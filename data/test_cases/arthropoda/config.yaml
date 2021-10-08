@@ -4,7 +4,7 @@ concurrency: 20
 
 # settings realted to busco
 busco:
-    set: "http://busco.ezlab.org/v3/datasets/metazoa_odb9.tar.gz" # the download URL for the BUSCO set which should be used
+    set: "metazoa_odb9" # the download URL for the BUSCO set which should be used
     version: "3.0.2"
     mode: "genome"
     threads: 8
