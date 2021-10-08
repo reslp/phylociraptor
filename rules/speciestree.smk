@@ -62,14 +62,51 @@ rule aggregate_gene_trees:
 		treefiles = return_trees
 	output:
 		trees = "results/phylogeny/astral/{aligner}-{alitrim}/trees_{aligner}_{alitrim}.tre",
-		checkpoint = "results/checkpoints/aggregate_gene_trees_{aligner}_{alitrim}.done"
+		checkpoint = "results/checkpoints/aggregate_gene_trees_{aligner}_{alitrim}.done",
+		genetree_filter_stats = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt"
 	params:
-		include = config["speciestree"]["include"]
+		include = config["speciestree"]["include"],
+		wd = os.getcwd(),
+		bootstrap_cutoff = config["speciestree"]["bootstrap_cutoff"]
 	shell:
 		"""
+		rm -rf {output.genetree_filter_stats}
+		rm -rf {output.trees}
+
 		if [[ "{params.include}" == "None" ]]
 		then
-			cat $(ls -1 results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*/*_gt.treefile) > {output.trees}
+			if [[ "{params.bootstrap_cutoff}" != "None" ]]
+			then
+				echo "$(date) - phylociraptor will use gene tree filtering based on average bootstrap support value of {params.bootstrap_cutoff}." >> {params.wd}/results/statistics/runlog.txt
+				for gene in $(ls -d results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*)
+				do
+					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
+					bootstrapsum=$(echo "$bootstrapvalues" | bc)
+					totalbootstraps=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | wc -l )
+					meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
+					genename=$(basename $gene)
+					if [[ $meanbootstrap -le {params.bootstrap_cutoff} ]]
+					then
+						echo -e "$genename\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap\t{params.bootstrap_cutoff}\tFAILED" | tee -a {output.genetree_filter_stats}
+					else
+						echo -e "$genename\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap\t{params.bootstrap_cutoff}\tOK" | tee -a {output.genetree_filter_stats}
+						cat $gene/*.treefile >> {output.trees}
+					fi
+				done
+					
+			else	
+				echo "$(date) - phylociraptor will NOT filter gene tree based on average bootstrap support." >> {params.wd}/results/statistics/runlog.txt
+				for gene in $(ls -d results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*)
+				do
+					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
+					bootstrapsum=$(echo "$bootstrapvalues" | bc)
+					totalbootstraps=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | wc -l )
+					meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
+					genename=$(basename $gene)
+					echo -e "$genename\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap\t{params.bootstrap_cutoff}\tOK" | tee -a {output.genetree_filter_stats}
+				done
+				cat $(ls -1 results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*/*_gt.treefile) > {output.trees}
+			fi
 		else
 			cat $(cat {params.include}) > {output.trees}
 		fi

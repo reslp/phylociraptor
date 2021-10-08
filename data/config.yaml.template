@@ -57,6 +57,7 @@ genetree:
 speciestree:
     method: "astral"
     include: #"data/trees_to_include.txt"
+    bootstrap_cutoff: # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: No cutoff (all trees will be included)
 
 
 tree:

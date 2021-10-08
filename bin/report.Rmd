@@ -708,7 +708,6 @@ if (length(files) > 0) {
   		colnames(dat[[i]]) <- c("alignment", "model")
   		all_genes <- c(all_genes,dat[[i]]$alignment)
 		models <- c(models, unique(dat[[i]]$model))
-#scale_fill_viridis(discrete=T, option="B") 
 		i <- i + 1
 	}
 	# get unqiue number of models in dataset and create colors for them:
@@ -765,15 +764,82 @@ if (file.exists(tree_statistics_file) == TRUE) {
 
 ### Speciestree
 
-```{r stats_speciestree, echo=FALSE}
-if (file.exists(speciestree_statistics_file) == TRUE) {
-  tree_stats <- TRUE
-} else {
-  tree_stats <- FALSE
+```{r stats_speciestree, message=FALSE, echo=FALSE, warning=FALSE, results="asis", fig.align="center"}
+files <- list.files(path="../results/statistics/", pattern ="genetree_filter_*", recursive=F)
+multi_merge <- function(d) {
+	df <- d[[1]]
+	if (length(d) >= 2) {
+		for (i in 2:length(dat)) {
+			df <- merge(df, d[[i]], by="gene", all=T, suffixes=c("",""))
+			#df <- full_join(df, d[[i]], by="gene", suffix = c("", ""))
+		}
+	}
+	return(df)
+}
+if (length(files) > 0) {
+	i <- 1
+	dat <- list()
+	all_genes <- c()
+	names <- c("gene", "bootstrap_mean", "check")
+	all_colnames <- c("gene", "aligner", "trimmer", "bootstrap_sum", "bootstrap_n", "bootstrap_mean", "bootstrap_cutoff", "check")
+	titles <- c()
+	plots <- list()
+	models <- c()
+	thresh <- 0
+	genes_above_thresh_outstring <- c()
+	for (file in files) {
+		# get reusable and meaningful name
+		title <- str_split(file, "_")[[1]][3:4]
+		# use other stringsplit function which supports fixed=T
+		title[2] <- strsplit(title[2], ".", fixed=T)[[1]][1]
+		title <- paste(title, collapse="-")
+ 		names <- c(names,  c("gene", "bootstrap_mean", "check"))
+		titles <- c(titles, title)
+		dat[[i]] <- read.table(paste0("../results/statistics/", file), sep="\t", header=F)
+  		colnames(dat[[i]]) <- all_colnames 
+  		thresh <- dat[[i]]$bootstrap_cutoff[1]
+		dat[[i]] <- dat[[i]][,c("gene", "bootstrap_mean", "check")]
+		
+		genes_above_thresh_outstring <- c(genes_above_thresh_outstring, paste0("<b>Number of ", title, " trees above bootstrap threshold (",thresh,"): ", nrow(dat[[i]][dat[[i]]$check == "OK", ]), "</b><br>\n"))
+		#all_genes <- c(all_genes,dat[[i]]$gene)
+		i <- i + 1
+	
+	}
+	data_combined <- do.call(multi_merge, list(dat))
+	#colnames(data_combined) <- names
+
+	get_headers <- function(titles) {
+	
+	values <- c(1)
+	names <- c(" ")
+	
+	for (title in titles) {
+		values <- c(values, 2)
+		names <- c(names,  title)
+	
+	}
+	names(values) <- names
+	return(values)
+	}
+	plot_data <- data_combined[, grepl("bootstrap_mean", names(data_combined))]
+	colnames(plot_data) <- titles
+	plot_data$gene <- data_combined$gene
+	plot_data <- melt(plot_data)
+	colnames(plot_data) <- c("gene", "aligner_trimmer", "bootstrap_mean") 
+	p <- ggplot(plot_data, aes(x=aligner_trimmer, y=bootstrap_mean)) + geom_violin() + geom_hline(yintercept=thresh, color="red", alpha=0.5) + labs(title ="Distribution of mean bootstrap values for gene trees", x = "Aligner and Trimmer combination",y= "Mean Bootstrap values")
+	print(p)
+	cat("<br>\n")
+	for (s in genes_above_thresh_outstring) {
+		cat(s)
+	}
+		
+	cat("<br><b>Overview of mean bootstrap values per gene-tree: </b><br>\n")
+	options(knitr.kable.NA = '') # do not display NA values
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(titles)) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	#data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+
 }
 ```
-
-`r if(!tree_stats){"**Speciestree statistics not found. Did you run phylociraptor speciestree?**"}`
 
 ### Log
 
