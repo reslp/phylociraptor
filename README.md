@@ -1,10 +1,10 @@
 ```         
-           __          __           _                  __           
-    ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
-   / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
-  / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
- / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
-/_/          /____/                         /_/                      
+                    __          __           _                  __           
+             ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
+            / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
+           / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
+          / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
+         /_/          /____/                         /_/                      
 ```
 
 # phylociraptor - Rapid phylogenomic tree calculator 
@@ -38,7 +38,7 @@ On a cluster:
 
 Orthology inference:
 
-- BUSCO 3.0.2 (https://busco.ezlab.org/)
+- BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
 
 Alignment:
 
@@ -61,49 +61,58 @@ Tree inference:
 1. Clone the repository:
 
 ```
-$ git clone https://github.com/reslp/smsi-phylogenomics.git
-$ cd smsi-phylogenomics
+$ git clone --recursive https://github.com/reslp/phylociraptor.git
+$ cd ./phylociraptor
 $ ./phylociraptor
-Welcome to phylociraptor, the rapid phylogenomic tree calculator
+
+			     Welcome to
+           __          __           _                  __            
+    ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
+   / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
+  / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
+ / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
+/_/          /____/                         /_/                      
+
+	  the rapid phylogenomic tree calculator, ver.0.9.0
+
 
 Usage: phylociraptor <command> <arguments>
 
 Commands:
-    setup               Setup pipeline
-    orthology           Infer orthologs in a set of genomes
-    filter-orthology    Filter orthology results
-    align               Create alignments for orthologous genes
-    filter-align        Trim and filter alignments
-    model               Perform modeltesting
-    mltree              Calculate Maximum-Likelihood phylogenomic trees
-    speciestree         Calculate gene trees and species tree
-    njtree              Calculate Neighbor-Joining tree
-    report              Create a HTML report of the run
-    
-    report		Create a HTML report of the run
-    check		Quickly check status of the run
+	setup			Setup pipeline
+	orthology		Infer orthologs in a set of genomes
+	filter-orthology	Filter orthology results
+	align			Create alignments for orthologous genes
+	filter-align		Trim and filter alignments
+	model			Perform modeltesting
+	mltree			Calculate Maximum-Likelihood phylogenomic trees
+	speciestree		Calculate gene trees and species tree
+	njtree			Calculate Neighbor-Joining tree
 
-    -v, --version       Print version
-    -h, --help          Display help
+	report			Create a HTML report of the run
+	check			Quickly check status of the run
+
+	-v, --version 		Print version
+	-h, --help		Display help
 
 Examples:
-    To see options for the setup step:
-    ./phylociraptor setup -h
+	To see options for the setup step:
+	./phylociraptor setup -h
 
-    To run orthology inferrence for a set of genomes on a SLURM cluster:
-    ./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
+	To run orthology inferrence for a set of genomes on a SLURM cluster:
+	./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
 
-    To filter alignments overwriting the number of parsimony informative sites set in the config file:
-    ./phylciraptor filter-align --npars_cutoff 12
+	To filter alignments overwriting the number of parsimony informative sites set in the config file:
+	./phylciraptor filter-align --npars_cutoff 12
 
-phylociraptor: error: the following arguments are required: command, arguments
 ```
 
 2. Create a conda environment with snakemake:
 If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
 
 ```
-$ conda create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
+$ conda install -n base -c conda-forge mamba
+$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 $ conda activate snakemake
 ```
 
@@ -123,7 +132,7 @@ species: data/data.csv
 
 ```
 busco:
-   set: "http://busco.ezlab.org/v3/datasets/fungi_odb9.tar.gz"
+   set: "fungi_odb9"
    ausgustus_species: anidulans
 ```
 
