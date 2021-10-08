@@ -1,16 +1,15 @@
-#general settings:
-species: data/all_fungi_test.csv
+species: "data/arthropoda.csv"
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
-concurrency: 20 # Parallelization level
+concurrency: 20
 
 # settings realted to busco
 busco:
-    set: "http://busco.ezlab.org/v3/datasets/fungi_odb9.tar.gz" # the download URL for the BUSCO set which should be used
+    set: "http://busco.ezlab.org/v3/datasets/metazoa_odb9.tar.gz" # the download URL for the BUSCO set which should be used
     version: "3.0.2"
-    threads: 8
-    augustus_species: saccharomyces
-    additional_parameters: ""
     mode: "genome"
+    threads: 8
+    augustus_species: fly
+    additional_parameters: ""
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----
@@ -21,43 +20,47 @@ busco:
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
 
 #file with species names to exclude from orthology/filter-orthology rules
-exclude_orthology: ""
+exclude_orthology:
 
 filtering:
+    concurrency: 10
     dupseq: "persample"
     cutoff: 0.5
-    minsp: 3
+    minsp: 250
     seq_type: "aa"
-    min_parsimony_sites: 10
+    min_parsimony_sites: 50
 
 # settings related to alignment and trimming
 alignment:
-    method: ["mafft", "clustalo"] # currently supported methods: mafft, clustalo
+    method: ["mafft","clustalo"] # currently supported methods: mafft, clustalo
     threads: 8
     mafft_parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
-    clustalo_parameters: 
+    clustalo_parameters:
+
 # possible trimming options: trimal, aliscore
 trimming: 
     method: ["trimal", "aliscore"] 
     trimal_parameters: "-gappyout"
-    aliscore_parameters: 
-modeltest:
-    threads: 16
+    aliscore_parameters:
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
 
-tree:
-    method: "iqtree raxml"
-
-speciestree:
-    method: "astral"
-    include: #"data/trees_to_include.txt"
+modeltest:
+    method: ["iqtree"]
+    threads: 5
 
 genetree:
     method: ["iqtree"]
     boostrap: 1000
     threads: 16
+
+speciestree:
+    method: "astral"
+    include: 
+
+tree:
+    method: ["iqtree", "raxml"]
 
 # specific settings for individual tree reconstruction methods
 iqtree:

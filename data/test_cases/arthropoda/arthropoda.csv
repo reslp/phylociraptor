@@ -1,0 +1,655 @@
+species,Organism Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
+"Acartia tonsa","Eukaryota;Animals;Other Animals",989.164,0,0,0,1,web
+"Apocyclops royi","Eukaryota;Animals;Other Animals",262.264,0,0,0,1,web
+"Carcinoscorpius rotundicauda","Eukaryota;Animals;Other Animals",1668.68,16,0,0,1,web
+"Centruroides sculpturatus","Eukaryota;Animals;Other Animals",925.475,0,0,0,1,web
+"Cordylochernes scorpioides","Eukaryota;Animals;Other Animals",2807.11,0,0,0,1,web
+"Dysdera silvatica","Eukaryota;Animals;Other Animals",1359.27,0,1,0,1,web
+"Eulimnadia texana","Eukaryota;Animals;Other Animals",120.536,0,0,0,1,web
+"Limulus polyphemus","Eukaryota;Animals;Other Animals",1828.27,0,1,0,1,web
+"Loxosceles reclusa","Eukaryota;Animals;Other Animals",3262.48,0,0,0,1,web
+"Oithona nana","Eukaryota;Animals;Other Animals",85.0101,0,0,0,1,web
+"Stegodyphus dumicola","Eukaryota;Animals;Other Animals",2551.87,0,0,0,1,web
+"Stegodyphus mimosarum","Eukaryota;Animals;Other Animals",2738.7,0,0,0,1,web
+"Tachypleus gigas","Eukaryota;Animals;Other Animals",1830.81,14,0,0,1,web
+"Tachypleus tridentatus","Eukaryota;Animals;Other Animals",2167.47,13,0,0,3,web
+"Tigriopus japonicus","Eukaryota;Animals;Other Animals",196.599,12,0,0,1,web
+"unclassified Hexapoda","Eukaryota;Animals;Insects",99.041,0,0,0,1,web
+"Abscondita terminalis","Eukaryota;Animals;Insects",499.653,0,0,0,1,web
+"Acanthoscurria geniculata","Eukaryota;Animals;Other Animals",7178.4,0,0,0,1,web
+"Acheta domesticus","Eukaryota;Animals;Insects",929.173,0,0,0,1,web
+"Achipteria coleoptrata","Eukaryota;Animals;Other Animals",88.4439,0,0,0,1,web
+"Acromyrmex echinatior","Eukaryota;Animals;Insects",295.945,0,0,0,1,web
+"Acyrthosiphon pisum","Eukaryota;Animals;Insects",541.138,4,1,0,2,web
+"Adela reaumurella","Eukaryota;Animals;Insects",874.161,0,0,0,1,web
+"Adoxophyes honmai","Eukaryota;Animals;Insects",469.62,0,0,0,1,web
+"Adranes taylori","Eukaryota;Animals;Insects",887.888,0,0,0,1,web
+"Aedes albopictus","Eukaryota;Animals;Insects",2538.39,0,1,0,5,web
+"Aenictocupidus jacobsonorum","Eukaryota;Animals;Insects",178.224,0,0,0,1,web
+"Aethina tumida","Eukaryota;Animals;Insects",234.344,0,0,0,1,web
+"Agrilus planipennis","Eukaryota;Animals;Insects",353.073,0,1,0,1,web
+"Agrotis ipsilon","Eukaryota;Animals;Insects",486.925,0,0,0,1,web
+"Aleochara bilineata","Eukaryota;Animals;Insects",85.8997,0,0,0,1,web
+"Amphibalanus amphitrite","Eukaryota;Animals;Other Animals",613.414,0,0,0,1,web
+"Amphinemura sulcicollis","Eukaryota;Animals;Insects",271.925,0,0,0,1,web
+"Amyelois transitella","Eukaryota;Animals;Insects",406.468,0,0,0,1,web
+"Andricus curvator","Eukaryota;Animals;Insects",1713.4,0,0,0,1,web
+"Andricus grossulariae","Eukaryota;Animals;Insects",1412.75,0,0,0,2,web
+"Andricus inflator","Eukaryota;Animals;Insects",1869.31,0,0,0,1,web
+"Andricus quercuslanigera","Eukaryota;Animals;Insects",1336.78,0,0,0,1,web
+"Andricus quercusramuli","Eukaryota;Animals;Insects",1937.57,0,0,0,1,web
+"Anelosimus studiosus","Eukaryota;Animals;Other Animals",2033.43,0,0,0,1,web
+"Anisolabis maritima","Eukaryota;Animals;Insects",641.675,0,0,0,1,web
+"Anopheles albimanus","Eukaryota;Animals;Insects",172.603,3,0,0,3,web
+"Anopheles aquasalis","Eukaryota;Animals;Insects",162.944,0,0,0,1,web
+"Anopheles arabiensis","Eukaryota;Animals;Insects",246.568,0,0,0,1,web
+"Anopheles atroparvus","Eukaryota;Animals;Insects",224.29,0,0,0,1,web
+"Anopheles bwambae","Eukaryota;Animals;Insects",288.965,0,0,0,1,web
+"Anopheles christyi","Eukaryota;Animals;Insects",172.659,0,0,0,1,web
+"Anopheles coluzzii","Eukaryota;Animals;Insects",224.417,0,0,0,2,web
+"Anopheles cracens","Eukaryota;Animals;Insects",326.466,0,0,0,1,web
+"Anopheles culicifacies","Eukaryota;Animals;Insects",202.999,0,0,0,1,web
+"Anopheles darlingi","Eukaryota;Animals;Insects",136.936,0,0,0,1,web
+"Anopheles dirus","Eukaryota;Animals;Insects",216.308,0,0,0,1,web
+"Anopheles epiroticus","Eukaryota;Animals;Insects",223.487,0,0,0,1,web
+"Anopheles farauti","Eukaryota;Animals;Insects",183.103,0,0,0,2,web
+"Anopheles farauti No. 4","Eukaryota;Animals;Insects",146.379,0,0,0,1,web
+"Anopheles fontenillei","Eukaryota;Animals;Insects",232.633,0,0,0,1,web
+"Anopheles funestus","Eukaryota;Animals;Insects",444.544,3,0,0,2,web
+"Anopheles gambiae","Eukaryota;Animals;Insects",265.027,5,1,0,4,web
+"Anopheles koliensis","Eukaryota;Animals;Insects",151.11,0,0,0,1,web
+"Anopheles maculatus","Eukaryota;Animals;Insects",462.689,0,0,0,2,web
+"Anopheles melas","Eukaryota;Animals;Insects",224.162,0,0,0,1,web
+"Anopheles merus","Eukaryota;Animals;Insects",288.049,0,0,0,1,web
+"Anopheles minimus","Eukaryota;Animals;Insects",201.793,0,0,0,1,web
+"Anopheles nili","Eukaryota;Animals;Insects",98.32,0,0,0,1,web
+"Anopheles punctulatus","Eukaryota;Animals;Insects",146.157,0,0,0,1,web
+"Anopheles quadriannulatus","Eukaryota;Animals;Insects",283.829,0,0,0,1,web
+"Anopheles sinensis","Eukaryota;Animals;Insects",220.778,0,0,0,2,web
+"Anopheles stephensi","Eukaryota;Animals;Insects",243.46,3,1,0,5,web
+"Anoplophora glabripennis","Eukaryota;Animals;Insects",706.969,0,1,0,1,web
+"Antheraea mylitta","Eukaryota;Animals;Insects",698.408,0,0,0,1,web
+"Aphaenogaster ashmeadi","Eukaryota;Animals;Insects",310.334,0,0,0,1,web
+"Aphaenogaster floridana","Eukaryota;Animals;Insects",382.861,0,0,0,1,web
+"Aphaenogaster fulva","Eukaryota;Animals;Insects",346.134,0,0,0,1,web
+"Aphaenogaster miamiana","Eukaryota;Animals;Insects",342.643,0,0,0,1,web
+"Aphaenogaster picea","Eukaryota;Animals;Insects",386.045,0,0,0,1,web
+"Aphaenogaster rudis","Eukaryota;Animals;Insects",395.412,0,0,0,2,web
+"Aphidius ervi","Eukaryota;Animals;Insects",138.952,0,0,0,1,web
+"Aphis craccivora","Eukaryota;Animals;Insects",318.873,0,0,0,1,web
+"Aphis glycines","Eukaryota;Animals;Insects",308.064,0,0,0,2,web
+"Aphis gossypii","Eukaryota;Animals;Insects",294.279,0,1,0,1,web
+"Apis cerana","Eukaryota;Animals;Insects",228.332,0,1,0,4,web
+"Apis dorsata","Eukaryota;Animals;Insects",230.34,0,0,0,2,web
+"Apis florea","Eukaryota;Animals;Insects",229.015,0,1,0,1,web
+"Apis laboriosa","Eukaryota;Animals;Insects",226.063,0,0,0,1,web
+"Apis mellifera","Eukaryota;Animals;Insects",225.251,16,1,0,6,web
+"Aptinothrips rufus","Eukaryota;Animals;Insects",339.926,0,0,0,1,web
+"Araneus ventricosus","Eukaryota;Animals;Other Animals",3656.62,0,0,0,1,web
+"Armadillidium nasatum","Eukaryota;Animals;Other Animals",1223.18,0,0,0,1,web
+"Armadillidium vulgare","Eukaryota;Animals;Other Animals",1725.11,0,0,0,2,web
+"Asbolus verrucosus","Eukaryota;Animals;Insects",249.608,0,0,0,1,web
+"Athalia rosae","Eukaryota;Animals;Insects",155.841,0,0,0,1,web
+"Atta cephalotes","Eukaryota;Animals;Insects",317.672,0,1,0,1,web
+"Atta colombica","Eukaryota;Animals;Insects",291.258,0,0,0,1,web
+"Atta texana","Eukaryota;Animals;Insects",286.873,0,0,0,1,web
+"Aulacorthum solani","Eukaryota;Animals;Insects",316.098,0,0,0,1,web
+"Bactrocera latifrons","Eukaryota;Animals;Insects",462.505,0,1,0,1,web
+"Bactrocera tryoni","Eukaryota;Animals;Insects",519.006,0,0,0,1,web
+"Baetis rhodani","Eukaryota;Animals;Insects",174.117,0,0,0,1,web
+"Belgica antarctica","Eukaryota;Animals;Insects",89.5837,0,0,0,1,web
+"Belonocnema treatae","Eukaryota;Animals;Insects",1538.69,10,0,0,1,web
+"Bemisia tabaci","Eukaryota;Animals;Insects",615.017,0,1,0,3,web
+"Blattella germanica","Eukaryota;Animals;Insects",2037.3,0,0,0,2,web
+"Bolitophila cinerea","Eukaryota;Animals;Insects",365.299,0,0,0,1,web
+"Bombus bifarius","Eukaryota;Animals;Insects",266.785,0,0,0,1,web
+"Bombus breviceps","Eukaryota;Animals;Insects",248.124,18,0,0,1,web
+"Bombus haemorrhoidalis","Eukaryota;Animals;Insects",240.539,18,0,0,1,web
+"Bombus ignitus","Eukaryota;Animals;Insects",0,0,0,0,0,web
+"Bombus impatiens","Eukaryota;Animals;Insects",246.856,0,0,0,1,web
+"Bombus pyrosoma","Eukaryota;Animals;Insects",254.805,18,0,0,1,web
+"Bombus terrestris","Eukaryota;Animals;Insects",248.654,18,0,0,1,web
+"Bombus turneri","Eukaryota;Animals;Insects",243.112,25,0,0,1,web
+"Bombus vancouverensis","Eukaryota;Animals;Insects",282.134,0,0,0,1,web
+"Bombus vosnesenskii","Eukaryota;Animals;Insects",275.578,0,0,0,1,web
+"Bombus waltoni","Eukaryota;Animals;Insects",0,0,0,0,0,web
+"Bombyx huttoni","Eukaryota;Animals;Insects",450.339,0,0,0,1,web
+"Bombyx mandarina","Eukaryota;Animals;Insects",398.589,0,1,0,1,web
+"Bombyx mori","Eukaryota;Animals;Insects",481.819,0,1,0,4,web
+"Bradysia coprophila","Eukaryota;Animals;Insects",309.774,4,0,0,1,web
+"Brevipalpus yothersi","Eukaryota;Animals;Other Animals",71.1626,0,0,0,1,web
+"Busseola fusca","Eukaryota;Animals;Insects",492.903,0,0,0,1,web
+"Calanus finmarchicus","Eukaryota;Animals;Other Animals",3.58577,0,0,0,1,web
+"Calanus glacialis","Eukaryota;Animals;Other Animals",3.94111,0,0,0,1,web
+"Calephelis nemesis","Eukaryota;Animals;Insects",808.525,0,0,0,1,web
+"Calephelis virginiensis","Eukaryota;Animals;Insects",855.082,0,0,0,1,web
+"Caligus rogercresseyi","Eukaryota;Animals;Other Animals",478.201,21,0,0,3,web
+"Callirhytis","Eukaryota;Animals;Insects",1117.28,0,0,0,1,web
+"Callosobruchus maculatus","Eukaryota;Animals;Insects",1007.82,0,0,0,1,web
+"Calopteryx splendens","Eukaryota;Animals;Insects",1628.35,0,0,0,1,web
+"Calycopis cecrops","Eukaryota;Animals;Insects",728.789,0,0,0,1,web
+"Campodea augens","Eukaryota;Animals;Insects",1127.04,0,0,0,1,web
+"Campoletis sonorensis","Eukaryota;Animals;Insects",256.043,0,0,0,1,web
+"Camponotus floridanus","Eukaryota;Animals;Insects",284.009,0,0,0,2,web
+"Caridina multidentata","Eukaryota;Animals;Other Animals",1948.95,0,0,0,1,web
+"Carposina sasakii","Eukaryota;Animals;Insects",399.04,31,0,0,1,web
+"Cataglyphis hispanica","Eukaryota;Animals;Insects",198.943,0,0,0,1,web
+"Cataglyphis niger","Eukaryota;Animals;Insects",295.978,0,0,0,1,web
+"Catajapyx aquilonaris","Eukaryota;Animals;Insects",285.626,0,0,0,1,web
+"Catotricha subobsoleta","Eukaryota;Animals;Insects",310.19,0,0,0,1,web
+"Cecidostiba fungosa","Eukaryota;Animals;Insects",185.537,0,0,0,1,web
+"Cecidostiba semifascia","Eukaryota;Animals;Insects",287.222,0,0,0,1,web
+"Cephus cinctus","Eukaryota;Animals;Insects",162.246,0,1,0,1,web
+"Ceratina australensis","Eukaryota;Animals;Insects",219.302,0,0,0,1,web
+"Ceratina calcarata","Eukaryota;Animals;Insects",199.937,0,0,0,1,web
+"Ceratitis capitata","Eukaryota;Animals;Insects",436.491,0,1,0,1,web
+"Ceratophysella communis","Eukaryota;Animals;Insects",162.375,0,0,0,1,web
+"Ceratosolen solmsi","Eukaryota;Animals;Insects",277.059,0,0,0,1,web
+"Chaoborus trivitattus","Eukaryota;Animals;Insects",269.281,0,0,0,1,web
+"Chelonus insularis","Eukaryota;Animals;Insects",135.73,0,0,0,1,web
+"Cherax destructor","Eukaryota;Animals;Other Animals",3336.74,0,0,0,1,web
+"Cherax quadricarinatus","Eukaryota;Animals;Other Animals",3236.65,0,0,0,1,web
+"Chilo suppressalis","Eukaryota;Animals;Insects",824.354,0,0,0,2,web
+"Chironomus riparius","Eukaryota;Animals;Insects",154.534,0,0,0,1,web
+"Chironomus tentans","Eukaryota;Animals;Insects",213.463,0,0,0,1,web
+"Chrysina resplendens","Eukaryota;Animals;Insects",611.44,0,0,0,1,web
+"Cimex lectularius","Eukaryota;Animals;Insects",510.849,0,1,0,2,web
+"Cinara cedri","Eukaryota;Animals;Insects",396.043,0,0,0,1,web
+"Cirrula hians","Eukaryota;Animals;Insects",399.686,0,0,0,1,web
+"Clitarchus hookeri","Eukaryota;Animals;Insects",3802.63,0,0,0,1,web
+"Cloeon dipterum","Eukaryota;Animals;Insects",180.287,0,0,0,1,web
+"Clogmia albipunctata","Eukaryota;Animals;Insects",256.249,0,0,0,1,web
+"Clunio marinus","Eukaryota;Animals;Insects",85.4914,0,0,0,1,web
+"Cnaphalocrocis medinalis","Eukaryota;Animals;Insects",528.45,31,0,0,1,web
+"Coboldia fuscipes","Eukaryota;Animals;Insects",98.7591,0,0,0,1,web
+"Coccinella septempunctata","Eukaryota;Animals;Insects",514.957,0,0,0,1,web
+"Colletes gigas","Eukaryota;Animals;Insects",273.057,0,0,0,1,web
+"Condylostylus patibulatus","Eukaryota;Animals;Insects",451.942,0,0,0,1,web
+"Conopomorpha cramerella","Eukaryota;Animals;Insects",497.288,0,0,0,1,web
+"Contarinia nasturtii","Eukaryota;Animals;Insects",185.885,0,0,0,1,web
+"Copidosoma floridanum","Eukaryota;Animals;Insects",553.956,0,0,0,1,web
+"Coptotermes formosanus","Eukaryota;Animals;Insects",875.712,0,0,0,1,web
+"Cotesia vestalis","Eukaryota;Animals;Insects",186.104,0,0,0,2,web
+"Crematogaster levior","Eukaryota;Animals;Insects",326.2,0,0,0,1,web
+"Cryptolaemus montrouzieri","Eukaryota;Animals;Insects",988.107,0,0,0,1,web
+"Cryptotermes secundus","Eukaryota;Animals;Insects",1018.93,0,0,0,1,web
+"Ctenocephalides felis","Eukaryota;Animals;Insects",775.453,0,0,0,1,web
+"Culex quinquefasciatus","Eukaryota;Animals;Insects",579.042,0,0,0,1,web
+"Culicoides sonorensis","Eukaryota;Animals;Insects",209.429,0,0,0,2,web
+"Cydia pomonella","Eukaryota;Animals;Insects",772.892,0,0,0,1,web
+"Cyphomyrmex costatus","Eukaryota;Animals;Insects",300.317,0,0,0,1,web
+"Daphnia carinata","Eukaryota;Animals;Other Animals",131.591,10,0,0,1,web
+"Daphnia dubia","Eukaryota;Animals;Other Animals",107.502,0,0,0,1,web
+"Daphnia magna","Eukaryota;Animals;Other Animals",122.953,10,1,0,2,web
+"Daphnia pulex","Eukaryota;Animals;Other Animals",189.551,0,0,0,2,web
+"Dasypogon diadema","Eukaryota;Animals;Insects",505.154,0,0,0,1,web
+"Delias pasithoe","Eukaryota;Animals;Insects",297.182,0,0,0,1,web
+"Dendroctonus ponderosae","Eukaryota;Animals;Insects",252.848,0,0,0,2,web
+"Dendrolimus punctatus","Eukaryota;Animals;Insects",614.071,30,0,0,1,web
+"Dermacentor silvarum","Eukaryota;Animals;Other Animals",2474.31,11,1,0,1,web
+"Dermanyssus gallinae","Eukaryota;Animals;Other Animals",959.01,0,0,0,1,web
+"Dermatophagoides farinae","Eukaryota;Animals;Other Animals",91.8917,0,1,0,2,web
+"Dermatophagoides pteronyssinus","Eukaryota;Animals;Other Animals",70.7782,0,1,0,2,web
+"Diabrotica virgifera","Eukaryota;Animals;Insects",2418.07,0,0,0,1,web
+"Diachasma alloeum","Eukaryota;Animals;Insects",384.372,0,0,0,1,web
+"Diadegma semiclausum","Eukaryota;Animals;Insects",168.496,0,0,0,1,web
+"Diadromus collaris","Eukaryota;Animals;Insects",188.923,0,0,0,1,web
+"Diaphorina citri","Eukaryota;Animals;Insects",485.705,0,0,0,1,web
+"Diatraea saccharalis","Eukaryota;Animals;Insects",0,0,0,0,0,web
+"Dinoponera quadriceps","Eukaryota;Animals;Insects",259.666,0,0,0,1,web
+"Dinothrombium tinctorium","Eukaryota;Animals;Other Animals",180.399,0,0,0,1,web
+"Diuraphis noxia","Eukaryota;Animals;Insects",395.074,0,1,0,3,web
+"Drosophila americana","Eukaryota;Animals;Insects",160.223,0,0,0,3,web
+"Drosophila asahinai","Eukaryota;Animals;Insects",189.051,0,0,0,1,web
+"Drosophila auraria","Eukaryota;Animals;Insects",197.421,0,0,0,1,web
+"Drosophila azteca","Eukaryota;Animals;Insects",219.084,0,0,0,1,web
+"Drosophila bakoue","Eukaryota;Animals;Insects",187.249,0,0,0,1,web
+"Drosophila biarmipes","Eukaryota;Animals;Insects",169.379,0,0,0,3,web
+"Drosophila bifasciata","Eukaryota;Animals;Insects",192.75,5,0,0,1,web
+"Drosophila bocki","Eukaryota;Animals;Insects",151.202,0,0,0,1,web
+"Drosophila burlai","Eukaryota;Animals;Insects",175.666,0,0,0,1,web
+"Drosophila busckii","Eukaryota;Animals;Insects",118.492,6,0,0,3,web
+"Drosophila erecta","Eukaryota;Animals;Insects",146.538,0,0,0,2,web
+"Drosophila eugracilis","Eukaryota;Animals;Insects",156.942,0,0,0,1,web
+"Drosophila ficusphila","Eukaryota;Animals;Insects",152.439,0,0,0,1,web
+"Drosophila guanche","Eukaryota;Animals;Insects",140.633,0,1,0,1,web
+"Drosophila gunungcola","Eukaryota;Animals;Insects",168.095,0,0,0,1,web
+"Drosophila jambulina","Eukaryota;Animals;Insects",163.991,0,0,0,1,web
+"Drosophila kanapiae","Eukaryota;Animals;Insects",152.203,0,0,0,1,web
+"Drosophila kikkawai","Eukaryota;Animals;Insects",164.293,0,0,0,1,web
+"Drosophila lacteicornis","Eukaryota;Animals;Insects",182.681,0,0,0,1,web
+"Drosophila leontia","Eukaryota;Animals;Insects",164.602,0,0,0,1,web
+"Drosophila lowei","Eukaryota;Animals;Insects",184.313,5,0,0,1,web
+"Drosophila mauritiana","Eukaryota;Animals;Insects",152.317,6,1,0,1,web
+"Drosophila mayri","Eukaryota;Animals;Insects",167.807,0,0,0,1,web
+"Drosophila melanica","Eukaryota;Animals;Insects",149.952,0,0,0,2,web
+"Drosophila micromelanica","Eukaryota;Animals;Insects",156.838,0,0,0,2,web
+"Drosophila miranda","Eukaryota;Animals;Insects",287.096,6,0,0,3,web
+"Drosophila nikananu","Eukaryota;Animals;Insects",190.505,0,0,0,1,web
+"Drosophila novamexicana","Eukaryota;Animals;Insects",177.224,0,0,0,2,web
+"Drosophila obscura","Eukaryota;Animals;Insects",181.869,0,0,0,1,web
+"Drosophila orena","Eukaryota;Animals;Insects",182.891,0,0,0,1,web
+"Drosophila persimilis","Eukaryota;Animals;Insects",195.513,0,0,0,2,web
+"Drosophila punjabiensis","Eukaryota;Animals;Insects",192.339,0,0,0,1,web
+"Drosophila rufa","Eukaryota;Animals;Insects",186.168,0,0,0,1,web
+"Drosophila seguyi","Eukaryota;Animals;Insects",178.857,0,0,0,1,web
+"Drosophila simulans","Eukaryota;Animals;Insects",124.964,6,1,0,12,web
+"Drosophila takahashii","Eukaryota;Animals;Insects",182.107,0,0,0,2,web
+"Drosophila tani","Eukaryota;Animals;Insects",180.973,0,0,0,1,web
+"Drosophila truncata","Eukaryota;Animals;Insects",167.897,0,0,0,1,web
+"Drosophila vulcana","Eukaryota;Animals;Insects",187.579,0,0,0,1,web
+"Drosophila watanabei","Eukaryota;Animals;Insects",196.826,0,0,0,1,web
+"Drosophila willistoni","Eukaryota;Animals;Insects",235.516,0,0,0,1,web
+"Dryococelus australis","Eukaryota;Animals;Insects",3416.45,0,0,0,1,web
+"Dufourea novaeangliae","Eukaryota;Animals;Insects",279.506,0,0,0,1,web
+"Elaeidobius kamerunicus","Eukaryota;Animals;Insects",0,0,0,0,0,web
+"Epargyreus clarus","Eukaryota;Animals;Insects",426.664,0,0,0,1,web
+"Ephemera danica","Eukaryota;Animals;Insects",474.347,0,0,0,1,web
+"Ephydra gracilis","Eukaryota;Animals;Insects",410.873,0,0,0,1,web
+"Ericerus pela","Eukaryota;Animals;Insects",654.86,0,0,0,1,web
+"Eriocheir sinensis","Eukaryota;Animals;Other Animals",1272.14,72,0,0,2,web
+"Eriosoma lanigerum","Eukaryota;Animals;Insects",334.868,6,0,0,1,web
+"Eristalis dimidiata","Eukaryota;Animals;Insects",315.429,0,0,0,1,web
+"Eufriesea mexicana","Eukaryota;Animals;Insects",596.278,0,0,0,1,web
+"Euglossa dilemma","Eukaryota;Animals;Insects",588.2,0,0,0,1,web
+"Eumeta japonica","Eukaryota;Animals;Insects",727.118,0,0,0,1,web
+"Eupelmus annulatus","Eukaryota;Animals;Insects",314.961,0,0,0,1,web
+"Eupelmus urozonus","Eukaryota;Animals;Insects",376.748,0,0,0,1,web
+"Euroglyphus maynei","Eukaryota;Animals;Other Animals",43.4378,0,0,0,1,web
+"Eurytemora affinis","Eukaryota;Animals;Other Animals",389.032,0,0,0,1,web
+"Eurytoma adleriae","Eukaryota;Animals;Insects",314.665,0,0,0,1,web
+"Eurytoma brunniventris","Eukaryota;Animals;Insects",321.46,0,0,0,1,web
+"Euschistus heros","Eukaryota;Animals;Insects",1325.16,0,0,0,1,web
+"Eutreta diana","Eukaryota;Animals;Insects",233.053,0,0,0,1,web
+"Ferrisia virgata","Eukaryota;Animals;Insects",304.571,0,0,0,1,web
+"Folsomia candida","Eukaryota;Animals;Insects",221.703,0,0,0,1,web
+"Fopius arisanus","Eukaryota;Animals;Insects",153.632,0,0,0,1,web
+"Formica exsecta","Eukaryota;Animals;Insects",277.634,0,0,0,1,web
+"Formica selysi","Eukaryota;Animals;Insects",290.469,27,1,0,1,web
+"Frankliniella occidentalis","Eukaryota;Animals;Insects",274.99,0,1,0,1,web
+"Frieseomelitta varia","Eukaryota;Animals;Insects",275.436,0,1,0,1,web
+"Galendromus occidentalis","Eukaryota;Animals;Other Animals",151.724,0,1,0,1,web
+"Galleria mellonella","Eukaryota;Animals;Insects",401.915,0,1,0,3,web
+"Ganaspis brasiliensis","Eukaryota;Animals;Insects",821.363,0,0,0,1,web
+"Gerris buenoi","Eukaryota;Animals;Insects",994.443,0,0,0,1,web
+"Glossina austeni","Eukaryota;Animals;Insects",370.265,0,0,0,1,web
+"Glossina brevipalpis","Eukaryota;Animals;Insects",315.36,0,0,0,1,web
+"Glossina fuscipes","Eukaryota;Animals;Insects",374.775,0,0,0,1,web
+"Glossina morsitans","Eukaryota;Animals;Insects",363.107,0,0,0,2,web
+"Glossina pallidipes","Eukaryota;Animals;Insects",357.332,0,0,0,1,web
+"Glossina palpalis","Eukaryota;Animals;Insects",380.104,0,0,0,1,web
+"Glossosoma conforme","Eukaryota;Animals;Insects",604.294,0,0,0,1,web
+"Goniozus legneri","Eukaryota;Animals;Insects",140.142,0,0,0,1,web
+"Habropoda laboriosa","Eukaryota;Animals;Insects",296.955,0,0,0,1,web
+"Haemaphysalis longicornis","Eukaryota;Animals;Other Animals",2554.97,11,1,0,2,web
+"Haematobia irritans","Eukaryota;Animals;Insects",1143.54,0,0,0,1,web
+"Harmonia axyridis","Eukaryota;Animals;Insects",417.141,0,0,0,6,web
+"Harpegnathos saltator","Eukaryota;Animals;Insects",334.537,0,0,0,2,web
+"Helicorthomorpha holstii","Eukaryota;Animals;Other Animals",181.2,0,0,0,1,web
+"Helicoverpa zea","Eukaryota;Animals;Insects",341.147,0,0,0,1,web
+"Heliothis virescens","Eukaryota;Animals;Insects",403.154,0,0,0,1,web
+"Hermetia illucens","Eukaryota;Animals;Insects",1101.33,0,0,0,2,web
+"Holacanthella duospinosa","Eukaryota;Animals;Insects",327.567,0,0,0,1,web
+"Holcocephala fusca","Eukaryota;Animals;Insects",516.231,0,0,0,1,web
+"Hyalella azteca","Eukaryota;Animals;Other Animals",550.886,0,0,0,1,web
+"Hyalomma asiaticum","Eukaryota;Animals;Other Animals",1713.63,11,1,0,1,web
+"Hycleus cichorii","Eukaryota;Animals;Insects",99.1653,0,0,0,1,web
+"Hycleus phaleratus","Eukaryota;Animals;Insects",90.8698,0,0,0,1,web
+"Hydropsyche tenuis","Eukaryota;Animals;Insects",229.663,0,0,0,1,web
+"Hyles vespertilio","Eukaryota;Animals;Insects",651.413,0,1,0,1,web
+"Hyphantria cunea","Eukaryota;Animals;Insects",510.512,0,0,0,1,web
+"Hypochthonius rufulus","Eukaryota;Animals;Other Animals",172.365,0,0,0,1,web
+"Hyposmocoma kahamanoa","Eukaryota;Animals;Insects",731.441,0,0,0,1,web
+"Hypothenemus hampei","Eukaryota;Animals;Insects",162.571,0,0,0,2,web
+"Ignelater luminosus","Eukaryota;Animals;Insects",842.899,0,0,0,1,web
+"Isoperla grammatica","Eukaryota;Animals;Insects",509.523,0,0,0,1,web
+"Ixodes persulcatus","Eukaryota;Animals;Other Animals",1901.64,0,1,0,1,web
+"Ixodes ricinus","Eukaryota;Animals;Other Animals",514.507,0,0,0,1,web
+"Ixodes scapularis","Eukaryota;Animals;Other Animals",2081.33,0,0,0,2,web
+"Ladona fulva","Eukaryota;Animals;Insects",1157.62,0,0,0,1,web
+"Lamprigera yunnana","Eukaryota;Animals;Insects",1052.93,0,0,0,1,web
+"Laodelphax striatellus","Eukaryota;Animals;Insects",540.152,15,0,0,2,web
+"Lasioglossum albipes","Eukaryota;Animals;Insects",336.521,0,0,0,1,web
+"Lasius niger","Eukaryota;Animals;Insects",236.236,0,0,0,1,web
+"Latrodectus hesperus","Eukaryota;Animals;Other Animals",1233.81,0,0,0,1,web
+"Laupala kohalensis","Eukaryota;Animals;Insects",1595.21,0,0,0,1,web
+"Lednia tumana","Eukaryota;Animals;Insects",304.502,0,0,0,1,web
+"Lepeophtheirus salmonis","Eukaryota;Animals;Other Animals",665.13,0,0,0,3,web
+"Lepidurus apus","Eukaryota;Animals;Other Animals",87.9701,0,0,0,1,web
+"Lepidurus arcticus","Eukaryota;Animals;Other Animals",73.1059,0,0,0,1,web
+"Leptidea sinapis","Eukaryota;Animals;Insects",642.75,0,0,0,2,web
+"Leptinotarsa decemlineata","Eukaryota;Animals;Insects",641.993,0,0,0,1,web
+"Leptopilina boulardi","Eukaryota;Animals;Insects",375.718,0,0,0,2,web
+"Leptopilina clavipes","Eukaryota;Animals;Insects",255.344,0,0,0,1,web
+"Leptopilina heterotoma","Eukaryota;Animals;Insects",404.861,0,0,0,4,web
+"Leptotrombidium deliense","Eukaryota;Animals;Other Animals",117.319,0,0,0,1,web
+"Leptotrombidium pallidum","Eukaryota;Animals;Other Animals",170.869,0,0,0,1,web
+"Lerema accius","Eukaryota;Animals;Insects",298.17,0,0,0,1,web
+"Ligia exotica","Eukaryota;Animals;Other Animals",953.555,0,0,0,1,web
+"Limnephilus lunatus","Eukaryota;Animals;Insects",1369.18,0,0,0,1,web
+"Limonius californicus","Eukaryota;Animals;Insects",1072.67,0,0,0,1,web
+"Linepithema humile","Eukaryota;Animals;Insects",219.501,0,0,0,1,web
+"Lipothrix lubbocki","Eukaryota;Animals;Insects",244.674,0,0,0,1,web
+"Liriomyza trifolii","Eukaryota;Animals;Insects",69.6986,0,0,0,1,web
+"Listronotus bonariensis","Eukaryota;Animals;Insects",1112.44,0,0,0,1,web
+"Locusta migratoria","Eukaryota;Animals;Insects",5759.8,0,0,0,1,web
+"Lutzomyia longipalpis","Eukaryota;Animals;Insects",154.229,0,0,0,1,web
+"Lymantria dispar","Eukaryota;Animals;Insects",864.963,0,0,0,1,web
+"Lysiphlebus fabarum","Eukaryota;Animals;Insects",140.706,0,0,0,1,web
+"Machilis hrabei","Eukaryota;Animals;Insects",2144.51,0,0,0,1,web
+"Maconellicoccus hirsutus","Eukaryota;Animals;Insects",189.239,0,0,0,2,web
+"Macrocentrus cingulum","Eukaryota;Animals;Insects",127.916,0,0,0,1,web
+"Magicicada septendecim","Eukaryota;Animals;Insects",1579.03,0,0,0,1,web
+"Magicicada septendecula","Eukaryota;Animals;Insects",1585.98,0,0,0,1,web
+"Mamestra configurata","Eukaryota;Animals;Insects",571.323,0,1,0,1,web
+"Marronus borbonicus","Eukaryota;Animals;Insects",406.937,0,0,0,1,web
+"Mayetiola destructor","Eukaryota;Animals;Insects",185.828,0,0,0,2,web
+"Medauroidea extradentata","Eukaryota;Animals;Insects",2593.36,0,0,0,1,web
+"Megachile rotundata","Eukaryota;Animals;Insects",272.661,0,0,0,1,web
+"Megalopta genalis","Eukaryota;Animals;Insects",390.114,0,0,0,1,web
+"Megaselia abdita","Eukaryota;Animals;Insects",412.271,0,0,0,1,web
+"Megaselia scalaris","Eukaryota;Animals;Insects",489.348,0,0,0,1,web
+"Megastigmus dorsalis","Eukaryota;Animals;Insects",589.959,0,0,0,1,web
+"Megastigmus stigmatizans","Eukaryota;Animals;Insects",577.888,0,0,0,1,web
+"Megathymus ursus","Eukaryota;Animals;Insects",429.428,0,0,0,1,web
+"Melanaphis sacchari","Eukaryota;Animals;Insects",300.272,0,0,0,1,web
+"Melipona quadrifasciata","Eukaryota;Animals;Insects",256.303,0,0,0,1,web
+"Mengenilla moldrzyki","Eukaryota;Animals;Insects",155.727,0,0,0,1,web
+"Mesaphorura yosii","Eukaryota;Animals;Insects",97.9839,0,0,0,1,web
+"Mesobuthus martensii","Eukaryota;Animals;Other Animals",925.546,0,0,0,1,web
+"Microplitis demolitor","Eukaryota;Animals;Insects",241.19,0,0,0,1,web
+"Mochlonyx cinctipes","Eukaryota;Animals;Insects",441.264,0,0,0,1,web
+"Monomorium pharaonis","Eukaryota;Animals;Insects",259.04,0,0,0,4,web
+"Musca domestica","Eukaryota;Animals;Insects",750.404,0,0,0,2,web
+"Myzus persicae","Eukaryota;Animals;Insects",347.313,0,1,0,1,web
+"Nasonia giraulti","Eukaryota;Animals;Insects",283.607,0,0,0,1,web
+"Nasonia longicornis","Eukaryota;Animals;Insects",285.726,0,0,0,1,web
+"Nasonia vitripennis","Eukaryota;Animals;Insects",297.31,5,0,0,2,web
+"Neelides","Eukaryota;Animals;Insects",97.7651,0,0,0,1,web
+"Neodiprion lecontei","Eukaryota;Animals;Insects",239.677,0,0,0,1,web
+"Neodiprion pinetum","Eukaryota;Animals;Insects",269.775,0,0,0,1,web
+"Neoneuromus ignobilis","Eukaryota;Animals;Insects",767.847,0,0,0,1,web
+"Neuroterus quercusbaccarum","Eukaryota;Animals;Insects",2569.68,0,0,0,1,web
+"Nicrophorus vespilloides","Eukaryota;Animals;Insects",195.273,0,0,0,1,web
+"Nilaparvata lugens","Eukaryota;Animals;Insects",1140.8,0,1,0,2,web
+"Nomia melanderi","Eukaryota;Animals;Insects",325.881,0,0,0,1,web
+"Nylanderia fulva","Eukaryota;Animals;Insects",375.107,0,0,0,1,web
+"Odontomachus brunneus","Eukaryota;Animals;Insects",393.037,0,0,0,1,web
+"Oncopeltus fasciatus","Eukaryota;Animals;Insects",1099.61,0,0,0,1,web
+"Oncopodura yosiiana","Eukaryota;Animals;Insects",118.35,0,0,0,1,web
+"Onthophagus taurus","Eukaryota;Animals;Insects",267.079,0,0,0,1,web
+"Operophtera brumata","Eukaryota;Animals;Insects",638.208,0,0,0,1,web
+"Ophraella communa","Eukaryota;Animals;Insects",774.411,0,0,0,1,web
+"Orchesella cincta","Eukaryota;Animals;Insects",286.767,0,0,0,1,web
+"Orius insidiosus","Eukaryota;Animals;Insects",328.991,0,0,0,1,web
+"Ormyrus nitidulus","Eukaryota;Animals;Insects",259.886,0,0,0,1,web
+"Ormyrus pomaceus","Eukaryota;Animals;Insects",266.814,0,0,0,1,web
+"Orussus abietinus","Eukaryota;Animals;Insects",186.398,0,0,0,1,web
+"Oryctes borbonicus","Eukaryota;Animals;Insects",388.629,0,0,0,2,web
+"Oryzaephilus surinamensis","Eukaryota;Animals;Insects",104.009,0,0,0,1,web
+"Osmia bicornis","Eukaryota;Animals;Insects",210.591,0,0,0,1,web
+"Osmia lignaria","Eukaryota;Animals;Insects",177.072,0,0,0,1,web
+"Ostrinia furnacalis","Eukaryota;Animals;Insects",437.294,0,1,0,1,web
+"Ostrinia nubilalis","Eukaryota;Animals;Insects",454.916,0,0,0,1,web
+"Pachypsylla venusta","Eukaryota;Animals;Insects",481.97,12,0,0,2,web
+"Pandalus platyceros","Eukaryota;Animals;Other Animals",146.261,0,0,0,1,web
+"Paracoccus marginatus","Eukaryota;Animals;Insects",191.208,0,0,0,1,web
+"Paralithodes platypus","Eukaryota;Animals;Other Animals",4805.18,99,0,0,1,web
+"Parasteatoda tepidariorum","Eukaryota;Animals;Other Animals",1445.4,0,0,0,1,web
+"Pardosa pseudoannulata","Eukaryota;Animals;Other Animals",4207.95,0,0,0,1,web
+"Parhyale hawaiensis","Eukaryota;Animals;Other Animals",2752.56,0,0,0,1,web
+"Paykullia maculata","Eukaryota;Animals;Insects",422.395,0,0,0,1,web
+"Pediculus humanus","Eukaryota;Animals;Insects",110.781,0,0,0,1,web
+"Penaeus japonicus","Eukaryota;Animals;Other Animals",1660.27,0,0,0,1,web
+"Penaeus vannamei","Eukaryota;Animals;Other Animals",1663.58,0,1,0,2,web
+"Pentalonia nigronervosa","Eukaryota;Animals;Insects",375.223,0,0,0,1,web
+"Periplaneta americana","Eukaryota;Animals;Insects",3374.84,0,0,0,1,web
+"Phenacoccus solenopsis","Eukaryota;Animals;Insects",292.538,5,0,0,1,web
+"Philaenus spumarius","Eukaryota;Animals;Insects",1248.09,0,0,0,1,web
+"Phlebotomus papatasi","Eukaryota;Animals;Insects",363.768,0,0,0,1,web
+"Phoebis sennae","Eukaryota;Animals;Insects",287.49,0,0,0,1,web
+"Phormia regina","Eukaryota;Animals;Insects",549.933,0,0,0,2,web
+"Phortica variegata","Eukaryota;Animals;Insects",155.55,0,0,0,1,web
+"Photinus pyralis","Eukaryota;Animals;Insects",471.511,0,0,0,1,web
+"Platynothrus peltifer","Eukaryota;Animals;Other Animals",100.533,0,0,0,1,web
+"Plectrocnemia conspersa","Eukaryota;Animals;Insects",396.695,0,0,0,1,web
+"Pleistodontes nigriventris","Eukaryota;Animals;Insects",510.361,0,0,0,1,web
+"Plodia interpunctella","Eukaryota;Animals;Insects",382.236,0,0,0,2,web
+"Plutella xylostella","Eukaryota;Animals;Insects",393.471,0,1,0,5,web
+"Pogonomyrmex barbatus","Eukaryota;Animals;Insects",235.646,0,0,0,1,web
+"Pogonus chalceus","Eukaryota;Animals;Insects",280.876,11,0,0,1,web
+"Polistes canadensis","Eukaryota;Animals;Insects",211.202,0,0,0,1,web
+"Polistes dominula","Eukaryota;Animals;Insects",208.026,0,0,0,1,web
+"Polistes dorsalis","Eukaryota;Animals;Insects",209.288,0,0,0,1,web
+"Polistes fuscatus","Eukaryota;Animals;Insects",219.117,0,0,0,1,web
+"Polistes metricus","Eukaryota;Animals;Insects",219.839,0,0,0,1,web
+"Pollicipes pollicipes","Eukaryota;Animals;Other Animals",770.37,0,0,0,1,web
+"Popillia japonica","Eukaryota;Animals;Insects",531.53,0,0,0,1,web
+"Portunus trituberculatus","Eukaryota;Animals;Other Animals",990.242,0,0,0,1,web
+"Priacma serrata","Eukaryota;Animals;Insects",12.0783,0,0,0,1,web
+"Procambarus virginalis","Eukaryota;Animals;Other Animals",3290.47,0,0,0,1,web
+"Proctacanthus coquilletti","Eukaryota;Animals;Insects",208.908,0,0,0,1,web
+"Propylea japonica","Eukaryota;Animals;Insects",851.228,10,0,0,1,web
+"Pseudachorutes palmiensis","Eukaryota;Animals;Insects",77.0808,0,0,0,1,web
+"Pseudobourletiella spinata","Eukaryota;Animals;Insects",208.314,0,0,0,1,web
+"Pseudococcus longispinus","Eukaryota;Animals;Insects",284.99,0,0,0,1,web
+"Pseudomyrmex concolor","Eukaryota;Animals;Insects",196.808,0,0,0,1,web
+"Pseudomyrmex cubaensis","Eukaryota;Animals;Insects",204.625,0,0,0,1,web
+"Pseudomyrmex dendroicus","Eukaryota;Animals;Insects",206.595,0,0,0,1,web
+"Pseudomyrmex elongatus","Eukaryota;Animals;Insects",244.059,0,0,0,1,web
+"Pseudomyrmex flavicornis","Eukaryota;Animals;Insects",198.473,0,0,0,1,web
+"Pseudomyrmex gracilis","Eukaryota;Animals;Insects",282.776,0,0,0,1,web
+"Pseudomyrmex pallidus","Eukaryota;Animals;Insects",200.367,0,0,0,1,web
+"Pseudoneuroterus saliens","Eukaryota;Animals;Insects",2060.85,0,0,0,1,web
+"Psoroptes ovis","Eukaryota;Animals;Other Animals",63.2141,0,0,0,1,web
+"Pteromalus puparum","Eukaryota;Animals;Insects",338.171,5,0,0,1,web
+"Pygmarrhopalites habei","Eukaryota;Animals;Insects",211.516,0,0,0,1,web
+"Rhagoletis pomonella","Eukaryota;Animals;Insects",1223.29,0,0,0,1,web
+"Rhagoletis zephyria","Eukaryota;Animals;Insects",1113.96,0,0,0,1,web
+"Rhinocypha anisoptera","Eukaryota;Animals;Insects",1871.8,0,0,0,1,web
+"Rhipicephalus annulatus","Eukaryota;Animals;Other Animals",2762.43,0,0,0,1,web
+"Rhipicephalus microplus","Eukaryota;Animals;Other Animals",2529.93,11,1,0,4,web
+"Rhipicephalus sanguineus","Eukaryota;Animals;Other Animals",2365.54,11,1,0,1,web
+"Rhodnius prolixus","Eukaryota;Animals;Insects",706.824,0,0,0,1,web
+"Rhopalosiphum maidis","Eukaryota;Animals;Insects",326.023,4,0,0,1,web
+"Rhynchophorus ferrugineus","Eukaryota;Animals;Insects",782.098,0,0,0,3,web
+"Sarcophaga bullata","Eukaryota;Animals;Insects",476.287,0,0,0,2,web
+"Sarcophaga peregrina","Eukaryota;Animals;Insects",560.735,6,0,0,1,web
+"Sarcoptes scabiei","Eukaryota;Animals;Other Animals",56.5766,0,0,0,2,web
+"Scaptodrosophila lebanonensis","Eukaryota;Animals;Insects",247.078,0,0,0,2,web
+"Scaptomyza flava","Eukaryota;Animals;Insects",214.837,0,0,0,1,web
+"Schizaphis graminum","Eukaryota;Animals;Insects",385.232,0,0,0,1,web
+"Semibalanus balanoides","Eukaryota;Animals;Other Animals",486.009,0,0,0,2,web
+"Sericostoma","Eukaryota;Animals;Insects",1015.73,0,0,0,1,web
+"Sinella curviseta","Eukaryota;Animals;Insects",364.33,6,0,0,1,web
+"Sipha flava","Eukaryota;Animals;Insects",353.188,0,0,0,1,web
+"Sitobion miscanthi","Eukaryota;Animals;Insects",397.853,9,0,0,1,web
+"Sitodiplosis mosellana","Eukaryota;Animals;Insects",208.8,0,0,0,1,web
+"Sitophilus oryzae","Eukaryota;Animals;Insects",770.568,0,1,0,1,web
+"Sminthurides bifidus","Eukaryota;Animals;Insects",130.023,0,0,0,1,web
+"Sogatella furcifera","Eukaryota;Animals;Insects",656.292,15,0,0,1,web
+"Solenopsis fugax","Eukaryota;Animals;Insects",335.324,0,0,0,1,web
+"Solenopsis invicta","Eukaryota;Animals;Insects",398.995,0,1,0,5,web
+"Sphyracephala brevicornis","Eukaryota;Animals;Insects",315.521,0,0,0,1,web
+"Spodoptera exigua","Eukaryota;Animals;Insects",446.801,32,0,0,1,web
+"Spodoptera frugiperda","Eukaryota;Animals;Insects",486.287,32,1,0,6,web
+"Spodoptera litura","Eukaryota;Animals;Insects",438.956,31,1,0,1,web
+"Steganacarus magnus","Eukaryota;Animals;Other Animals",113.565,0,0,0,1,web
+"Stenopsyche tienmushanensis","Eukaryota;Animals;Insects",451.494,0,0,0,1,web
+"Stiretrus anchorago","Eukaryota;Animals;Insects",866.582,0,0,0,1,web
+"Stomoxys calcitrans","Eukaryota;Animals;Insects",971.189,0,0,0,1,web
+"Strigamia maritima","Eukaryota;Animals;Other Animals",176.211,0,0,0,1,web
+"Synergus gifuensis","Eukaryota;Animals;Insects",276.06,0,0,0,1,web
+"Synergus itoensis","Eukaryota;Animals;Insects",266.042,0,0,0,1,web
+"Synergus japonicus","Eukaryota;Animals;Insects",226.414,0,0,0,1,web
+"Synergus umbraculus","Eukaryota;Animals;Insects",235.334,0,0,0,1,web
+"Teleogryllus occipitalis","Eukaryota;Animals;Insects",1933.85,0,1,0,1,web
+"Teleopsis dalmanni","Eukaryota;Animals;Insects",621.706,0,0,0,3,web
+"Temnothorax curvispinosus","Eukaryota;Animals;Insects",303.539,0,0,0,1,web
+"Temnothorax longispinosus","Eukaryota;Animals;Insects",260.682,0,0,0,1,web
+"Tenebrio molitor","Eukaryota;Animals;Insects",280.781,0,1,0,1,web
+"Tephritis californica","Eukaryota;Animals;Insects",342.258,0,0,0,1,web
+"Tetragonula davenporti","Eukaryota;Animals;Insects",284.611,0,0,0,1,web
+"Tetramorium bicarinatum","Eukaryota;Animals;Insects",229.238,0,0,0,1,web
+"Tetramorium immigrans","Eukaryota;Animals;Insects",227.079,0,0,0,1,web
+"Tetramorium parvispinum","Eukaryota;Animals;Insects",229.641,0,0,0,1,web
+"Tetramorium simillimum","Eukaryota;Animals;Insects",232.156,0,0,0,1,web
+"Tetranychus urticae","Eukaryota;Animals;Other Animals",90.8286,0,1,0,1,web
+"Thalassaphorura encarpata","Eukaryota;Animals;Insects",130.905,0,0,0,1,web
+"Themira minor","Eukaryota;Animals;Insects",99.8855,0,0,0,1,web
+"Thrips palmi","Eukaryota;Animals;Insects",237.845,0,1,0,1,web
+"Tigriopus californicus","Eukaryota;Animals;Other Animals",191.143,12,0,0,1,web
+"Tigriopus kingsejongensis","Eukaryota;Animals;Other Animals",338.647,0,0,0,1,web
+"Timema bartmani","Eukaryota;Animals;Insects",1108.64,0,0,0,1,web
+"Timema californicum","Eukaryota;Animals;Insects",1220.42,0,0,0,1,web
+"Timema cristinae","Eukaryota;Animals;Insects",955.49,13,0,0,4,web
+"Timema douglasi","Eukaryota;Animals;Insects",1123.07,0,0,0,1,web
+"Timema genevievae","Eukaryota;Animals;Insects",1049.66,0,0,0,1,web
+"Timema monikensis","Eukaryota;Animals;Insects",1098.92,0,0,0,1,web
+"Timema podura","Eukaryota;Animals;Insects",1105.09,0,0,0,1,web
+"Timema poppensis","Eukaryota;Animals;Insects",1137.32,0,0,0,1,web
+"Timema shepardi","Eukaryota;Animals;Insects",1153.16,0,0,0,1,web
+"Timema tahoe","Eukaryota;Animals;Insects",1093.4,0,0,0,1,web
+"Tipula oleracea","Eukaryota;Animals;Insects",541.697,0,0,0,1,web
+"Tisbe holothuriae","Eukaryota;Animals;Other Animals",276.26,0,0,0,1,web
+"Tomocerus minor","Eukaryota;Animals;Insects",332.594,0,0,0,1,web
+"Tomocerus qinae","Eukaryota;Animals;Insects",264.86,0,0,0,1,web
+"Torymus auratus","Eukaryota;Animals;Insects",410.911,0,0,0,1,web
+"Torymus geranii","Eukaryota;Animals;Insects",363.976,0,0,0,1,web
+"Trabutina mannipara","Eukaryota;Animals;Insects",172.236,0,0,0,1,web
+"Trachymyrmex cornetzi","Eukaryota;Animals;Insects",369.438,0,0,0,1,web
+"Trachymyrmex septentrionalis","Eukaryota;Animals;Insects",291.747,0,0,0,1,web
+"Trachymyrmex zeteki","Eukaryota;Animals;Insects",267.973,0,0,0,1,web
+"Trialeurodes vaporariorum","Eukaryota;Animals;Insects",787.484,0,0,0,2,web
+"Triatoma infestans","Eukaryota;Animals;Insects",949.486,0,0,0,1,web
+"Tribolium castaneum","Eukaryota;Animals;Insects",165.944,10,1,0,1,web
+"Trichogramma brassicae","Eukaryota;Animals;Insects",235.387,0,0,0,1,web
+"Trichogramma evanescens","Eukaryota;Animals;Insects",213.671,0,0,0,1,web
+"Trichogramma pretiosum","Eukaryota;Animals;Insects",187.642,0,0,0,1,web
+"Trichomalopsis sarcophagae","Eukaryota;Animals;Insects",236.484,0,0,0,1,web
+"Trichonephila clavipes","Eukaryota;Animals;Other Animals",2439.3,0,0,0,1,web
+"Trichoplusia ni","Eukaryota;Animals;Insects",368.211,28,1,0,4,web
+"Trigoniulus corallinus","Eukaryota;Animals;Other Animals",448.559,0,0,0,1,web
+"Trinorchestia longiramus","Eukaryota;Animals;Other Animals",886.359,0,0,0,1,web
+"Trionymus perrisii","Eukaryota;Animals;Insects",237.583,0,0,0,1,web
+"Triops cancriformis","Eukaryota;Animals;Other Animals",109.182,0,0,0,1,web
+"Tropilaelaps mercedesae","Eukaryota;Animals;Other Animals",352.535,0,0,0,1,web
+"Trupanea jonesi","Eukaryota;Animals;Insects",97.2813,0,0,0,1,web
+"Tuta absoluta","Eukaryota;Animals;Insects",906.54,0,0,0,1,web
+"Tyrophagus putrescentiae","Eukaryota;Animals;Other Animals",95.1357,0,1,0,1,web
+"unclassified Diptera","Eukaryota;Animals;Insects",43.7685,0,0,0,1,web
+"unclassified Sarcophagidae","Eukaryota;Animals;Insects",494.581,0,0,0,1,web
+"unclassified Trichoceridae","Eukaryota;Animals;Insects",41.7116,0,0,0,1,web
+"Varroa destructor","Eukaryota;Animals;Other Animals",368.942,0,1,0,2,web
+"Varroa jacobsoni","Eukaryota;Animals;Other Animals",365.586,0,0,0,1,web
+"Vespa mandarinia","Eukaryota;Animals;Insects",247.731,0,1,0,2,web
+"Vespula germanica","Eukaryota;Animals;Insects",178.197,25,0,0,1,web
+"Vespula pensylvanica","Eukaryota;Animals;Insects",179.37,25,0,0,1,web
+"Vespula vulgaris","Eukaryota;Animals;Insects",176.273,25,0,0,1,web
+"Vollenhovia emeryi","Eukaryota;Animals;Insects",287.901,0,0,0,1,web
+"Wasmannia auropunctata","Eukaryota;Animals;Insects",324.12,0,0,0,1,web
+"Xenocatantops brachycerus","Eukaryota;Animals;Insects",41.6421,0,0,0,1,web
+"Zanna intricata","Eukaryota;Animals;Insects",2129.58,0,0,0,1,web
+"Zaprionus indianus","Eukaryota;Animals;Insects",123.675,0,0,0,1,web
+"Zerene cesonia","Eukaryota;Animals;Insects",266.421,28,1,0,1,web
+"Zootermopsis nevadensis","Eukaryota;Animals;Insects",485.025,0,1,0,1,web
+"Agraulis vanillae","Eukaryota;Animals;Insects",390.746,0,0,0,1,web
+"Aphantopus hyperantus","Eukaryota;Animals;Insects",408.137,29,0,0,2,web
+"Apolygus lucorum","Eukaryota;Animals;Insects",1023.62,17,0,0,1,web
+"Bactrocera dorsalis","Eukaryota;Animals;Insects",414.985,0,1,0,1,web
+"Bactrocera oleae","Eukaryota;Animals;Insects",484.947,0,0,0,2,web
+"Bicyclus anynana","Eukaryota;Animals;Insects",475.4,0,0,0,1,web
+"Calliphora vicina","Eukaryota;Animals;Insects",459.231,0,0,0,1,web
+"Cecropterus lyciades","Eukaryota;Animals;Insects",566.834,0,1,0,1,web
+"Chrysomya rufifacies","Eukaryota;Animals;Insects",288.473,0,0,0,3,web
+"Cochliomyia hominivorax","Eukaryota;Animals;Insects",534.085,0,0,0,1,web
+"Colias croceus","Eukaryota;Animals;Insects",318.584,0,0,0,1,web
+"Danaus chrysippus","Eukaryota;Animals;Insects",322.399,0,0,0,3,web
+"Danaus melanippus","Eukaryota;Animals;Insects",354.197,0,0,0,1,web
+"Danaus plexippus","Eukaryota;Animals;Insects",248.676,30,0,0,2,web
+"Drosophila albomicans","Eukaryota;Animals;Insects",165.846,5,1,0,3,web
+"Drosophila ananassae","Eukaryota;Animals;Insects",217.109,0,0,0,2,web
+"Drosophila arizonae","Eukaryota;Animals;Insects",141.387,0,0,0,1,web
+"Drosophila athabasca","Eukaryota;Animals;Insects",192.661,4,0,0,3,web
+"Drosophila bipectinata","Eukaryota;Animals;Insects",167.264,0,0,0,2,web
+"Drosophila birchii","Eukaryota;Animals;Insects",156.594,0,0,0,1,web
+"Drosophila bunnanda","Eukaryota;Animals;Insects",151.823,0,0,0,1,web
+"Drosophila elegans","Eukaryota;Animals;Insects",171.268,0,0,0,2,web
+"Drosophila grimshawi","Eukaryota;Animals;Insects",200.468,0,0,0,1,web
+"Drosophila hydei","Eukaryota;Animals;Insects",153.742,0,0,0,2,web
+"Drosophila innubila","Eukaryota;Animals;Insects",167.978,2,1,0,1,web
+"Drosophila lacertosa","Eukaryota;Animals;Insects",154.131,0,0,0,2,web
+"Drosophila melanogaster","Eukaryota;Animals;Insects",143.726,7,1,0,26,web
+"Drosophila mojavensis","Eukaryota;Animals;Insects",193.826,0,0,0,1,web
+"Drosophila montana","Eukaryota;Animals;Insects",183.585,0,0,0,1,web
+"Drosophila nasuta","Eukaryota;Animals;Insects",137.224,0,0,0,1,web
+"Drosophila navojoa","Eukaryota;Animals;Insects",147.358,0,0,0,1,web
+"Drosophila neonasuta","Eukaryota;Animals;Insects",131.274,0,0,0,1,web
+"Drosophila nigromelanica","Eukaryota;Animals;Insects",162.544,0,0,0,2,web
+"Drosophila pectinifera","Eukaryota;Animals;Insects",149.209,0,0,0,1,web
+"Drosophila pseudoobscura","Eukaryota;Animals;Insects",163.283,5,1,0,5,web
+"Drosophila rhopaloa","Eukaryota;Animals;Insects",197.376,0,0,0,1,web
+"Drosophila robusta","Eukaryota;Animals;Insects",179.074,0,0,0,2,web
+"Drosophila sechellia","Eukaryota;Animals;Insects",154.171,6,1,0,3,web
+"Drosophila serrata","Eukaryota;Animals;Insects",198.036,0,0,0,2,web
+"Drosophila subobscura","Eukaryota;Animals;Insects",126.248,6,1,0,3,web
+"Drosophila subpulchrella","Eukaryota;Animals;Insects",276.444,6,0,0,1,web
+"Drosophila suzukii","Eukaryota;Animals;Insects",232.923,0,0,0,4,web
+"Drosophila triauraria","Eukaryota;Animals;Insects",198.799,6,0,0,2,web
+"Drosophila virilis","Eukaryota;Animals;Insects",189.444,0,0,0,4,web
+"Drosophila yakuba","Eukaryota;Animals;Insects",165.71,6,1,0,1,web
+"Graphium doson","Eukaryota;Animals;Insects",730.517,0,0,0,1,web
+"Halyomorpha halys","Eukaryota;Animals;Insects",998.241,0,1,0,1,web
+"Heliconius cydno","Eukaryota;Animals;Insects",282.336,0,0,0,18,web
+"Heliconius elevatus","Eukaryota;Animals;Insects",364.784,0,0,0,9,web
+"Heliconius erato x Heliconius himera","Eukaryota;Animals;Insects",587.825,0,0,0,1,web
+"Heliconius ethilla","Eukaryota;Animals;Insects",282.527,0,0,0,5,web
+"Heliconius hecale","Eukaryota;Animals;Insects",78.5306,0,0,0,6,web
+"Heliconius hecuba","Eukaryota;Animals;Insects",212.767,0,0,0,1,web
+"Heliconius hermathena","Eukaryota;Animals;Insects",391.646,0,0,0,1,web
+"Heliconius heurippa","Eukaryota;Animals;Insects",309.419,0,0,0,2,web
+"Heliconius hierax","Eukaryota;Animals;Insects",210.868,0,0,0,1,web
+"Heliconius himera","Eukaryota;Animals;Insects",399.744,0,0,0,2,web
+"Heliconius ismenius","Eukaryota;Animals;Insects",259.837,0,0,0,2,web
+"Heliconius melpomene","Eukaryota;Animals;Insects",273.786,0,0,0,51,web
+"Heliconius nattereri","Eukaryota;Animals;Insects",275.868,0,0,0,1,web
+"Heliconius numata","Eukaryota;Animals;Insects",364.328,0,0,0,5,web
+"Heliconius pachinus","Eukaryota;Animals;Insects",279.265,0,0,0,2,web
+"Heliconius pardalinus","Eukaryota;Animals;Insects",293.609,0,0,0,10,web
+"Heliconius timareta","Eukaryota;Animals;Insects",319.43,0,0,0,23,web
+"Heliconius wallacei","Eukaryota;Animals;Insects",365.01,0,0,0,1,web
+"Heliconius xanthocles","Eukaryota;Animals;Insects",198.612,0,0,0,1,web
+"Helicoverpa armigera","Eukaryota;Animals;Insects",337.088,0,1,0,1,web
+"Homalodisca vitripennis","Eukaryota;Animals;Insects",1445.22,0,0,0,1,web
+"Hypolimnas misippus","Eukaryota;Animals;Insects",408.794,0,0,0,1,web
+"Laparus doris","Eukaryota;Animals;Insects",241.556,0,0,0,3,web
+"Lepidotrigona ventralis","Eukaryota;Animals;Insects",333.081,0,0,0,1,web
+"Lucilia cuprina","Eukaryota;Animals;Insects",378.29,0,1,0,2,web
+"Lucilia sericata","Eukaryota;Animals;Insects",319.935,0,0,0,1,web
+"Manduca sexta","Eukaryota;Animals;Insects",419.424,0,1,0,1,web
+"Maniola jurtina","Eukaryota;Animals;Insects",614.736,0,0,0,1,web
+"Melitaea cinxia","Eukaryota;Animals;Insects",389.908,0,1,0,1,web
+"Neruda aoede","Eukaryota;Animals;Insects",337.37,0,0,0,1,web
+"Nesidiocoris tenuis","Eukaryota;Animals;Insects",355.121,0,0,0,1,web
+"Ooceraea biroi","Eukaryota;Animals;Insects",223.876,14,1,0,2,web
+"Papilio bianor","Eukaryota;Animals;Insects",402.688,0,0,0,1,web
+"Papilio dardanus","Eukaryota;Animals;Insects",231.123,0,0,0,1,web
+"Papilio glaucus","Eukaryota;Animals;Insects",374.816,0,0,0,1,web
+"Papilio machaon","Eukaryota;Animals;Insects",278.436,0,1,0,1,web
+"Papilio memnon","Eukaryota;Animals;Insects",232.544,0,0,0,2,web
+"Papilio polytes","Eukaryota;Animals;Insects",227.021,0,1,0,1,web
+"Papilio xuthus","Eukaryota;Animals;Insects",243.89,0,0,0,2,web
+"Pararge aegeria","Eukaryota;Animals;Insects",501.695,0,0,0,1,web
+"Pieris rapae","Eukaryota;Animals;Insects",245.886,0,1,0,1,web
+"Protaetia brevitarsis","Eukaryota;Animals;Insects",1143.92,0,1,0,1,web
+"Samia ricini","Eukaryota;Animals;Insects",450.479,0,0,0,1,web
+"Taenaris catops","Eukaryota;Animals;Insects",456.368,0,0,0,1,web
+"Tetragonula carbonaria","Eukaryota;Animals;Insects",299.55,0,0,0,1,web
+"Tetragonula clypearis","Eukaryota;Animals;Insects",294.05,0,0,0,1,web
+"Tetragonula hockingsi","Eukaryota;Animals;Insects",307.102,0,0,0,1,web
+"Tetragonula mellipes","Eukaryota;Animals;Insects",337.572,0,0,0,2,web
+"Vanessa tameamea","Eukaryota;Animals;Insects",357.125,0,0,0,1,web
+"Zeugodacus cucurbitae","Eukaryota;Animals;Insects",374.82,0,1,0,1,web
+"Arctia plantaginis","Eukaryota;Animals;Insects",577.993,0,0,0,2,web
+"Hypsibius dujardini","Eukaryota;Animals;Other Animals",104.155,0,0,0,3,web
+"Ramazzottius varieornatus","Eukaryota;Animals;Other Animals",55.8428,0,1,0,1,web
