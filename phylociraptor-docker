@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [[ ! -d results ]]
+then
+	mkdir results
+fi
+if [[ ! -d .snakemake ]]
+then
+	mkdir .snakemake
+fi
+if [[ ! -d .tmp ]]
+then 
+	mkdir .tmp
+fi
+
+
+# this needs to be set because on Linux docker created files will be owned by root by default.
+unset DOCKER_USER
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+ DOCKER_USER="--user $(id -u):$(id -g)"
+elif [[ "$OSTYPE" == "darwin"* ]]; then #nothing to be done on MacOS
+ DOCKER_USER=""
+fi
+
+TMPFS="-v $(pwd)/.tmp:/tmp"
+BINDPOINTS="-v $(pwd):/phylociraptor"
+docker run --rm -it $DOCKERUSER $NEWBINDPOINTS --privileged reslp/phylocirpator:0.9.1 phylociraptor $@

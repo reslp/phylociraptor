@@ -25,8 +25,13 @@ Phylociraptor was designed in such a way that it can run on desktop computers (a
 Local computer or solitary server:
 
 - Linux or MacOS operating system
-- globally installed singularity 3.4.1+ 
+- globally installed singularity 3.4.1+
 - installed snakemake 6.0.2+ (best in an anaconda environment)
+
+or 
+
+- Docker (this is still experimental; see information belwo)
+
 
 On a cluster:
 
@@ -218,12 +223,14 @@ $ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
 $ ./phylociraptor report
 ```
 
-## Prototyping
+## Using Docker
 
-Is done in a Docker container which has conda, snakemake and singularity installed:
+It is also possible to run phylociraptor inside a docker container. This container has singularity and conda installed so the only requirement is that Docker is properly set up. This is still an experimental feature and we have not tested this extensively. We still recommend using phylociraptor as it is described above, especially when you work on a HPC cluster.
+In case you would like to try phylociraptor in Docker you just have to subsitute the `phylociraptor` command with `phylociraptor-docker`.
 
 ```
-docker run --rm -it --privileged -v $(pwd):/data reslp/smsi_ubuntu:3.4.1
+$ git clone --recursive https://github.com/reslp/phylociraptor.git
+$ cd ./phylociraptor
+$ ./phylociraptor-docker
 ```
-
 
