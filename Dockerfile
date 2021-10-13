@@ -41,10 +41,11 @@ ARG USER_ID
 ARG GROUP_ID
 ARG USER
 ARG GROUP
+ARG HOSTTYPE
 
-RUN addgroup --gid $GROUP_ID $USER
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
-RUN useradd -ms /bin/bash --uid $USER_ID --gid $GROUP_ID $USER
+RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else addgroup --gid $GROUP_ID $USER; fi
+RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user; fi
+RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else useradd -ms /bin/bash --uid $USER_ID --gid $GROUP_ID $USER; fi
 USER $USER
 
 #RUN chown -R $USER:$USER /opt/conda

@@ -13,9 +13,16 @@ then
 	mkdir .tmp
 fi
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+ HT="darwin"
+ US="root"
+else
+ US=$USER
+fi
+
 if [[ "$(docker images -q reslp/phylociraptor:0.9.1 2> /dev/null)" == "" ]]; then
   echo "phylociraptor docker image does not exist, will build it first. This can take some time, please be patient."
-  docker build -t reslp/phylociraptor:0.9.1 --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg USER=$USER --build-arg GROUP=$(id -g -n $USER) .
+  docker build -t reslp/phylociraptor:0.9.1 --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg USER=$US --build-arg GROUP=$(id -g -n $USER) --build-arg HOSTTYPE=$HT .
 fi
 
 
@@ -29,7 +36,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then #nothing to be done on MacOS
 fi
 
 TMPFS="-v $(pwd)/.tmp:/tmp"
-BINDPOINTS="-v $(pwd):/home/$USER/phylociraptor"
+BINDPOINTS="-v $(pwd):/home/$US/phylociraptor"
 docker run --rm -it $DOCKER_USER $BINDPOINTS --privileged reslp/phylociraptor:0.9.1 phylociraptor $@
 
 #Command will look something like this:
