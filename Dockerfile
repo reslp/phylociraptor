@@ -1,6 +1,7 @@
 FROM reslp/mamba:0.15.3
 MAINTAINER <philipp.resl@uni-graz.at>
 
+
 RUN apt-get update --allow-releaseinfo-change && apt-get install -y \
     build-essential \
     libssl-dev \
@@ -10,14 +11,17 @@ RUN apt-get update --allow-releaseinfo-change && apt-get install -y \
     libseccomp-dev \
     pkg-config
 
+
 ENV VERSION=1.17.2 
 ENV OS=linux 
 ENV ARCH=amd64
-RUN  wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+RUN wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
     tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
     rm go$VERSION.$OS-$ARCH.tar.gz
+
 ENV GOPATH=${HOME}/go
 ENV PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
+
 #RUN echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
 #    echo 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin' >> ~/.bashrc && \
 #    source ~/.bashrc
@@ -30,11 +34,29 @@ RUN  mkdir -p $GOPATH/src/github.com/sylabs && \
     git checkout $VERSION && \
     ./mconfig && make -C ./builddir && make -C ./builddir install
 
-RUN mamba install -y -c bioconda snakemake=6.0.2
+# need to be passed as build arguments to set the correct user and group id
+RUN find /opt/conda -type d -exec chmod a+w {} \;
 
+ARG USER_ID
+ARG GROUP_ID
+ARG USER
+ARG GROUP
+
+RUN addgroup --gid $GROUP_ID $USER
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+RUN useradd -ms /bin/bash --uid $USER_ID --gid $GROUP_ID $USER
+USER $USER
+
+#RUN chown -R $USER:$USER /opt/conda
+
+RUN mamba create -y -c bioconda -c conda-forge -n snakemake snakemake=6.0.2
+
+WORKDIR /home/$USER
 RUN git clone --recursive https://github.com/reslp/phylociraptor.git
-WORKDIR /phylociraptor
-ENV PATH=${PATH}:/phylociraptor
+WORKDIR /home/$USER/phylociraptor
+ENV PATH=${PATH}:/home/$USER/phylociraptor
 
+SHELL ["conda", "run", "-n", "snakemake", "/bin/bash", "-c"]
+
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "snakemake"]
 CMD ["phylociraptor"]
-

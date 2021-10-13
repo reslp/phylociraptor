@@ -13,6 +13,12 @@ then
 	mkdir .tmp
 fi
 
+if [[ "$(docker images -q reslp/phylociraptor:0.9.1 2> /dev/null)" == "" ]]; then
+  echo "phylociraptor docker image does not exist, will build it first. This can take some time, please be patient."
+  docker build -t reslp/phylociraptor:0.9.1 --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --build-arg USER=$USER --build-arg GROUP=$(id -g -n $USER) .
+fi
+
+
 
 # this needs to be set because on Linux docker created files will be owned by root by default.
 unset DOCKER_USER
@@ -23,5 +29,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then #nothing to be done on MacOS
 fi
 
 TMPFS="-v $(pwd)/.tmp:/tmp"
-BINDPOINTS="-v $(pwd):/phylociraptor"
-docker run --rm -it $DOCKERUSER $NEWBINDPOINTS --privileged reslp/phylocirpator:0.9.1 phylociraptor $@
+BINDPOINTS="-v $(pwd):/home/$USER/phylociraptor"
+docker run --rm -it $DOCKER_USER $BINDPOINTS --privileged reslp/phylociraptor:0.9.1 phylociraptor $@
+
+#Command will look something like this:
+#docker run --rm -it --user $(id -u):$(id -g) -v $(pwd):/home/$USER/phylociraptor --privileged reslp/phylociraptor:0.9.1
