@@ -1,11 +1,11 @@
 #general settings:
-species: data/all_fungi_test.csv
+species: data/fungi.csv
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 20 # Parallelization level
 
 # settings realted to busco
 busco:
-    set: "http://busco.ezlab.org/v3/datasets/fungi_odb9.tar.gz" # the download URL for the BUSCO set which should be used
+    set: "fungi_odb9" # the download URL for the BUSCO set which should be used
     version: "3.0.2"
     threads: 8
     augustus_species: saccharomyces
