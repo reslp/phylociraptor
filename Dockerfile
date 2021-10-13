@@ -44,7 +44,7 @@ ARG GROUP
 ARG HOSTTYPE
 
 RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else addgroup --gid $GROUP_ID $USER; fi
-RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user; fi
+#RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USER; fi
 RUN if [ "$HOSTTYPE" = "darwin" ] ; then echo "MacOS host, will skip"; else useradd -ms /bin/bash --uid $USER_ID --gid $GROUP_ID $USER; fi
 USER $USER
 

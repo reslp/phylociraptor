@@ -17,6 +17,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
  HT="darwin"
  US="root"
 else
+ HT="linux"
  US=$USER
 fi
 
