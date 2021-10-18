@@ -75,7 +75,8 @@ rule iqtree:
 			bb = config["iqtree"]["bootstrap"],
 			m = config["iqtree"]["model"],
 			maxmem = config["iqtree"]["maxmem"],
-			additional_params = config["iqtree"]["additional_params"]
+			additional_params = config["iqtree"]["additional_params"],
+			bootstrap_cutoff_file = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt"
 		threads:
 			config["iqtree"]["threads"]
 		shell:
@@ -84,7 +85,15 @@ rule iqtree:
 			if [[ ! -d results/phylogeny/iqtree/{wildcards.aligner}-{wildcards.alitrim} ]]; then mkdir -p results/phylogeny/iqtree/{wildcards.aligner}-{wildcards.alitrim}; fi
 			cd results/phylogeny/iqtree/{wildcards.aligner}-{wildcards.alitrim}/
 			mkdir algn
-			cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/*.fas algn
+			if [[ -f {params.wd}/{params.bootstrap_cutoff_file} ]]; then #in case gene trees were filtered with bootstrap cutoff before
+				echo "$(date) - iqtree {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff before creating concatenated alignment" >> {params.wd}/results/statistics/runlog.txt
+				for gene in $(cat {params.wd}/{params.bootstrap_cutoff_file} | awk -F"\t" '{{if ($8 == "OK") {{print $1;}}}}');
+				do
+					cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas algn
+				done
+			else	#take all alignments
+				cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/*.fas algn
+			fi
 			echo "Parameters:" > {params.wd}/{output.statistics}
 			echo "Threads: {params.nt}" >> {params.wd}/{output.statistics}
 			echo "Bootstraping -bb: {params.bb}" >> {params.wd}/{output.statistics}
