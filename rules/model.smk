@@ -63,13 +63,16 @@ rule modeltest:
 		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd(),
-		busco = "{busco}"
+		busco = "{busco}",
+		maxmem = config["iqtree"]["maxmem"],
+		bb = config["genetree"]["boostrap"],
+		additional_params = config["iqtree"]["additional_params"]
 	singularity:
 		"docker://reslp/iqtree:2.0.7"
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		iqtree -m TESTONLY -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt AUTO -ntmax {threads}
+		iqtree -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 		touch {output.checkpoint}
 		"""
 
@@ -78,7 +81,8 @@ rule aggregate_best_models:
 		logfiles = return_target_modeltest_log
 	output:
 		best_models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
-		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
+		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done",
+		genetree_filter_stats = "results/modeltest/genetree_filter_{aligner}_{alitrim}.txt"
 	benchmark:
 		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.txt"
 	params:
@@ -92,12 +96,23 @@ rule aggregate_best_models:
 			printf "$outname\t" >> {output.best_models}
 			cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
 		done
+		# now calculate mean bootstrap for each tree
+		for gene in $(ls -d results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*)
+				do
+					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
+					bootstrapsum=$(echo "$bootstrapvalues" | bc)
+					totalbootstraps=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | wc -l )
+					meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
+					genename=$(basename $gene)
+					echo -e "$genename\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap" | tee -a {output.genetree_filter_stats}
+				done
 		touch {output.checkpoint}
 		"""
 
 rule all_modeltest:
 	input:
-		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
+		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
+		expand("results/modeltest/genetree_filter_{aligner}_{alitrim}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
 	output:
 		"results/checkpoints/modes/modeltest.done"
 	shell:
