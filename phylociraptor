@@ -27,11 +27,11 @@ outfile_dict = {
 	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"mltree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"model": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"modeltest": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
 	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
 	}
 
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "model", "mltree", "speciestree"]
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
 checkpoint_file_dict = {
 	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
 	"orthology": "results/checkpoints/modes/orthology.done",
@@ -41,7 +41,7 @@ checkpoint_file_dict = {
 	"speciestree": "results/checkpoints/modes/speciestree.done",
 	"njtree": "results/checkpoints/modes/njtree.done",
 	"mltree": "results/checkpoints/modes/trees.done",
-	"model": "results/checkpoints/modes/modeltest.done"
+	"modeltest": "results/checkpoints/modes/modeltest.done"
 }
 	
 
@@ -55,7 +55,7 @@ outdir_dict = {
 	"speciestree": ["results/phylogeny/astral"],
 	"njtree": ["results/phylogeny/njtree"],
 	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
-	"model": ["results/modeltest"]
+	"modeltest": ["results/modeltest"]
 }
 
 phylociraptor = """
@@ -80,9 +80,9 @@ Commands:
 	filter-orthology	Filter orthology results
 	align			Create alignments for orthologous genes
 	filter-align		Trim and filter alignments
-	model			Perform modeltesting
+	modeltest		Calculate gene-trees and perform modeltesting
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
-	speciestree		Calculate gene trees and species tree
+	speciestree		Calculate species tree
 	njtree			Calculate Neighbor-Joining tree
 
 	report			Create a HTML report of the run
@@ -216,9 +216,9 @@ Usage: phylociraptor njtree <arguments>
 
 
 model_help = """
-phylociraptor model - Will perform substitution model tests for each alignment.
+phylociraptor modeltest - Will perform substitution model tests and calculate a gene tree for each alignment.
 
-Usage: phylociraptor model <arguments>
+Usage: phylociraptor modeltest <arguments>
 
 """ + standard_arguments + additional_arguments + """
 """
@@ -864,8 +864,8 @@ elif args.command=="mltree":
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
-elif args.command=="model":
-	print(now(), "Welcome to phylociraptor model.")
+elif args.command=="modeltest":
+	print(now(), "Welcome to phylociraptor modeltest.")
 	model_parser = PhyloParser(add_help=False)
 #	model_parser.add_argument("-f", "--force", action="store_true")
 #	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -1083,7 +1083,7 @@ elif args.command == "check":
 							if check_args.verbose:
 								print("\t These filtered alignments are missing:")
 								print("\t", missing)
-			if mode == "model":
+			if mode == "modeltest":
 				if not os.path.isdir("results/checkpoints/modeltest"):
 					continue
 				units = os.listdir("results/alignments/filtered")
