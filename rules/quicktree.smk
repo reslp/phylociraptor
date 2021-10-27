@@ -6,7 +6,7 @@ rule njtree:
 	input:
 		rules.concatenate.output.stockholm_alignment
 	output:
-		"results/phylogeny/njtree/{aligner}-{alitrim}/njtree.tre"
+		"results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre"
 	singularity: "docker://reslp/quicktree:2.5"
 	shell:
 		"""
@@ -15,7 +15,7 @@ rule njtree:
 		
 rule all_njtree:
 	input:
-		expand("results/phylogeny/njtree/{aligner}-{alitrim}/njtree.tre", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
+		expand("results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], bootstrap=config["filtering"]["bootstrap_cutoff"])
 	output:
 		"results/checkpoints/modes/njtree.done"
 	shell:

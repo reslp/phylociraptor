@@ -29,6 +29,7 @@ filtering:
     minsp: 2
     seq_type: "aa"
     min_parsimony_sites: 200
+    bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
 # settings related to alignment and trimming
 alignment:
