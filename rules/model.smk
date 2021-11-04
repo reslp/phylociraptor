@@ -97,7 +97,7 @@ rule aggregate_best_models:
 			cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
 		done
 		# now calculate mean bootstrap for each tree
-		for gene in $(ls -d results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/*)
+		for gene in $(ls -d results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/*)
 				do
 					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
 					bootstrapsum=$(echo "$bootstrapvalues" | bc)
