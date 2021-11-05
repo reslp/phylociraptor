@@ -1,6 +1,6 @@
 ---
 title: "phylociraptor report"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "`r format(Sys.time(), '%d %B, %Y - %R %Z')`"
 output: html_document
 ---
 ## {.tabset .tabset-fade}
@@ -85,7 +85,7 @@ base_size <- 12
 ```
 
 
-### Genomes
+### Setup
 
 ```{r genomes, echo=FALSE}
 if (file.exists(failed_genome_downloads_file))
@@ -334,7 +334,9 @@ if (file.exists(busco_overview_image)) {
 
 ```
 
-### Alignments
+### Alignments {.tabset .tabset-fade .tabset-pills}
+
+#### full
 
 **Location of alignment files:** 
 ```
@@ -445,7 +447,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
   #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
-### Trimming
+#### trimmed
 
 **Location of trimmed alignment files:** 
 ```
@@ -453,17 +455,10 @@ results/alignments/trimmed
 ```
 
 ```{r stats_trimmed, echo=FALSE, results="asis"}
-cat("<b> Trimming parameters:</b><br>")
-parsimony_cutoff <- 100000 # in case this can not be determined from the overview stats file, use high value to flag nothing
-if (file.exists(align_trim_overview_statistics_file) == TRUE) {
-  ov <- read.csv(align_trim_overview_statistics_file, sep="\t", header=T, row.names=NULL)
-  ov <- as.data.frame(ov)
-  print(ov[,c(1,2,3,8)] %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% kable_styling())
-  parsimony_cutoff <- as.numeric(ov[1,ncol(ov)])
-} else {
-  tr_method <- "unknown (check if phylocraptor -m align has finished successfully)."
-  tr_params <- numeric()
-}
+if (exists("pars_sites") == TRUE) {
+	cat(paste0("<b> Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
+	parsimony_cutoff <- pars_sites 
+} else { parsimony_cutoff <- 100000} # in case this can not be determined from the overview stats file, use high value to flag nothing
 
 ```
 
@@ -566,7 +561,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 ```
 
 
-### Filtering
+#### filtered
 
 **Location of filtered alignment files:** 
 ```
@@ -574,17 +569,10 @@ results/alignments/filtered
 ```
 
 ```{r stats_filtered, echo=FALSE, results="asis"}
-cat("<b> Filtering parameters:</b><br>")
-parsimony_cutoff <- 100000 # in case this can not be determined from the overview stats file, use high value to flag nothing
-if (file.exists(align_trim_overview_statistics_file) == TRUE) {
-  ov <- read.csv(align_trim_overview_statistics_file, sep="\t", header=T, row.names=NULL)
-  ov <- as.data.frame(ov)
-  print(ov[,c(1,2,4,5,6,7,8)] %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% kable_styling())
-  parsimony_cutoff <- as.numeric(ov[1,ncol(ov)])
-} else {
-  tr_method <- "unknown (check if phylocraptor -m align has finished successfully)."
-  tr_params <- numeric()
-}
+if (exists("pars_sites") == TRUE) {
+	cat(paste0("<b> Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
+	parsimony_cutoff <- pars_sites 
+} else { parsimony_cutoff <- 100000} # in case this can not be determined from the overview stats file, use high value to flag nothing
 ```
 
 **Overview of individual filtered alignments:**
@@ -748,24 +736,12 @@ if (length(files) > 0) {
 
 
 
-### Tree
 
-```{r stats_tree, echo=FALSE}
-if (file.exists(tree_statistics_file) == TRUE) {
-  tree_stats <- TRUE
-  tree_log <- read_file(tree_statistics_file)
-  cat(tree_log)
-} else {
-  tree_stats <- FALSE
-}
-```
+### Genetrees
 
-`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
-
-### Speciestree
-
-```{r stats_speciestree, message=FALSE, echo=FALSE, warning=FALSE, results="asis", fig.align="center"}
-files <- list.files(path="../results/statistics/", pattern ="genetree_filter_*", recursive=F)
+```{r stats_genetrees, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
+p <- "" #have to do this so plotting does not fail when there is no data
+files <- list.files(path="../results/modeltest/", pattern ="genetree_filter_*", recursive=F)
 multi_merge <- function(d) {
 	df <- d[[1]]
 	if (length(d) >= 2) {
@@ -781,7 +757,7 @@ if (length(files) > 0) {
 	dat <- list()
 	all_genes <- c()
 	names <- c("gene", "bootstrap_mean", "check")
-	all_colnames <- c("gene", "aligner", "trimmer", "bootstrap_sum", "bootstrap_n", "bootstrap_mean", "bootstrap_cutoff", "check")
+	all_colnames <- c("gene", "aligner", "trimmer", "bootstrap_sum", "bootstrap_n", "bootstrap_mean")
 	titles <- c()
 	plots <- list()
 	models <- c()
@@ -793,53 +769,75 @@ if (length(files) > 0) {
 		# use other stringsplit function which supports fixed=T
 		title[2] <- strsplit(title[2], ".", fixed=T)[[1]][1]
 		title <- paste(title, collapse="-")
- 		names <- c(names,  c("gene", "bootstrap_mean", "check"))
+ 		names <- c(names,  c("gene", "bootstrap_mean"))
 		titles <- c(titles, title)
-		dat[[i]] <- read.table(paste0("../results/statistics/", file), sep="\t", header=F)
+		dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
   		colnames(dat[[i]]) <- all_colnames 
-  		thresh <- dat[[i]]$bootstrap_cutoff[1]
-		dat[[i]] <- dat[[i]][,c("gene", "bootstrap_mean", "check")]
+  		#thresh <- dat[[i]]$bootstrap_cutoff[1]
+		dat[[i]] <- dat[[i]][,c("gene", "bootstrap_mean")]
 		
-		genes_above_thresh_outstring <- c(genes_above_thresh_outstring, paste0("<b>Number of ", title, " trees above bootstrap threshold (",thresh,"): ", nrow(dat[[i]][dat[[i]]$check == "OK", ]), "</b><br>\n"))
+		#genes_above_thresh_outstring <- c(genes_above_thresh_outstring, paste0("<b>Number of ", title, " trees above bootstrap threshold (",thresh,"): ", nrow(dat[[i]][dat[[i]]$check == "OK", ]), "</b><br>\n"))
 		#all_genes <- c(all_genes,dat[[i]]$gene)
 		i <- i + 1
 	
 	}
 	data_combined <- do.call(multi_merge, list(dat))
-	#colnames(data_combined) <- names
 
-	get_headers <- function(titles) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (title in titles) {
-		values <- c(values, 2)
-		names <- c(names,  title)
-	
-	}
-	names(values) <- names
-	return(values)
-	}
 	plot_data <- data_combined[, grepl("bootstrap_mean", names(data_combined))]
 	colnames(plot_data) <- titles
-	plot_data$gene <- data_combined$gene
-	plot_data <- melt(plot_data)
-	colnames(plot_data) <- c("gene", "aligner_trimmer", "bootstrap_mean") 
-	p <- ggplot(plot_data, aes(x=aligner_trimmer, y=bootstrap_mean)) + geom_violin() + geom_hline(yintercept=thresh, color="red", alpha=0.5) + labs(title ="Distribution of mean bootstrap values for gene trees", x = "Aligner and Trimmer combination",y= "Mean Bootstrap values")
-	print(p)
-	cat("<br>\n")
-	for (s in genes_above_thresh_outstring) {
-		cat(s)
-	}
-		
+	p <- plot_ly(type="violin")
+	for (j in 1:length(colnames(plot_data))) 
+	{
+		ngenes <- c()
+		for (element in plot_data[,j]) {
+			ngenes <- c(ngenes, paste0("<b>Bootstrap cutoff: </b> ", as.character(element), "<br><b>No. of surving genes: </b>", as.character(length(na.omit(plot_data[,j][plot_data[,j] >= element]))))) #determine the number of genes with a certain boostrap of higher
+		}
+		p <- add_trace(p, x = colnames(plot_data)[j], y=plot_data[,j], name=colnames(plot_data)[j],pointpos=0, hoverinfo="text", hovertext=ngenes, points="all", jitter=0)
+	}			
+	#p <- p %>% layout(hovermode = "y unified") #unfortunately this does not work together with custom text.
+	print(htmltools::tagList(list(ggplotly(p)))) # this works only when the plot is being shown outside the if statement below! weird!!
+	colnames(data_combined) <- c("gene", titles)		
 	cat("<br><b>Overview of mean bootstrap values per gene-tree: </b><br>\n")
+	for (j in 1:length(colnames(plot_data)))
+	{
+		cat(paste0("Total number of gene trees for ", colnames(plot_data)[j],": ", as.character(length(na.omit(plot_data[,j])))))
+		cat("<br>\n")
+		
+	}
 	options(knitr.kable.NA = '') # do not display NA values
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(titles)) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
-	#data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 
 }
+p %>% layout(autosize = F, width = 10, height = 10, showlegend=FALSE) %>% config(displayModeBar=FALSE)# this works only in combination with the print statement above
+
 ```
+
+### MLtree
+
+```{r stats_tree, echo=FALSE}
+if (file.exists(tree_statistics_file) == TRUE) {
+  tree_stats <- TRUE
+  tree_log <- read_file(tree_statistics_file)
+  cat(tree_log)
+} else {
+  tree_stats <- FALSE
+}
+```
+`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
+
+### Speciestree
+
+```{r stats_speciestree, echo=FALSE}
+if (file.exists(tree_statistics_file) == TRUE) {
+  tree_stats <- TRUE
+  tree_log <- read_file(tree_statistics_file)
+  cat(tree_log)
+} else {
+  tree_stats <- FALSE
+}
+```
+
+`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
 
 ### Log
 
