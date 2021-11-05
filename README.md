@@ -1,10 +1,10 @@
 ```         
-                    __          __           _                  __           
-             ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
-            / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
-           / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
-          / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
-         /_/          /____/                         /_/                      
+                      __          __           _                  __           
+               ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
+              / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
+             / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
+            / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
+           /_/          /____/                         /_/                      
 ```
 
 # phylociraptor - Rapid phylogenomic tree calculator 
@@ -89,7 +89,7 @@ Commands:
 	filter-orthology	Filter orthology results
 	align			Create alignments for orthologous genes
 	filter-align		Trim and filter alignments
-	model			Perform modeltesting
+	modeltest		Calculate gene trees and perform model testing
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate gene trees and species tree
 	njtree			Calculate Neighbor-Joining tree
@@ -182,39 +182,39 @@ $ ./phylociraptor setup
 2. Identify orthologous genes for all the genomes:
 
 ```
-$ ./phylociraptor orthology -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor orthology -t sge -c data/cluster_config-SGE.yaml
 ```
 
 3. Filter orthologs using according to settings in the `config.yaml` file:
 
 ```
-$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-SGE.yaml
 ```
 
 4. Create alignments and trim them:
 
 ```
-$ ./phylociraptor align -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor align -t sge -c data/cluster_config-SGE.yaml
 ```
 
 5. Filter alignments according to settings in the `config.yaml`file:
 
 ```
-$ ./phylociraptor filter-align -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor filter-align -t sge -c data/cluster_config-SGE.yaml
 ```
 
 Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
 
 ```
-$ ./phylociraptor model -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor modeltest -t sge -c data/cluster_config-SGE.yaml
 ```
 
 6. Reconstruct phylogenies:
 
 ```
-$ ./phylociraptor njtree -t sge -c data/cluster_config-sauron.yaml
-$ ./phylociraptor mltree -t sge -c data/cluster_config-sauron.yaml
-$ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor njtree -t sge -c data/cluster_config-SGE.yaml
+$ ./phylociraptor mltree -t sge -c data/cluster_config-SGE.yaml
+$ ./phylociraptor speciestree -t sge -c data/cluster_config-SGE.yaml
 ```
 
 7. Create a report of the run:
