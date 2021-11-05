@@ -67,7 +67,7 @@ phylociraptor = """
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	  the rapid phylogenomic tree calculator, ver.%s
+	  the rapid phylogenomic tree calculator, v%s
 """ % version
 
 default_help = phylociraptor + """
@@ -466,8 +466,10 @@ pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
 
 args = pars.parse_args()
 
+def get_commit():
+		return str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
 if args.version == True:
-	commit = str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
+	commit = get_commit()
 	print("Version:", version)
 	print("Git commit:", commit)
 	sys.exit(0)
@@ -494,7 +496,7 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 
 if args.command == "setup":
-	print(now(), "Welcome to phylociraptor setup")
+	print(now(), "Welcome to phylociraptor setup v%s" % version)
 	setup_parser = PhyloParser(usage=help_message(setup_help), add_help=False)
 #	setup_parser.add_argument("-f", "--force", action="store_true" )
 #	setup_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -543,7 +545,7 @@ if args.command == "setup":
 	#print(p.stdout)
 	#print(p.stderr)
 elif args.command=="orthology":
-	print(now(), "Welcome to phylociraptor orthology.")
+	print(now(), "Welcome to phylociraptor orthology v%s" % version)
 	orthology_parser = PhyloParser(usage=help_message(orthology_help),add_help=False)	
 #	orthology_parser.add_argument("-f", "--force", action="store_true")
 #	orthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -595,7 +597,7 @@ elif args.command=="orthology":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="filter-orthology":
-	print(now(), "Welcome to phylociraptor filter-orthology.")
+	print(now(), "Welcome to phylociraptor filter-orthology v%s" % version)
 	forthology_parser = PhyloParser(add_help=False)
 #	forthology_parser.add_argument("-f", "--force", action="store_true")
 #	forthology_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -661,7 +663,7 @@ elif args.command=="filter-orthology":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="align":
-	print(now(), "Welcome to phylociraptor align.")
+	print(now(), "Welcome to phylociraptor align v%s" % version)
 	align_parser = PhyloParser(usage=help_message(align_help), add_help=False)
 #	align_parser.add_argument("-f", "--force", action="store_true")
 #	align_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -716,7 +718,7 @@ elif args.command=="align":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="filter-align":
-	print(now(), "Welcome to phylociraptor filter-align.")
+	print(now(), "Welcome to phylociraptor filter-align v%s" % version )
 	falign_parser = PhyloParser(usage=help_message(falign_help), add_help=False)
 #	falign_parser.add_argument("-f", "--force", action="store_true")
 #	falign_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -768,7 +770,7 @@ elif args.command=="filter-align":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="speciestree":
-	print(now(), "Welcome to phylociraptor speciestree.")
+	print(now(), "Welcome to phylociraptor speciestree v%s" % version)
 	sptree_parser = PhyloParser(add_help=False)
 #	sptree_parser.add_argument("-f", "--force", action="store_true")
 #	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -800,7 +802,7 @@ elif args.command=="speciestree":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="njtree":
-	print(now(), "Welcome to phylociraptor njtree.")
+	print(now(), "Welcome to phylociraptor njtree %s" % version)
 	njtree_parser = PhyloParser(add_help=False)
 #	njtree_parser.add_argument("-f", "--force", action="store_true")
 #	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -832,7 +834,7 @@ elif args.command=="njtree":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="mltree":
-	print(now(), "Welcome to phylociraptor mltree.")
+	print(now(), "Welcome to phylociraptor mltree v%s" % version)
 	tree_parser = PhyloParser(add_help=False)
 #	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
 #	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
@@ -865,7 +867,7 @@ elif args.command=="mltree":
 	if debug:
 		print(now(),"DEBUG:", cmd)
 elif args.command=="modeltest":
-	print(now(), "Welcome to phylociraptor modeltest.")
+	print(now(), "Welcome to phylociraptor modeltest v%s" % version)
 	model_parser = PhyloParser(add_help=False)
 #	model_parser.add_argument("-f", "--force", action="store_true")
 #	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
@@ -897,7 +899,7 @@ elif args.command=="modeltest":
 	if debug:
 		print(now(),"DEBUG:", cmd)	
 elif args.command=="report":
-	print(now(), "Welcome to phylociraptor report.")
+	print(now(), "Welcome to phylociraptor report v%s" % version)
 	report_parser = argparse.ArgumentParser(add_help=False)
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
@@ -930,7 +932,7 @@ elif args.command=="report":
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print(now(), "Your phylociraptor report has been created in the results folder.")
 elif args.command == "check":
-	print(now(), "Welcome to phylociraptor check.")
+	print(now(), "Welcome to phylociraptor check v%s" % version)
 	check_parser = argparse.ArgumentParser(add_help=False)
 	check_parser.add_argument("-h", "--help", action="store_true")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
