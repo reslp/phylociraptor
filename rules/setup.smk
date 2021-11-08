@@ -139,6 +139,7 @@ rule download_genomes:
 			touch {output.failed}
 			echo "$(date) - Setup: No species to download." >> results/statistics/runlog.txt
 		fi
+		if [[ ! -d results/checkpoints/genome_download ]]; then mkdir -p results/checkpoints/genome_download; fi # sometimes this folder is not created, better do it to be safe.
 		touch {output.checkpoint}
 		"""
 
