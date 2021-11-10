@@ -100,12 +100,15 @@ rule iqtree:
 			echo "Will create NEXUS partition file with model information now."
 			echo "#nexus" > concat.nex
 			echo "begin sets;" >> concat.nex 
+			i=1
+			charpart=""
 			for gene in $(echo "{params.genes}")
 			do
-				cat {params.wd}/{params.models} | grep $gene | awk '{{print "charset part"NR" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> concat.nex
-				printf "charpartition mine = " >> concat.nex
-				cat {params.wd}/{params.models} | grep $gene | awk '{{printf($2":part"NR", ")}}' | sed 's/\\(.*\\), /\\1;\\n/' >> concat.nex
+				cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{print "charset part"i" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> concat.nex
+				charpart=$charpart$(cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{printf($2":part"i", ")}}' | sed 's/\\(.*\\), /\\1, /')
+				i=$((++i))
 			done
+			echo "charpartition mine = "$charpart";" >> concat.nex
 			echo "end;" >> concat.nex
 			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
