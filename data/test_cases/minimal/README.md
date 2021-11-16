@@ -1,10 +1,12 @@
 ## This is a minimal example to quickly test if phylociraptor works
 
 Run these commands from inside the phylociraptor directory in this order to reproduce the minimal example.
+
 This minimal test dataset consists of six fungal genomes.
 
 Results generated from this run:
 
+- 6 downloaded fungal genome assemblies
 - 10 identified single-copy orthologs in each genome
 - 20 multiple sequence alignments using mafft and clustal-o
 - 38 trimmed alignments using trimal and aliscore/alicut (2 will be excluded during trimming)
@@ -20,7 +22,7 @@ cp data/test_cases/minimal/minimal.csv data/
 cp data/test_cases/minimal/modify_busco.sh .
 ```
 
-### setup the pipeline (this should take about 5 minutes):
+### setup the pipeline:
 
 This runs on a single thread (serial=1) and the same machine. It should take about 5 minutes.
 
