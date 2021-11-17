@@ -54,6 +54,7 @@ If you run into problems with phylociraptor please follow these steps:
    introduction/about
    introduction/installation.rst
    introduction/quickstart
+   introduction/minimal
    introduction/citation.rst
 
 .. toctree::
