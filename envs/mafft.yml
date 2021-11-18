@@ -1,8 +1,0 @@
-name: mafft
-channels:
-  - bioconda
-  - defaults
-dependencies:
-  - _libgcc_mutex=0.1
-  - libgcc-ng=9.1.0
-  - mafft=7.464

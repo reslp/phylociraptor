@@ -1,9 +1,0 @@
-name: trimal
-channels:
-  - bioconda
-  - defaults
-dependencies:
-  - _libgcc_mutex=0.1
-  - libgcc-ng=9.1.0
-  - libstdcxx-ng=9.1.0
-  - trimal=1.4.1
