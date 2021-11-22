@@ -149,7 +149,7 @@ if (file.exists(downloaded_genomes_statistics_file))
     info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
   }
   
-  data %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+  data %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
 } else {
   info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
 }
@@ -222,19 +222,6 @@ results/orthology/busco
 **Number of samples with single-copy BUSCO score below threshold (`r cutoff`):** `r length(failed_genomes)`  
 **Genomes below threshold:**  
 `r failed_genomes`
-
-```{r, echo=F, message=F, warning=F, fig.width=8}
-# display of benchmark results need more work
-#if (busco_bench_df != "not_found") {
-#  nrows <- nrow(busco_bench_df)
-#  busco_bench_df <- busco_bench_df[ order(row.names(busco_bench_df)), ]
-#  p <- ggplot(busco_bench_df, aes(x=minutes, y=job)) +geom_bar(stat="identity") +theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 0,vjust=1, colour = "grey50"))
-#  
-#  #+theme_bw()+ theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())
-#  
-#  }
-
-```
 
 
 ```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F, results="asis"}
@@ -315,7 +302,7 @@ if (file.exists(busco_summary_file))
 #  #print(aa$width)
 #}
 #  
-#  #data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+#  #data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 #} else {
 #  cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
 #}
@@ -424,7 +411,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	}
 	
 	cat(paste0("<b>Total number of alignments per aligner: </b>", nrow(data_combined), "<br><br>"))	
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
 
@@ -439,7 +426,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 #}
 #if (file.exists(alignment_statistics_file) == TRUE) {
 #    rows <- which(data$nparsimony < 10)
-#    data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+#    data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
 #} else {
 #  print("Alignment statistics file not found. Did you run phylociraptor align?")
 #}
@@ -540,7 +527,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	names(values) <- names
 	return(values)
 	}
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
 
@@ -549,7 +536,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 ##data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
 ##data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
 ##print(rows)
-#data %>% kbl(escape=F) %>% kable_paper("striped", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
+#data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
 #} else {
 #  print("Trimming statistics file not found. Did you run phylociraptor align?")
 #}
@@ -651,7 +638,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 	return(values)
 	}
 	
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("striped", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
 ```
@@ -730,7 +717,7 @@ if (length(files) > 0) {
 	}
 	data_combined <- do.call(multi_merge, list(dat))
 	colnames(data_combined) <- names
-	data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 }
 ```
 
@@ -805,7 +792,7 @@ if (length(files) > 0) {
 		
 	}
 	options(knitr.kable.NA = '') # do not display NA values
-	data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 
 }
 if (p != "") {
