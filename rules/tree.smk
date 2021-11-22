@@ -38,7 +38,7 @@ rule raxmlng:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.done",
 			alignment = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}/concat.fas",
 			partitions = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}/partitions.txt",
-			statistics = "results/statistics/raxml_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
+			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.txt"
 		singularity:
@@ -53,9 +53,9 @@ rule raxmlng:
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
 			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}
-			# this is just a placeholder:
-			echo "RAXML STATISTICS - STILL A PLACEHOLDER" > {params.wd}/{output.statistics}
 			raxml-ng --msa {params.wd}/{output.alignment} --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
+			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
+			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
 			"""
 rule iqtree:
@@ -64,7 +64,7 @@ rule iqtree:
 			"results/checkpoints/modes/modeltest.done"
 		output:
 			checkpoint = "results/checkpoints/iqtree_{aligner}_{alitrim}_{bootstrap}.done",
-			statistics = "results/statistics/iqtree_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
+			statistics = "results/statistics/mltree/mltree_iqtree_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/iqtree_{aligner}_{alitrim}_{bootstrap}.txt"
 		singularity:
@@ -92,10 +92,6 @@ rule iqtree:
 			do
 				cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas algn
 			done
-			echo "Parameters:" > {params.wd}/{output.statistics}
-			echo "Threads: {params.nt}" >> {params.wd}/{output.statistics}
-			echo "Bootstraping -bb: {params.bb}" >> {params.wd}/{output.statistics}
-			echo "Maxmem: {params.maxmem}" >> {params.wd}/{output.statistics}
 			# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.				
 			echo "Will create NEXUS partition file with model information now."
 			echo "#nexus" > concat.nex
@@ -117,13 +113,8 @@ rule iqtree:
 				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} {params.additional_params}
 			fi
 			#rm -r algn
-			#TODO: incorporate bootstrap cutoff
-			echo "Consensus tree:"
-			cat concat.contree >> {params.wd}/{output.statistics}
-			echo "IQTREE run information:"
-			head -n 5 concat.iqtree >> {params.wd}/{output.statistics}
-			tail -n 30 concat.log >> {params.wd}/{output.statistics}
-			tail -n 6 concat.iqtree >> {params.wd}/{output.statistics}
+			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
+			echo -e $statistics_string > {params.wd}/{output.statistics}	
 			cd {params.wd}
 			touch {output.checkpoint}
 			"""

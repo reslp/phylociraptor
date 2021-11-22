@@ -94,6 +94,7 @@ rule astral_species_tree:
 #		checkpoint = rules.aggregate_gene_trees.output.checkpoint
 	output:
 		species_tree = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}/species_tree.tre",
+		statistics = "results/statistics/speciestree/astral_{aligner}-{alitrim}-{bootstrap}_statistics.txt",
 		checkpoint = "results/checkpoints/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.done"
 	benchmark:
 		"results/statistics/benchmarks/speciestree/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.txt"
@@ -104,8 +105,11 @@ rule astral_species_tree:
 	shell:
 		"""
 		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree}
+		statistics_string="astral\t{wildcards.aligner}\t{wildcards.alitrim}\t{wildcards.bootstrap}\t$(cat {input.trees} | wc -l)\t$(cat {output.species_tree})"
+		echo -e $statistics_string > {params.wd}/{output.statistics}	
 		touch {output.checkpoint}
 		"""
+
 rule all_speciestree:
 	input:
 		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], bootstrap=config["filtering"]["bootstrap_cutoff"])
@@ -113,6 +117,7 @@ rule all_speciestree:
 		"results/checkpoints/modes/speciestree.done"
 	shell:
 		"""
+		
 		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt
 		touch {output}
 		"""

@@ -1,7 +1,8 @@
 ---
 title: "phylociraptor report"
 date: "`r format(Sys.time(), '%d %B, %Y - %R %Z')`"
-output: html_document
+output: 
+    html_document
 ---
 ## {.tabset .tabset-fade}
 
@@ -42,7 +43,6 @@ dhms <- function(t){
 ```
 
 ```{r checkinput_general, echo=FALSE}
-
 # set input file names:
 
 busco_overview_image <- ""
@@ -808,36 +808,116 @@ if (length(files) > 0) {
 	data_combined %>% kbl(escape=F) %>% kable_paper("striped", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 
 }
-p %>% layout(autosize = F, width = 10, height = 10, showlegend=FALSE) %>% config(displayModeBar=FALSE)# this works only in combination with the print statement above
+if (p != "") {
+	p <- p  %>% layout(autosize = F, width = 10, height = 10, showlegend=FALSE) %>% config(displayModeBar=FALSE)# this works only in combination with the print statement above
+} else { p <- "gene tree result statistics not found" }
+p
 
+```
+
+```{js, echo=FALSE, class.source=".foldable"}
+function copytree(id) {
+  /* Get the text field */
+  var myid = 'myInput' + id
+  
+  var copyText = document.getElementById(myid);
+
+  /* Select the text field */
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+   /* Copy the text inside the text field */
+  navigator.clipboard.writeText(copyText.value);
+
+  /* Alert the copied text */
+  alert("Tree copied to clipboard.");
+}
 ```
 
 ### MLtree
 
 ```{r stats_tree, echo=FALSE}
-if (file.exists(tree_statistics_file) == TRUE) {
-  tree_stats <- TRUE
-  tree_log <- read_file(tree_statistics_file)
-  cat(tree_log)
-} else {
-  tree_stats <- FALSE
+
+files <- list.files(path="../results/statistics/mltree/", pattern ="mltree_*", recursive=F)
+multi_merge <- function(d) {
+	df <- d[[1]]
+	if (length(d) >= 2) {
+		for (i in 2:length(dat)) {
+			df <- merge(df, d[[i]], by="gene", all=T, suffixes=c("",""))
+			#df <- full_join(df, d[[i]], by="gene", suffix = c("", ""))
+		}
+	}
+	return(df)
+}
+if (length(files) > 0) {
+	dat <- list()
+	i <- 1
+	for (file in files) {
+		dat[[i]] <- read.table(paste0("../results/statistics/mltree/", file), sep=" ", header=F)
+		i <- i + 1
+	}
+	data_combined <- do.call("rbind", dat)
+	colnames(data_combined) <- c("software", "aligner", "trimmer", "boostraps", "bootstrap-cutoff", "ngenes", "tree")
+	for (i in 1:length(data_combined$tree)) {
+	
+	data_combined$tree[i] <- paste0('<input type="tree" value="', data_combined$tree[i], '" id="myInput',i,'"><button onclick="copytree(',i,')">Copy tree</button>')	
+
+	}
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
-`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
+
+```{js, echo=FALSE, class.source=".foldable"}
+function copyspeciestree(id) {
+  /* Get the text field */
+  var myid = 'myspeciestree' + id
+  
+  var copyText = document.getElementById(myid);
+
+  /* Select the text field */
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+   /* Copy the text inside the text field */
+  navigator.clipboard.writeText(copyText.value);
+
+  /* Alert the copied text */
+  alert("Tree copied to clipboard.");
+}
+```
 
 ### Speciestree
 
 ```{r stats_speciestree, echo=FALSE}
-if (file.exists(tree_statistics_file) == TRUE) {
-  tree_stats <- TRUE
-  tree_log <- read_file(tree_statistics_file)
-  cat(tree_log)
-} else {
-  tree_stats <- FALSE
+files <- list.files(path="../results/statistics/speciestree/", pattern ="astral_*", recursive=F)
+multi_merge <- function(d) {
+	df <- d[[1]]
+	if (length(d) >= 2) {
+		for (i in 2:length(dat)) {
+			df <- merge(df, d[[i]], by="gene", all=T, suffixes=c("",""))
+			#df <- full_join(df, d[[i]], by="gene", suffix = c("", ""))
+		}
+	}
+	return(df)
+}
+if (length(files) > 0) {
+	dat <- list()
+	i <- 1
+	for (file in files) {
+		dat[[i]] <- read.table(paste0("../results/statistics/speciestree/", file), sep=" ", header=F)
+		i <- i + 1
+	}
+	data_combined <- do.call("rbind", dat)
+	colnames(data_combined) <- c("software", "aligner", "trimmer", "bootstrap-cutoff", "ngenes", "tree")
+	for (i in 1:length(data_combined$tree)) {
+	
+	data_combined$tree[i] <- paste0('<input type="tree" value="', data_combined$tree[i], '" id="myspeciestree',i,'"><button onclick="copyspeciestree(',i,')">Copy tree</button>')	
+
+	}
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
 
-`r if(!tree_stats){"**Tree statistics not found. Did you run phylociraptor tree?**"}`
 
 ### Log
 
