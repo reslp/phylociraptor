@@ -729,6 +729,11 @@ if (length(files) > 0) {
 
 ### Genetrees
 
+**Location of gene trees:** 
+```
+results/modeltest
+```
+
 ```{r stats_genetrees, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 p <- "" #have to do this so plotting does not fail when there is no data
 files <- list.files(path="../results/modeltest/", pattern ="genetree_filter_*", recursive=F)
@@ -827,7 +832,12 @@ function copytree(id) {
 
 ### MLtree
 
-```{r stats_tree, echo=FALSE}
+**Location of phylogenetic results:** 
+```
+results/phylogeny-*/
+```
+
+```{r stats_tree, echo=FALSE, results="asis"}
 
 files <- list.files(path="../results/statistics/mltree/", pattern ="mltree_*", recursive=F)
 multi_merge <- function(d) {
@@ -854,6 +864,7 @@ if (length(files) > 0) {
 	data_combined$tree[i] <- paste0('<input type="tree" value="', data_combined$tree[i], '" id="myInput',i,'"><button onclick="copytree(',i,')">Copy tree</button>')	
 
 	}
+	cat("<br><b>Overview of concatenated Maximum-likelihood phylogenies:</b>\n")
 	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
@@ -879,7 +890,12 @@ function copyspeciestree(id) {
 
 ### Speciestree
 
-```{r stats_speciestree, echo=FALSE}
+**Location of phylogenetic results:** 
+```
+results/phylogeny-*/
+```
+
+```{r stats_speciestree, echo=FALSE, results="asis"}
 files <- list.files(path="../results/statistics/speciestree/", pattern ="astral_*", recursive=F)
 multi_merge <- function(d) {
 	df <- d[[1]]
@@ -905,6 +921,7 @@ if (length(files) > 0) {
 	data_combined$tree[i] <- paste0('<input type="tree" value="', data_combined$tree[i], '" id="myspeciestree',i,'"><button onclick="copyspeciestree(',i,')">Copy tree</button>')	
 
 	}
+	cat("<br><b>Overview of species-tree phylogenies:</b>\n")
 	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
