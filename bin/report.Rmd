@@ -771,6 +771,7 @@ if (length(files) > 0) {
 	data_combined <- do.call(multi_merge, list(dat))
 
 	plot_data <- data_combined[, grepl("bootstrap_mean", names(data_combined))]
+	plot_data <- as.data.frame(plot_data) #make sure data structure is dataframe, this is necessary because this will be a vector for a single parameter combination
 	colnames(plot_data) <- titles
 	p <- plot_ly(type="violin")
 	for (j in 1:length(colnames(plot_data))) 
