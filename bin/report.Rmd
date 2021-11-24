@@ -1,6 +1,5 @@
 ---
-title: "phylociraptor report"
-date: "`r format(Sys.time(), '%d %B, %Y - %R %Z')`"
+title: phylociraptor           
 output: 
     html_document
 ---
@@ -42,6 +41,11 @@ dhms <- function(t){
 
 ```
 
+`r version <- read.table("../.version", header=F)`
+`r ver <- " - version: "`
+
+**`r paste0("Analysis report - ", format(Sys.time(), '%d %B, %Y - %R %Z'), ver, version)`**
+ 
 ```{r checkinput_general, echo=FALSE}
 # set input file names:
 
@@ -129,15 +133,11 @@ total <- length(failed) + length(success) + length(local)
 results/assemblies
 ```
 
-**Total number of included genomes:** `r total`
-
-**Locally provided genomes:** `r length(local)`
-
-**Successfully downloaded genomes:** `r length(success)`
-
-**Failed species downloads:** `r length(failed)`
-
-**Not downloaded:**<br />`r failed`
+**Total number of included genomes:** `r total`    
+**Locally provided genomes:** `r length(local)`    
+**Successfully downloaded genomes:** `r length(success)`    
+**Failed species downloads:** `r length(failed)`    
+**Not downloaded:**<br />`r failed`    
 
 **Information on successfully downloaded genomes:**
 ```{r genome_stats, echo=FALSE, out.height=500}
@@ -380,6 +380,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	for (dir in dirs) {
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
+		cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
 		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
 		if (i ==1) {
 			data <- data[,c(1,4:8)]
@@ -411,7 +412,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	return(values)
 	}
 	
-	cat(paste0("<b>Total number of alignments per aligner: </b>", nrow(data_combined), "<br><br>"))	
+	cat("<br><br><b>Overview of individual full alignments:</b>\n")
 	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
@@ -444,15 +445,14 @@ results/alignments/trimmed
 
 ```{r stats_trimmed, echo=FALSE, results="asis"}
 if (exists("pars_sites") == TRUE) {
-	cat(paste0("<b> Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
+	cat(paste0("<b> Parsimony informative sites cutoff: </b>", pars_sites))
 	parsimony_cutoff <- pars_sites 
 } else { parsimony_cutoff <- 100000} # in case this can not be determined from the overview stats file, use high value to flag nothing
 
 ```
 
-**Overview of individual trimmed alignments:**
 
-```{r stats_trimmed2, echo=FALSE, warning=FALSE}
+```{r stats_trimmed2, echo=FALSE, warning=FALSE, results="asis"}
 dirs <- list.dirs("../results/statistics/", recursive=F)
 dirs <- grep("/trim-*", dirs, value = TRUE)
 
@@ -470,6 +470,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	for (dir in dirs) {
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
+		cat(paste0("<br><b>Number of trimmed alignments for ", strsplit(dir,split="trim-")[[1]][2],": </b>", nrow(data), "\n"))
 		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < parsimony_cutoff, "red", ""))
 		data <- data[,c(1,4:8)]
 		data <- as.data.frame(data)
@@ -491,10 +492,6 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	#data_combined <- merge(dat[[1]], dat[[2]], all=T, by="alignment")
 	data_combined <- do.call(multi_merge, list(dat))
 	data_combined[is.na(data_combined)] = ""
-	for (i in 1:length(colnames(data_combined))){
-		cat(paste0("Number of alignemnts for ", colnames(data_combined)[i], 1), "\n")
-	}
-
 
 	#rownames(data_combined) <- data_combined$alignment
 	#data_combined$alignment <- NULL
@@ -531,6 +528,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	names(values) <- names
 	return(values)
 	}
+	cat("<br><br><b>Overview of individual trimmed alignments:</b>\n")
 	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
@@ -566,8 +564,7 @@ if (exists("pars_sites") == TRUE) {
 } else { parsimony_cutoff <- 100000} # in case this can not be determined from the overview stats file, use high value to flag nothing
 ```
 
-**Overview of individual filtered alignments:**
-```{r stats_filtered2, echo=FALSE, warning=FALSE}
+```{r stats_filtered2, echo=FALSE, warning=FALSE, results="asis"}
 dirs <- list.dirs("../results/statistics/", recursive=F)
 dirs <- grep("/filter-*", dirs, value = TRUE)
 
@@ -584,6 +581,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 	for (dir in dirs) {
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
+		cat(paste0("<br><b>Number of filtered alignments for ", strsplit(dir,split="filter-")[[1]][2],": </b>", nrow(data), "\n"))
 		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < parsimony_cutoff, "red", ""))
 		data <- data[,c(1,4:8)]
 		data <- as.data.frame(data)
@@ -641,6 +639,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 	names(values) <- names
 	return(values)
 	}
+	cat("<br><br><b>Overview of individual filtered alignments:</b>\n")
 	
 	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
@@ -654,7 +653,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 results/modeltest
 ```
 
-**Overview of individual modeltest results:***
+**Overview of individual modeltest results:**
 ```{r stats_modeltest, echo=FALSE, out.width="50%", warning=F, fig.align="center"}
 files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
 multi_merge <- function(d) {
