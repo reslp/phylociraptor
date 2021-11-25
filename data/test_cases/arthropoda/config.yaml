@@ -1,15 +1,14 @@
-# general settings:
-species: data/all_fungi_test.csv
+species: "data/arthropoda.csv"
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
-concurrency: 3 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
- 
-# settings related to busco
+concurrency: 20
+
+# settings realted to busco
 busco:
-    set: "fungi_odb9"
-    version: "3.0.2" #possible is "3.0.2" or "5.2.1"
+    set: "metazoa_odb9" # the download URL for the BUSCO set which should be used
+    version: "3.0.2"
     mode: "genome"
-    threads: 2
-    augustus_species: "saccharomyces"
+    threads: 8
+    augustus_species: fly
     additional_parameters: ""
 
 # Setting filtering options for orthology and alignments:
@@ -20,23 +19,24 @@ busco:
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
 
-exclude_orthology: 
+#file with species names to exclude from orthology/filter-orthology rules
+exclude_orthology:
 
 filtering:
-    concurrency: 50
+    concurrency: 10
     dupseq: "persample"
-    cutoff: 0.05
-    minsp: 2
+    cutoff: 0.5
+    minsp: 250
     seq_type: "aa"
-    min_parsimony_sites: 200
-    bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
+    min_parsimony_sites: 50
 
 # settings related to alignment and trimming
 alignment:
-    method: ["mafft", "clustalo"]
+    method: ["mafft","clustalo"] # currently supported methods: mafft, clustalo
     threads: 8
-    mafft_parameters: "--quiet --auto"
-    clustalo_parameters: 
+    mafft_parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
+    clustalo_parameters:
+
 # possible trimming options: trimal, aliscore
 trimming: 
     method: ["trimal", "aliscore"] 
@@ -53,27 +53,25 @@ modeltest:
 genetree:
     method: ["iqtree"]
     boostrap: 1000
-    threads: 5
+    threads: 16
 
 speciestree:
     method: "astral"
-    include: #"data/trees_to_include.txt"
-    bootstrap_cutoff: # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: No cutoff (all trees will be included)
-
+    include: 
 
 tree:
     method: ["iqtree", "raxml"]
 
 # specific settings for individual tree reconstruction methods
 iqtree:
-    threads: 96 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
+    threads: 16 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
     bootstrap: 1000
-    model: "MFP"
+    model: MFP
     additional_params: ""
     maxmem: "" #this flag limits ram usage for iqtree: eg. 64G, default (empty quotes is all available mem)
 raxmlng:
-    threads: 96
-    bootstrap: 100
+    threads: 16
+    bootstrap: 1000
     additional_params: ""
 phylobayes:
     threads: 30

@@ -104,7 +104,7 @@ astral_species_tree:
    h_vmem: 48G
 iqtree_gene_trees:
    N: iqtgt
-   h_vmem: 2G
+   h_vmem: 1G
 aggregate_gene_trees:
    N: agg_genetrees
 njtree:

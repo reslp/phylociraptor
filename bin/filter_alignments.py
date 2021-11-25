@@ -15,6 +15,7 @@ pars.add_argument('--outdir', dest="outdir", required=True, help="output directo
 pars.add_argument('--per_sample', dest="perseq", action='store_true', help="if set, only samples with duplicated sequences will be removed. Else the whole alignment")
 pars.add_argument('--min-parsimony', nargs="?", dest="minpars", const=0, help="The minimum number of parsimony informative sites and alignment must have to be kept.")
 pars.add_argument('--statistics-file', nargs="?", dest="statfile", const="", help="Statistics file which contains alignment information(incl. parsimony informative sites; this file needs to be created with concat)")
+pars.add_argument('--minsp', dest="minsp", action="store", default=3, type=int, help="Number of taxa to be present in alignment at least (default: 3)")
 args=pars.parse_args()
 
 algn_list = args.align.split(" ")
@@ -24,6 +25,7 @@ if args.statfile:
 	with open(args.statfile, "r") as stats:
 		stats.readline()
 		for stat in stats:
+			print(stat.split("\t")[5])
 			stats_dict[stat.split("\t")[0]] = int(stat.split("\t")[5])	
 for al in algn_list:
 	if os.stat(al).st_size == 0:
@@ -38,7 +40,7 @@ for al in algn_list:
 	for seq_record in SeqIO.parse(seqfile, "fasta"):
 		sequences.append(seq_record)
 	names_list = [seq.id for seq in sequences]
-	if len(names_list) < 3:
+	if len(names_list) < args.minsp:
 		print(os.path.basename(al), "\tTOO_FEW_SEQUENCES")
 		continue
 	if len(names_list) == len(set(names_list)):
@@ -53,6 +55,10 @@ for al in algn_list:
 			print("Warning: Will remove %d sequences" % len(dups), file=sys.stderr)
 			dups = set(dups)
 			sequences = [sequence for sequence in sequences if sequence.id not in dups]
+			if len(sequences) < args.minsp:
+				print("Warning: %s file will be discarded (too few sequences after duplicate removal)" % al, file=sys.stderr)
+				print(os.path.basename(al), "\tTOO_FEW_SEQUENCES")
+				continue
 			outfile = open(args.outdir+"/"+al.split("/")[-1], "w")
 			for sequence in sequences:
 				print(">"+sequence.id, file=outfile)
@@ -60,7 +66,7 @@ for al in algn_list:
 			outfile.close()
 			print(os.path.basename(al), "\tREMOVE_DUPLICATED_SEQUENCES")
 		else:
-			print("Warning: %s file will be discarded" % al)
+			print("Warning: %s file will be discarded" % al, file=sys.stderr)
 			print(os.path.basename(al), "\tREMOVED")	
 
 

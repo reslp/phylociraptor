@@ -1,0 +1,7 @@
+species,Organism Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
+Neurospora crassa,Eukaryota;Fungi;Ascomycetes,41.1024,7,1,0,4,web=GCA_000182925.2
+Tuber melanosporum,Eukaryota;Fungi;Ascomycetes,124.946,0,0,0,1,web=GCA_000151645.1
+Usnea hakonensis,Eukaryota;Fungi;Ascomycetes,41.1984,0,0,0,1,web=GCA_013423325.1
+Amanita muscaria,Eukaryota;Fungi;Basidiomycetes,40.6998,0,0,0,2,web=GCA_000827485.1
+Boletus edulis,Eukaryota;Fungi;Basidiomycetes,52.5757,0,0,0,1,web=GCA_003316165.1
+Lactarius deliciosus,Eukaryota;Fungi;Basidiomycetes,54.791,0,0,0,2,web=GCA_003316005.1

@@ -7,6 +7,8 @@ __default__:
    mem: 2gb #make sure to adjust so that this fits your cluster
    pe: shm # change this according your cluster configuration
    walltime: "12:00:00"
+download_genome_overview:
+   N: dloverview
 download_genomes:
    N: dlgenomes
    mem: 12gb
@@ -53,13 +55,19 @@ remove_duplicated_sequence_files:
 get_all_trimmed_files:
    N: gettrimfiles
    mem: 12gb
-align:
-   N: align
+align_mafft:
+   N: alnm
+   mem: 10gb
+align_clustalo:
+   N: alnc
    mem: 10gb
 get_alignment_statistics:
    N: alignstats
-trim:
-   N: trim
+trim_trimal:
+   N: trimal
+   mem: 10gb
+trim_aliscotri:
+   N: aliscore
    mem: 10gb
 iqtree:
    N: iqtree

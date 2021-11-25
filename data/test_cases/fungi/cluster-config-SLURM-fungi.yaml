@@ -90,10 +90,11 @@ iqtree:
    mem: 94G
 concatenate:
    job-name: concat
-   mem: 8G
+   mem: 24G
 modeltest:
    job-name: mt
-   mem: 64G
+   mem: 12G
+   time: "05:00:00"
 aggregate_best_models:
    job-name: aggmodels
    mem: 10G
@@ -121,7 +122,8 @@ astral_species_tree:
    mem: 48G
 iqtree_gene_trees:
    job-name: iqtgt
-   mem: 32G
+   mem: 48G
+   time: "36:00:00"
 aggregate_gene_trees:
    job-name: agg_genetrees
 njtree:

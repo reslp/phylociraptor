@@ -1,3 +1,12 @@
+```         
+                      __          __           _                  __           
+               ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
+              / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
+             / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
+            / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
+           /_/          /____/                         /_/                      
+```
+
 # phylociraptor - Rapid phylogenomic tree calculator 
 
 This pipeline creates phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
@@ -16,8 +25,13 @@ Phylociraptor was designed in such a way that it can run on desktop computers (a
 Local computer or solitary server:
 
 - Linux or MacOS operating system
-- globally installed singularity 3.4.1+ 
+- globally installed singularity 3.4.1+
 - installed snakemake 6.0.2+ (best in an anaconda environment)
+
+or 
+
+- Docker (this is still experimental; see information belwo)
+
 
 On a cluster:
 
@@ -29,7 +43,7 @@ On a cluster:
 
 Orthology inference:
 
-- BUSCO 3.0.2 (https://busco.ezlab.org/)
+- BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
 
 Alignment:
 
@@ -52,49 +66,58 @@ Tree inference:
 1. Clone the repository:
 
 ```
-$ git clone https://github.com/reslp/smsi-phylogenomics.git
-$ cd smsi-phylogenomics
+$ git clone --recursive https://github.com/reslp/phylociraptor.git
+$ cd ./phylociraptor
 $ ./phylociraptor
-Welcome to phylociraptor, the rapid phylogenomic tree calculator
+
+			     Welcome to
+           __          __           _                  __            
+    ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
+   / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
+  / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
+ / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
+/_/          /____/                         /_/                      
+
+	  the rapid phylogenomic tree calculator, ver.0.9.0
+
 
 Usage: phylociraptor <command> <arguments>
 
 Commands:
-    setup               Setup pipeline
-    orthology           Infer orthologs in a set of genomes
-    filter-orthology    Filter orthology results
-    align               Create alignments for orthologous genes
-    filter-align        Trim and filter alignments
-    model               Perform modeltesting
-    tree                Calculate Maximum-Likelihood phylogenomic trees
-    speciestree         Calculate gene trees and species tree
-    njtree              Calculate Neighbor-Joining tree
-    report              Create a HTML report of the run
-    
-    report		Create a HTML report of the run
-    check		Quickly check status of the run
+	setup			Setup pipeline
+	orthology		Infer orthologs in a set of genomes
+	filter-orthology	Filter orthology results
+	align			Create alignments for orthologous genes
+	filter-align		Trim and filter alignments
+	modeltest		Calculate gene trees and perform model testing
+	mltree			Calculate Maximum-Likelihood phylogenomic trees
+	speciestree		Calculate gene trees and species tree
+	njtree			Calculate Neighbor-Joining tree
 
-    -v, --version       Print version
-    -h, --help          Display help
+	report			Create a HTML report of the run
+	check			Quickly check status of the run
+
+	-v, --version 		Print version
+	-h, --help		Display help
 
 Examples:
-    To see options for the setup step:
-    ./phylociraptor setup -h
+	To see options for the setup step:
+	./phylociraptor setup -h
 
-    To run orthology inferrence for a set of genomes on a SLURM cluster:
-    ./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
+	To run orthology inferrence for a set of genomes on a SLURM cluster:
+	./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
 
-    To filter alignments overwriting the number of parsimony informative sites set in the config file:
-    ./phylciraptor filter-align --npars_cutoff 12
+	To filter alignments overwriting the number of parsimony informative sites set in the config file:
+	./phylciraptor filter-align --npars_cutoff 12
 
-phylociraptor: error: the following arguments are required: command, arguments
 ```
 
 2. Create a conda environment with snakemake:
 If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
 
 ```
-$ conda create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
+$ conda install -n base -c conda-forge mamba
+$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 $ conda activate snakemake
 ```
 
@@ -114,7 +137,7 @@ species: data/data.csv
 
 ```
 busco:
-   set: "http://busco.ezlab.org/v3/datasets/fungi_odb9.tar.gz"
+   set: "fungi_odb9"
    ausgustus_species: anidulans
 ```
 
@@ -159,39 +182,39 @@ $ ./phylociraptor setup
 2. Identify orthologous genes for all the genomes:
 
 ```
-$ ./phylociraptor orthology -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor orthology -t sge -c data/cluster_config-SGE.yaml
 ```
 
 3. Filter orthologs using according to settings in the `config.yaml` file:
 
 ```
-$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-SGE.yaml
 ```
 
 4. Create alignments and trim them:
 
 ```
-$ ./phylociraptor align -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor align -t sge -c data/cluster_config-SGE.yaml
 ```
 
 5. Filter alignments according to settings in the `config.yaml`file:
 
 ```
-$ ./phylociraptor filter-align -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor filter-align -t sge -c data/cluster_config-SGE.yaml
 ```
 
 Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
 
 ```
-$ ./phylociraptor model -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor modeltest -t sge -c data/cluster_config-SGE.yaml
 ```
 
 6. Reconstruct phylogenies:
 
 ```
-$ ./phylociraptor njtree -t sge -c data/cluster_config-sauron.yaml
-$ ./phylociraptor tree -t sge -c data/cluster_config-sauron.yaml
-$ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
+$ ./phylociraptor njtree -t sge -c data/cluster_config-SGE.yaml
+$ ./phylociraptor mltree -t sge -c data/cluster_config-SGE.yaml
+$ ./phylociraptor speciestree -t sge -c data/cluster_config-SGE.yaml
 ```
 
 7. Create a report of the run:
@@ -200,12 +223,14 @@ $ ./phylociraptor speciestree -t sge -c data/cluster_config-sauron.yaml
 $ ./phylociraptor report
 ```
 
-## Prototyping
+## Using Docker
 
-Is done in a Docker container which has conda, snakemake and singularity installed:
+It is also possible to run phylociraptor inside a docker container. This container has singularity and conda installed so the only requirement is that Docker is properly set up. This is still an experimental feature and we have not tested this extensively. We still recommend using phylociraptor as it is described above, especially when you work on a HPC cluster.
+In case you would like to try phylociraptor in Docker you just have to subsitute the `phylociraptor` command with `phylociraptor-docker`.
 
 ```
-docker run --rm -it --privileged -v $(pwd):/data reslp/smsi_ubuntu:3.4.1
+$ git clone --recursive https://github.com/reslp/phylociraptor.git
+$ cd ./phylociraptor
+$ ./phylociraptor-docker
 ```
-
 

@@ -59,7 +59,7 @@ rule setup:
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)
 	output:
-		".phylogenomics_setup.done"
+		"results/checkpints/modes/phylogenomics_setup.done"
 
 	shell:
 		"""
@@ -75,7 +75,7 @@ rule add_genomes:
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 	output:
-		".add_genomes.done"
+		"results/checkpoints/modes/add_genomes.done"
 	shell:
 		"""
 		touch {output}
@@ -89,7 +89,7 @@ rule orthology:
 		#"results/checkpoints/create_sequence_files.done",
 		#"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
-		"checkpoints/orthology.done"
+		"results/checkpoints/modes/orthology.done"
 	shell:
 		"""
 		touch {output}
@@ -101,7 +101,7 @@ rule filter_orthology:
 		"results/checkpoints/create_sequence_files.done",
 		"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:
-		"checkpoints/filter_orthology.done"
+		"results/checkpoints/modes/filter_orthology.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt
@@ -112,7 +112,7 @@ rule align_trim:
 		"results/checkpoints/aggregate_align.done",
 		"results/statistics/statistics_alignments.txt"
 	output:
-		"checkpoints/align_trim.done"
+		"results/checkpoints/modes/align_trim.done"
 	shell:
 		"""
 		touch {output}	
@@ -124,7 +124,7 @@ rule part_filter_align:
 		"results/checkpoints/filter_alignments.done",
 		"results/statistics/statistics_filtered.txt"	
 	output:
-		"checkpoints/filter_align.done"
+		"results/checkpoints/modes/filter_align.done"
 	shell:
 		"""
 		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
@@ -136,7 +136,7 @@ rule part_modeltest:
 	input:
 		"results/checkpoints/modeltest/aggregate_best_models.done"
 	output:
-		"checkpoints/part_modeltest.done"
+		"results/checkpoints/modes/part_modeltest.done"
 	shell:
 		"""
 		touch {output}
@@ -148,7 +148,7 @@ rule part3:
 		"results/checkpoints/iqtree.done",
 		"results/checkpoints/raxmlng.done"
 	output:
-		"checkpoints/part3.done"
+		"results/checkpoints/modes/part3.done"
 	shell:
 		"""
 		touch {output}
@@ -159,7 +159,7 @@ rule speciestree:
 	input:
                 "results/checkpoints/astral_species_tree.done"
 	output:
-		"checkpoints/speciestree.done"
+		"results/checkpoints/modes/speciestree.done"
 	shell:
 		"""
 		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt

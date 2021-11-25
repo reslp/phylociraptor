@@ -1,5 +1,9 @@
 This is an (incomplete) list of todos for the Pipeline:
 
+Documentation:
+- new 'serial=threads' option
+
+
 general:
 - change submission system to cluster profiles instead of cluster config files.
 - be more verbose on quiet runs to catch some case were snakemake wont run (eg. incomplete files, error in CSV data file)
