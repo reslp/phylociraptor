@@ -583,7 +583,7 @@ elif args.command=="orthology":
 		sys.exit(0)
 	#print(orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "all_orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(orthology_args.cluster, orthology_args.rerun)
+	cmd += determine_submission_mode(orthology_args.cluster)
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
