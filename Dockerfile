@@ -57,6 +57,9 @@ RUN git clone --recursive https://github.com/reslp/phylociraptor.git
 WORKDIR /home/$USER/phylociraptor
 ENV PATH=${PATH}:/home/$USER/phylociraptor
 
+# need to install bc which is not there by default
+RUN apt-get install -y bc
+
 SHELL ["conda", "run", "-n", "snakemake", "/bin/bash", "-c"]
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "snakemake"]
