@@ -123,7 +123,9 @@ Additonal customization (optional):
 	--singularity=		Pass additional arguments to the singularity containers (eg. additional bindpoints).
 				Have to be put under quotes " or '
 	--snakemake=		Pass additional arguments to snakemake.
-				Have to be put under quotes " or ' """
+				Have to be put under quotes " or ' 
+	--rerun-incomplete	This can be used if the analysis fails with an error indicating incomplete files.
+				Will be passed on to snakemake. Equivalent to --snakemake="--rerun-incomplete". """
 
 setup_help = """
 phylociraptor setup - will prepare your analysis
@@ -448,7 +450,14 @@ def execute_command(cmd, verbose):
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				line=""
 
-def get_additional_snakemake_flags(flags):
+def get_additional_snakemake_flags(flags, rerun):
+	if flags:
+		flags= flags.strip() #need to remove trailing charcters such as spaces first otherwise the list will be messed up
+	if rerun: # add --rerun-incomplete in case it is set
+		if flags: #add depending on if flags already contains values or not
+			flags += " --rerun-incomplete"
+		else:
+			flags += "--rerun-incomplete"
 	if flags:
 		print(now(), "INFO: Additional flags will be passed on to snakemake: ", flags)
 		return flags.split(" ")
@@ -498,6 +507,7 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--verbose", action="store_true", default=False)	
 		self.add_argument("--singularity", action="store",dest="si_args", default="")
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
+		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 
 if args.command == "setup":
 	print(now(), "Welcome to phylociraptor setup v%s" % version)
@@ -539,15 +549,14 @@ if args.command == "setup":
 		cmd += ["busco={set: %s}" % setup_args.busco_set]
 		cmd += ["species='%s'" % setup_args.samples_file]
 	
-	cmd += get_additional_snakemake_flags(setup_args.sm_args)
+	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun)
 	cmd += get_additional_singularity_flags(setup_args.si_args)
 
 	for line in execute_command(cmd, setup_args.verbose):
 		print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
-	#print(p.stdout)
-	#print(p.stderr)
+
 elif args.command=="orthology":
 	print(now(), "Welcome to phylociraptor orthology v%s" % version)
 	orthology_parser = PhyloParser(usage=help_message(orthology_help),add_help=False)	
@@ -574,7 +583,7 @@ elif args.command=="orthology":
 		sys.exit(0)
 	#print(orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "all_orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(orthology_args.cluster)
+	cmd += determine_submission_mode(orthology_args.cluster, orthology_args.rerun)
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
@@ -592,7 +601,7 @@ elif args.command=="orthology":
 		arg+="}"
 		cmd += [arg]
 	
-	cmd += get_additional_snakemake_flags(orthology_args.sm_args)
+	cmd += get_additional_snakemake_flags(orthology_args.sm_args, orthology_args.rerun)
 	cmd += get_additional_singularity_flags(orthology_args.si_args)
 
 	
@@ -659,7 +668,7 @@ elif args.command=="filter-orthology":
 		arg += "}"
 		cmd += [arg]
 	
-	cmd += get_additional_snakemake_flags(forthology_args.sm_args)
+	cmd += get_additional_snakemake_flags(forthology_args.sm_args, forthology_args.rerun)
 	cmd += get_additional_singularity_flags(forthology_args.si_args)
 	
 	for line in execute_command(cmd, forthology_args.verbose):
@@ -714,7 +723,7 @@ elif args.command=="align":
 		arg += " }"
 		cmd += [arg]	
 	
-	cmd += get_additional_snakemake_flags(align_args.sm_args)
+	cmd += get_additional_snakemake_flags(align_args.sm_args, align_args.rerun)
 	cmd += get_additional_singularity_flags(align_args.si_args)
 	
 	for line in execute_command(cmd, align_args.verbose):
@@ -766,7 +775,7 @@ elif args.command=="filter-align":
 		arg += "}"
 		cmd += [arg]
 
-	cmd += get_additional_snakemake_flags(falign_args.sm_args)
+	cmd += get_additional_snakemake_flags(falign_args.sm_args, falign_args.rerun)
 	cmd += get_additional_singularity_flags(falign_args.si_args)
 
 	for line in execute_command(cmd, falign_args.verbose):
@@ -798,7 +807,7 @@ elif args.command=="speciestree":
 	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
-	cmd += get_additional_snakemake_flags(sptree_args.sm_args)
+	cmd += get_additional_snakemake_flags(sptree_args.sm_args, sptree_args.rerun)
 	cmd += get_additional_singularity_flags(sptree_args.si_args)
 	
 	for line in execute_command(cmd, sptree_args.verbose):
@@ -830,7 +839,7 @@ elif args.command=="njtree":
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
-	cmd += get_additional_snakemake_flags(njtree_args.sm_args)
+	cmd += get_additional_snakemake_flags(njtree_args.sm_args, njtree_args.rerun)
 	cmd += get_additional_singularity_flags(njtree_args.si_args)
 	
 	for line in execute_command(cmd, njtree_args.verbose):
@@ -863,7 +872,7 @@ elif args.command=="mltree":
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
-	cmd += get_additional_snakemake_flags(tree_args.sm_args)
+	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun)
 	cmd += get_additional_singularity_flags(tree_args.si_args)
 	
 	for line in execute_command(cmd, tree_args.verbose):
@@ -895,7 +904,7 @@ elif args.command=="modeltest":
 	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	
-	cmd += get_additional_snakemake_flags(model_args.sm_args)
+	cmd += get_additional_snakemake_flags(model_args.sm_args, model_args.rerun)
 	cmd += get_additional_singularity_flags(model_args.si_args)
 
 	for line in execute_command(cmd, model_args.verbose):
