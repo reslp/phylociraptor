@@ -2,11 +2,42 @@ configfile: "data/config.yaml"
 
 import os
 import glob
+import pandas as pd
+
+# read in CSV file again. This is needed to determine the mode for BUSCO
+sample_data = pd.read_csv(config["species"])
+sample_data["species"] = sample_data["species"].str.replace(" ","_")
+sample_data.set_index("species", drop=False)
+print(sample_data["species"].to_list())
+
+def get_busco_mode(wildcards):
+	sp = "{wildcards.species}".format(wildcards=wildcards)
+	sp.replace(" ", "_")
+	#first check of mode column exists:
+	if "mode" in list(sample_data.columns):
+		print("(phylociraptor): Will use custom provided BUSCO mode given in .csv file for species:", sp)
+		if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any(): #check if value was actually provided
+			print("(phylocirpator): No BUSCO mode value was provided for" , sp , ", will use the default:",config["busco"]["mode"]) 
+			if not config["busco"]["version"].startswith("5.") and config["busco"]["mode"] == "transcriptome":
+				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				sys.exit(1)
+			else:	
+				return config["busco"]["mode"]
+		else:
+			mode = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
+			if mode == "transcriptome" and not config["busco"]["version"].startswith("5."):
+				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				sys.exit(1)
+			else:		
+				return mode 
+	else:
+		print("mode column not found, will use globally set option from config file.")		
+		return config["busco"]["mode"]
+	
 
 def get_assemblies(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
 	sp.replace(" ", "_")
-	#print(sp)
 	if os.path.isfile("results/assemblies/" + sp + ".fna"):
 		return ["results/assemblies/" + sp + ".fna"]
 	elif os.path.isfile("results/assemblies/" + sp + ".fna.gz"):
@@ -53,7 +84,7 @@ if config["busco"]["version"] == "3.0.2":
 			sp = config["busco"]["augustus_species"],
 			additional_params = config["busco"]["additional_parameters"],
 			species = lambda wildcards: wildcards.species,
-			mode = config["busco"]["mode"],
+			mode = get_busco_mode,
 			augustus_config_in_container = "/opt/conda/config",
 			set = config["busco"]["set"]
 		singularity:
@@ -102,7 +133,6 @@ if config["busco"]["version"] == "3.0.2":
 			cd ..
 			tar -pcf {output.single_copy_buscos} -C run_busco/ single_copy_busco_sequences
 			tar -tvf {output.single_copy_buscos} > {output.single_copy_buscos_tarlist} 2>&1 | tee -a {log}
-			
 			#move output files:
 			mv run_busco/full_table_busco.tsv {output.full_table}
 			mv run_busco/short_summary_busco.txt {output.short_summary}
@@ -140,7 +170,7 @@ if config["busco"]["version"] == "5.2.1":
 			sp = config["busco"]["augustus_species"],
 			additional_params = config["busco"]["additional_parameters"],
 			species = lambda wildcards: wildcards.species,
-			mode = config["busco"]["mode"],
+			mode = get_busco_mode, 
 			augustus_config_in_container = "/usr/local/config",
 			set = config["busco"]["set"]
 		singularity:
