@@ -916,6 +916,7 @@ elif args.command=="report":
 	report_parser = argparse.ArgumentParser(add_help=False)
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
+	report_parser.add_argument("--figure", action="store_true", default=False)
 	report_args = report_parser.parse_args(args.arguments)
 	print(now(), "Will create a phylociraptor report...")
 	
@@ -933,9 +934,11 @@ elif args.command=="report":
         #        print(line, end="\r")
 	#if debug:
 	#	print(cmd)
-	
-	rcommand = """ rmarkdown::render('./bin/report.Rmd') """
-	cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
+	if report_args.figure:
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", 'bin/report_figure.R']
+	else:
+		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
+		cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
 	#proc = subprocess.run(cmd)
 	for line in execute_command(cmd, report_args.verbose):
                 print(line, end="\r")
@@ -944,6 +947,9 @@ elif args.command=="report":
 	if os.path.isfile("bin/report.html"):
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print(now(), "Your phylociraptor report has been created in the results folder.")
+	if os.path.isfile("bin/report-figure.pdf"):
+		subprocess.call(["mv", "bin/report-figure.pdf", "results/report-figure.pdf"])
+		print(now(), "Your phylociraptor report figure has been created in the results folder.")
 elif args.command == "check":
 	print(now(), "Welcome to phylociraptor check v%s" % version)
 	check_parser = argparse.ArgumentParser(add_help=False)
