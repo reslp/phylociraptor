@@ -72,7 +72,7 @@ rule modeltest:
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		iqtree -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP -redo $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
+		iqtree -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) {params.additional_params}
 		touch {output.checkpoint}
 		"""
 

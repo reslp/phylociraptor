@@ -36,6 +36,7 @@ RUN  mkdir -p $GOPATH/src/github.com/sylabs && \
 
 # need to be passed as build arguments to set the correct user and group id
 RUN find /opt/conda -type d -exec chmod a+w {} \;
+RUN apt-get install -y bc
 
 ARG USER_ID
 ARG GROUP_ID
@@ -56,6 +57,8 @@ WORKDIR /home/$USER
 RUN git clone --recursive https://github.com/reslp/phylociraptor.git
 WORKDIR /home/$USER/phylociraptor
 ENV PATH=${PATH}:/home/$USER/phylociraptor
+
+# need to install bc which is not there by default
 
 SHELL ["conda", "run", "-n", "snakemake", "/bin/bash", "-c"]
 
