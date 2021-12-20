@@ -83,7 +83,7 @@ genome_information <- data.frame(total=c(total), success=c(length(success)), fai
 genome_information <- melt(genome_information)
 colnames(genome_information) <- c("category", "no. of genomes")
 setup_plot <- ggplot(data=genome_information, aes(x=category, y=`no. of genomes`, fill=category)) +geom_bar(stat="identity") + scale_fill_manual(values=colors) 
-setup_plot <- setup_plot + ggtitle("Download overview") + theme_minimal() + theme(legend.position="bottom")
+setup_plot <- setup_plot + ggtitle("Download overview") + theme_minimal() + theme(legend.position="bottom", plot.title = element_text(size = 9))
 setup_plot <- setup_plot + theme(axis.title.x = element_blank()) + theme(legend.key.size = unit(0.2, "cm")) + theme(legend.margin=margin(0,0,0,0, "cm"), legend.title = element_blank())
 
 layout_setup <- 
@@ -95,7 +95,7 @@ BB
 
 #plotsetup <- setup_plot_annotations + setup_plot + plot_layout(design=layout_setup) 
 #plotsetup <- plotsetup + theme(text = element_text(size = 8))
-plotsetup <- setup_plot +plot_annotation(title="setup", theme = theme(plot.title = element_text(hjust = 0.5),text = element_text(size = 8)))
+plotsetup <- setup_plot +plot_annotation(title="setup", theme = theme(plot.title = element_text(hjust = 0.5)))
 #plotsetup
 
 #### ORTHOLOGY
@@ -238,8 +238,8 @@ colnames(alignment_statistics_melted) <- c("aligner", "status", "no. of alignmen
 alignment_statistics_melted <- within(alignment_statistics_melted, `status` <- factor(`status`, levels=c("total", "pass", "fail")))
 
 full_alignments_plot <- ggplot(alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=aligner)) + 
-  geom_bar(position="dodge", stat="identity")+ ggtitle("full") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
-full_alignments_plot <- full_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1))
+  geom_bar(position="dodge", stat="identity")+ ggtitle("full") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank(),plot.title = element_text(size = 8))  + scale_fill_manual(values=colors)
+full_alignments_plot <- full_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1), plot.title = element_text(hjust = 0.5, size=8))
 full_alignments_plot <- full_alignments_plot + scale_y_continuous(limits = c(0, maxtotal))
 
   
@@ -318,7 +318,7 @@ trimmed_alignment_statistics_melted <- within(trimmed_alignment_statistics_melte
 trimmed_alignments_plot <- 
   ggplot(trimmed_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=combination)) + 
   geom_bar(position="dodge", stat="identity")+ ggtitle("trimmed") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
-trimmed_alignments_plot <- trimmed_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.text.x = element_text(angle=60, vjust=1, hjust=1))
+trimmed_alignments_plot <- trimmed_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5, size=8))
 trimmed_alignments_plot <- trimmed_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
 
 #filtered
@@ -380,7 +380,7 @@ filtered_alignment_statistics_melted <- within(filtered_alignment_statistics_mel
 filtered_alignments_plot <- 
   ggplot(filtered_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=combination)) + 
   geom_bar(position="dodge", stat="identity")+ ggtitle("filtered") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
-filtered_alignments_plot <- filtered_alignments_plot + theme(axis.title.x = element_blank(),legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(),axis.text.x = element_text(angle=60, vjust=1, hjust=1))
+filtered_alignments_plot <- filtered_alignments_plot + theme(axis.title.x = element_blank(),legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(),axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5))
 filtered_alignments_plot <- filtered_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
 
 layout <- "
@@ -555,7 +555,7 @@ additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0, y = 5.9, label="alignments:", hjust=0, size=4, fontface="bold.italic")+
   annotate("text", x = 0.2, y = 4.9, label = align_text, hjust = 0, size=3)+
   coord_cartesian(ylim = c(0, 10), xlim=c(0,10), clip = "off") #+ theme(text = element_text(size = 5)) 
-additional_info <- annotate_figure(additional_info, top="Overview")
+additional_info <- annotate_figure(additional_info, top="overview")
 additional_info
 #additional_info <- ggparagraph(size=7, text=paste0("Total samples: ",toString(total),"\nSuccessfully downloaded: ", toString(length(success)),"\nFailed download: ", toString(length(failed)),"\nLocally provided: ", toString(length(local))))
 
