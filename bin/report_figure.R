@@ -2,6 +2,9 @@
 wd <- getwd()
 setwd(paste0(wd,"/bin"))
 
+library(yaml)
+config_data <- read_yaml("../data/config.yaml")
+
 library(patchwork)
 library(RColorBrewer)
 library(ggpubr)
@@ -84,8 +87,8 @@ genome_information <- melt(genome_information)
 colnames(genome_information) <- c("category", "no. of genomes")
 setup_plot <- ggplot(data=genome_information, aes(x=category, y=`no. of genomes`, fill=category)) +geom_bar(stat="identity") + scale_fill_manual(values=colors) 
 setup_plot <- setup_plot + ggtitle("Download overview") + theme_minimal() + theme(legend.position="bottom", plot.title = element_text(size = 9))
-setup_plot <- setup_plot + theme(axis.title.x = element_blank()) + theme(legend.key.size = unit(0.2, "cm")) + theme(legend.margin=margin(0,0,0,0, "cm"), legend.title = element_blank())
-
+setup_plot <- setup_plot + theme(axis.title.x = element_blank()) + theme(legend.key.size = unit(8, "pt")) + theme(legend.margin=margin(0,0,0,0, "cm"), legend.title = element_blank())
+setup_plot <- setup_plot + theme(legend.position = "none") # remove legend altogether, it is actually not needed
 layout_setup <- 
 "AA
 BB
@@ -136,7 +139,7 @@ if (file.exists(orthology_filtering_genomes_file)) {
   orthology_plot <- ggplot(data=orthology_genome_data, aes(x=`BUSCO analysis status`, y=`no. of samples`, fill=`BUSCO analysis status`)) +geom_bar(stat="identity") + scale_fill_manual(values=colors)
   orthology_plot <- orthology_plot + ggtitle("samples") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())
   orthology_plot <- orthology_plot + theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5))+ theme(text = element_text(size = 8)) +theme(legend.key.size = unit(0.2, "cm"))
-  orthology_plot
+  orthology_plot <- orthology_plot + theme(legend.position = "none")
   } else {
   orthology_plot <- ggplot()
   # do nothing
@@ -166,15 +169,15 @@ if (file.exists(orthology_filtering_genes_file)) {
   
   orthology_geneplot <- ggplot(data=orthology_gene_data, aes(x=`BUSCO analysis status`, y=`no. of genes`, fill=`BUSCO analysis status`)) +geom_bar(stat="identity") + scale_fill_manual(values=colors)
   orthology_geneplot <- orthology_geneplot + ggtitle("genes") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())
-  orthology_geneplot
-  orthology_geneplot <- orthology_geneplot + theme(axis.title.x = element_blank(),plot.title = element_text(hjust = 0.5))+ theme(text = element_text(size = 8)) +theme(legend.key.size = unit(0.2, "cm"))
   
+  orthology_geneplot <- orthology_geneplot + theme(axis.title.x = element_blank(),plot.title = element_text(hjust = 0.5))+ theme(text = element_text(size = 8)) +theme(legend.key.size = unit(0.2, "cm"))
+  orthology_geneplot <- orthology_geneplot + theme(legend.position = "none")
 } else {
   # do nothing
   orthology_geneplot <- ggplot()
 }
 
-plotortho <- orthology_plot + orthology_geneplot + plot_layout(ncol=2, guides = "collect") & theme(legend.position="bottom",legend.title = element_blank())
+plotortho <- orthology_plot + orthology_geneplot + plot_layout(ncol=2) #& theme(legend.position="bottom",legend.title = element_blank())
 plotortho <- plotortho &  theme(legend.margin = margin(0,0,0,0, "cm"))
 plotortho <- plotortho + plot_annotation(title="orthology", theme = theme(plot.title = element_text(hjust = 0.5)))
 plotortho
@@ -239,10 +242,11 @@ alignment_statistics_melted <- within(alignment_statistics_melted, `status` <- f
 
 full_alignments_plot <- ggplot(alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=aligner)) + 
   geom_bar(position="dodge", stat="identity")+ ggtitle("full") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank(),plot.title = element_text(size = 8))  + scale_fill_manual(values=colors)
-full_alignments_plot <- full_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1), plot.title = element_text(hjust = 0.5, size=8))
+full_alignments_plot <- full_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(9, "pt"), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1), plot.title = element_text(hjust = 0.5, size=8))
 full_alignments_plot <- full_alignments_plot + scale_y_continuous(limits = c(0, maxtotal))
-
-  
+alignment_legend <- get_legend(full_alignments_plot) #extract legend
+full_alignments_plot <- full_alignments_plot+ theme(legend.position = "none") #now remove
+full_alignments_plot
 #trimmed
 dirs <- list.dirs("../results/statistics/", recursive=F)
 dirs <- grep("/trim-*", dirs, value = TRUE)
@@ -320,6 +324,7 @@ trimmed_alignments_plot <-
   geom_bar(position="dodge", stat="identity")+ ggtitle("trimmed") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
 trimmed_alignments_plot <- trimmed_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5, size=8))
 trimmed_alignments_plot <- trimmed_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
+trimmed_alignments_plot <- trimmed_alignments_plot + theme(legend.position = "none")
 
 #filtered
 dirs <- list.dirs("../results/statistics/", recursive=F)
@@ -382,12 +387,37 @@ filtered_alignments_plot <-
   geom_bar(position="dodge", stat="identity")+ ggtitle("filtered") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
 filtered_alignments_plot <- filtered_alignments_plot + theme(axis.title.x = element_blank(),legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(),axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5))
 filtered_alignments_plot <- filtered_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
+filtered_alignments_plot<- filtered_alignments_plot + theme(legend.position = "none")
 
 layout <- "
 ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+ABBBCCC
+DDDDDDD
 "
-combined_alignment_plot <- full_alignments_plot + trimmed_alignments_plot + filtered_alignments_plot + plot_layout(guides = "collect", design=layout)# + theme(legend.position="bottom",legend.title = element_blank())
-combined_alignment_plot <- combined_alignment_plot & theme(legend.position="bottom",legend.title = element_blank())
+combined_alignment_plot <- full_alignments_plot + trimmed_alignments_plot + filtered_alignments_plot + alignment_legend + plot_layout(design=layout)# + theme(legend.position="bottom",legend.title = element_blank())
+combined_alignment_plot 
+#combined_alignment_plot <- combined_alignment_plot & theme(legend.position="bottom",legend.title = element_blank())
 combined_alignment_plot <- combined_alignment_plot + plot_annotation(title="alignments", theme = theme(plot.title = element_text(hjust = 0.5)))
 #combined_alignment_plot
 
@@ -430,7 +460,8 @@ if (length(files) > 0) {
   for (i in 1:length(dat)) {
     dd <- as.data.frame(table(dat[[i]]$model))
     colnames(dd) <- c("model", "count")
-    p <- ggplot(dd, aes(x="", y=count, fill=model)) + geom_bar(stat="identity", width=1) + coord_polar("y", start=0) + theme_void() + ggtitle(titles[i]) + scale_fill_manual(limits=models, values=cols) + theme(text = element_text(size=7), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"))
+    p <- ggplot(dd, aes(x="", y=count, fill=model)) + geom_bar(stat="identity", width=1) + coord_polar("y", start=0) + theme_void() + ggtitle(titles[i]) + scale_fill_manual(limits=models, values=cols) + theme(text = element_text(size=7), legend.margin=margin(5,5,5,5, "pt"), legend.key.size = unit(4, "pt")) + 
+      theme(plot.title = element_text(hjust = 0.5))
     plots[[i]] <- p
   }
   if (length(plots) == 4) {
@@ -527,33 +558,36 @@ get_aligner_settings_string <- function(){
 
 
 setup_text <- paste0(
-"Total number of samples in dataset: ", toString(total),
-"\nTotal number of genomes successfully downloaded: ", toString(length(success)),
-"\nGenomes failed to download: ", toString(length(failed)),
+"Total samples: ", toString(total),
+"\nSuccessfully downloaded: ", toString(length(success)),
+"\nFailed to download: ", toString(length(failed)),
 "\nLocally provided: ", toString(length(local))
 )
 orthology_text <- paste0(
-  "\n\nUsed BUSCO set: ", busco_set,
-  "\nNo. of BUSCO genes: ", toString(nbuscos)
+  "\n\nMethod: BUSCO ", toString(config_data$busco$version),
+  "\nBUSCO set: ", busco_set,
+  "\nNo. of BUSCO genes: ", toString(nbuscos),
+  "\nMinimum BUSCO completeness: ", config_data$filtering$cutoff
 )
+config_data
 align_text <- paste0(
-  "\n\nUsed aligners and settings:\n",
-  get_aligner_settings_string(),
-"Parsimony informative sites cut-off: ", toString(pars_sites),
-"\nUsed alignment trimmers: ", trimmers_outstring
+  "\n\nAligners and settings:\n", get_aligner_settings_string(),
+  "Sequence type: ", config_data$filtering$seq_type,
+  "\nParsimony informative sites cut-off: ", toString(pars_sites),
+  "\nAlignment trimmers:\n   ", trimmers_outstring,
+  "\nFiltering duplicated sequences: ", config_data$filtering$dupseq,
+  "\nMinimum number of sequences per alignment: ", config_data$filtering$minsp
+  
 )
-
-
-print(get_aligner_settings_string())
 
 
 additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0, y=10, label="setup:", hjust=0, size=4, fontface="bold.italic")+
   annotate("text", x = 0.2, y = 8.7, label = setup_text, hjust = 0, size=3)+
   annotate("text", x = 0, y = 7.5, label="orthology:", hjust=0, size=4, fontface="bold.italic")+
-  annotate("text", x = 0.2, y = 7.1, label = orthology_text, hjust = 0, size=3)+
-  annotate("text", x = 0, y = 5.9, label="alignments:", hjust=0, size=4, fontface="bold.italic")+
-  annotate("text", x = 0.2, y = 4.9, label = align_text, hjust = 0, size=3)+
+  annotate("text", x = 0.2, y = 6.7, label = orthology_text, hjust = 0, size=3)+
+  annotate("text", x = 0, y = 5, label="alignments:", hjust=0, size=4, fontface="bold.italic")+
+  annotate("text", x = 0.2, y = 3.1, label = align_text, hjust = 0, size=3)+
   coord_cartesian(ylim = c(0, 10), xlim=c(0,10), clip = "off") #+ theme(text = element_text(size = 5)) 
 additional_info <- annotate_figure(additional_info, top="overview")
 additional_info
@@ -561,7 +595,6 @@ additional_info
 
 
 
-library(ggpubr)
 pdf(file="report-figure.pdf", width=11.3, height=8.7)
 p <- ggarrange(plotsetup, plotortho,combined_alignment_plot,modeltest_plots,genetree_plot,additional_info, ncol=3, nrow=2,labels="AUTO")
 p

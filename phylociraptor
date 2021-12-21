@@ -236,6 +236,8 @@ Usage: phylociraptor report <arguments>
 
 Argumemts:
 	--verbose               Display more output.
+	--figure		Create a single figure report.
+				This only works after modeltest has finished.
 	-h, --help              Display help.
 
 """
