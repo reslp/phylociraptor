@@ -1,24 +1,18 @@
-# This is a basic workflow to help you get started with Actions
-
 name: AutomatedRelease
 
 # Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+on: 
   push:
-    branches: 
-      - master
-    paths: 
+  # Triggers the workflow on push or pull request events but only for the master branch
+    branches:
+      - main
+    paths:
       - '.version'
   pull_request:
-    branches: 
-      - master
-    paths: 
-      - '.version'
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - main
+    paths: '.version'
   workflow_dispatch:
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -28,18 +22,39 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
+      - name: Checkout
+        uses: "actions/checkout@v2"
+        with:
+          fetch-depth: 0
+      # Runs a set of commands using the runners shell
+      - name: Get previous release tag
+        id: previous-release
+        run: |
+             REF=$(git rev-list --tags --max-count=1 --skip=0 --no-walk)
+             LASTTAG=$(git describe --tags $REF)
+             echo "LASTTAG: $LASTTAG"
+             echo "LASTTAG=$LASTTAG" >> $GITHUB_ENV
       - name: Get current version
         run: |
              VER=$(cat '.version')
              echo "VERSION=$VER" >> $GITHUB_ENV
-      # Runs a set of commands using the runners shell
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Get Changelog
+        id: changelog
+        # get a changelog from git since last tag.
+        # this is a multi line string therefore the syntax with GITHUB_ENV
+        run: |
+                CHANGELOG=$(git log $(git describe --tags --abbrev=0 ${{ env.LASTTAG }})..HEAD --no-merges --oneline)
+                echo "$CHANGELOG"
+                echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+                echo "$CHANGELOG" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ env.VERSION }}
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag: ${{ env.VERSION }}
           prerelease: true
-          title: "phylociraptor v.${{ env.VERSION }}"
-          files: '*'
+          name: "phylociraptor v${{ env.VERSION }}"
+          body: |
+                Changes since last release:
+                ${{ env.CHANGELOG }}
