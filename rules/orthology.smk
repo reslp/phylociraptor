@@ -3,12 +3,17 @@ configfile: "data/config.yaml"
 import os
 import glob
 import pandas as pd
+import yaml
 
 # read in CSV file again. This is needed to determine the mode for BUSCO
 sample_data = pd.read_csv(config["species"])
 sample_data["species"] = sample_data["species"].str.replace(" ","_")
 sample_data.set_index("species", drop=False)
 print(sample_data["species"].to_list())
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 def get_busco_mode(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
@@ -88,7 +93,7 @@ if config["busco"]["version"] == "3.0.2":
 			augustus_config_in_container = "/opt/conda/config",
 			set = config["busco"]["set"]
 		singularity:
-			"docker://reslp/busco:3.0.2"
+			containers["busco3"]
 		shell:
 			"""
 			mkdir -p log
@@ -174,7 +179,7 @@ if config["busco"]["version"] == "5.2.1":
 			augustus_config_in_container = "/usr/local/config",
 			set = config["busco"]["set"]
 		singularity:
-			"docker://ezlabgva/busco:v5.2.1_cv1"
+			containers["busco5"]
 		shell:
 			"""
 			mkdir -p log
@@ -256,7 +261,7 @@ rule extract_busco_table:
 	benchmark:
 		"results/statistics/benchmarks/extract_busco_table.txt"
 	singularity:
-		"docker://reslp/biopython_plus:1.77"
+		containers["biopython"]
 	params:
 		busco_dir = "results/orthology/busco/busco_runs/"
 	shell:

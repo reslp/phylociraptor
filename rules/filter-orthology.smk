@@ -1,5 +1,10 @@
+import yaml
+
 configfile: "data/config.yaml"
 
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 def determine_concurrency_limit():
 	fname = "results/orthology/busco/busco_table.txt"
@@ -35,7 +40,7 @@ rule create_sequence_files:
 		seqtype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 	singularity:
-		"docker://reslp/biopython_plus:1.77"
+		containers["biopython"]
 	log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
 	shell:
 		""" 
@@ -54,7 +59,7 @@ rule remove_duplicated_sequence_files:
 		statistics = "results/statistics/duplicated_sequences_handling_information.txt"
 	benchmark:
 		"results/statistics/benchmarks/remdupseq/remove_duplicated_sequence_files.txt"
-	singularity: "docker://reslp/biopython_plus:1.77"
+	singularity: containers["biopython"] 
 	params:
 		wd = os.getcwd(),
 		minsp=config["filtering"]["minsp"],

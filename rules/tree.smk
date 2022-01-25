@@ -1,4 +1,10 @@
+import yaml
+
 configfile:  "data/config.yaml"
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 include: "concatenate.smk"
 
@@ -42,7 +48,7 @@ rule raxmlng:
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.txt"
 		singularity:
-			"docker://reslp/raxml-ng:1.0.0"
+			containers["raxmlng"]	
 		threads: config["raxmlng"]["threads"]
 		params:
 			bs = config["raxmlng"]["bootstrap"],
@@ -68,7 +74,7 @@ rule iqtree:
 		benchmark:
 			"results/statistics/benchmarks/tree/iqtree_{aligner}_{alitrim}_{bootstrap}.txt"
 		singularity:
-			"docker://reslp/iqtree:2.0.7"
+			containers["iqtree"]
 		params:
 			wd = os.getcwd(),
 			models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
@@ -129,7 +135,7 @@ if "phylobayes" in config["tree"]["method"]:
 			trace = "results/phylogeny/phylobayes/phylobayes_chain{chain}.trace",
 			treelist = "results/phylogeny/phylobayes/phylobayes_chain{chain}.treelist"
 		singularity:
-			"docker://reslp/phylobayes-mpi:git_dca7bdf"
+			containers["phylobayes"]	
 		params:
 			model = config["phylobayes"]["model"],
 			threads = config["phylobayes"]["threads"],

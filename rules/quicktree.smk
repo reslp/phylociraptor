@@ -1,4 +1,10 @@
+import yaml
+
 configfile: "data/config.yaml"
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 include: "concatenate.smk"
 
@@ -7,7 +13,7 @@ rule njtree:
 		rules.concatenate.output.stockholm_alignment
 	output:
 		"results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre"
-	singularity: "docker://reslp/quicktree:2.5"
+	singularity: containers["quicktree"] 
 	shell:
 		"""
 		quicktree -in a {input} > {output}

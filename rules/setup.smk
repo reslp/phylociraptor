@@ -1,10 +1,14 @@
 import pandas as pd
 import numpy as np
+import yaml
 configfile: "data/config.yaml"
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]
 
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 def determine_concurrency_limit():
 	names = [name.replace(" ", "_") for name in sample_data.loc[sample_data["web_local"].str.startswith("web"), "species"].to_list()]
@@ -64,38 +68,11 @@ def get_all_species_names(wildcards):
 	#print(names)
 	return names
 
-# needs to be run first before other rules can be run.
-#rule download_genomes:
-#	output:
-#		checkpoint = "results/checkpoints/download_genomes.done",
-#		download_overview = "results/downloaded_genomes/download_overview.txt",
-#		success = "results/downloaded_genomes/successfully_downloaded.txt",
-#		runlog = "results/statistics/runlog.txt"
-#	benchmark:
-#		"results/statistics/benchmarks/setup/download_genomes.txt"
-#	singularity:
-#		"docker://reslp/biomartr:0.9.2_exp"
-#	log:
-#		"log/download_genomes.log"
-#	params:
-#		species = get_species_names,
-#                wd = os.getcwd()
-#	shell:
-#		"""
-#		if [[ ! -f results/statistics/runlog.txt ]]; then touch results/statistics/runlog.txt; fi
-#		if [[ "{params.species}" != "" ]]; then
-#			echo "(date) - Setup: Will download species now" >> results/statistics/runlog.txt
-#			Rscript bin/genome_download.R {params.species} {params.wd} 2>&1 | tee {log}
-#		else
-#			echo "(date) - Setup: No species to download." >> results/statistics/runlog.txt
-#		fi
-#		touch {output}
-#		"""
 
 rule download_genome_overview:
 	output:
 		overview = "results/downloaded_genomes/assembly_summary_genbank.txt"
-	singularity: "docker://reslp/biopython_plus:1.77"
+	singularity: containers["biopython"]
 	log:
 		"log/download_genomes_overview.log"
 	threads: 2
@@ -118,7 +95,7 @@ rule download_genomes:
 		failed = "results/downloaded_genomes/not_downloaded_{batch}.txt"
 #	benchmark:
 #		"results/statistics/benchmarks/setup/download_genomes.txt"
-	singularity: "docker://reslp/biopython_plus:1.77"
+	singularity: containers["biopython"]
 	log:
 		"log/download_genomes_{batch}-"+str(config["concurrency"])+".log"
 	params:
@@ -274,25 +251,11 @@ rule download_busco_set:
 		touch {output.checkpoint}
 		"""
 
-#rule prepare_augustus:
-#	output:
-#		augustus_config_path = directory("results/augustus_config_path"),
-#		checkpoint = "results/checkpoints/prepare_augustus.done"
-#	singularity:
-#		"docker://reslp/busco:3.0.2"
-#	benchmark:
-#		"results/statistics/benchmarks/setup/prepare_augustus.txt"
-#	shell:
-#		"""
-#		cp -r /opt/conda/config {output.augustus_config_path}
-#		touch {output.checkpoint}
-#		"""
 
 rule setup:
 	input:
 		expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
 		"results/checkpoints/download_busco_set.done",
-		#"results/checkpoints/prepare_augustus.done",
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
 		#expand("results/assemblies/{species}.fna", species=samples)

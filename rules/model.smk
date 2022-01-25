@@ -1,7 +1,12 @@
-configfile: "data/config.yaml"
-
 import os.path
 import glob
+import yaml
+
+configfile: "data/config.yaml"
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
@@ -17,7 +22,7 @@ BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{
 #	params:
 #		wd = os.getcwd()
 #	singularity:
-#		"docker://reslp/iqtree:2.0.7"
+#		containers["iqtree"]	
 #	threads: 16
 #	shell:
 #		"""
@@ -68,7 +73,7 @@ rule modeltest:
 		bb = config["genetree"]["boostrap"],
 		additional_params = config["iqtree"]["additional_params"]
 	singularity:
-		"docker://reslp/iqtree:2.0.7"
+		containers["iqtree"]	
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""

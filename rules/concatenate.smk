@@ -29,7 +29,7 @@ rule concatenate:
 #		bootstrap_cutoff_file = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt",
 		genes = get_input_genes
 	singularity:
-		"docker://reslp/concat:0.3"
+		containers["concatnew"]	
 	shell:
 		"""
 		echo "$(date) - concatenate {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff {wildcards.bootstrap} before creating concatenated alignment" >> results/statistics/runlog.txt

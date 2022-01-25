@@ -1,8 +1,11 @@
 configfile:  "data/config.yaml"
 import subprocess
 import glob
+import yaml
 
-
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
@@ -29,7 +32,7 @@ rule align_clustalo:
 		benchmark:
 			"results/statistics/benchmarks/align/clustalo_align_{busco}.txt"
 		singularity:
-			"docker://reslp/clustalo:1.2.4"
+			containers["clustalo"]
 		threads:
 			int(config["alignment"]["threads"])
 		params:
@@ -48,7 +51,7 @@ rule align_mafft:
 		benchmark:
 			"results/statistics/benchmarks/align/mafft_align_{busco}.txt"
 		singularity:
-			"docker://reslp/mafft:7.464"
+			containers["mafft"]
 		threads:
 			int(config["alignment"]["threads"])
 		params:
@@ -82,7 +85,7 @@ rule get_alignment_statistics:
 		clustalo_alignment_params = config["alignment"]["clustalo_parameters"],
 		pars_sites = config["filtering"]["min_parsimony_sites"],
 		nbatches = config["concurrency"],
-	singularity: "docker://reslp/concat:0.21"
+	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""

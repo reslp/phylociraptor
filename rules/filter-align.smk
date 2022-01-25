@@ -1,7 +1,12 @@
-configfile: "data/config.yaml"
-
 import subprocess
 import glob
+import yaml
+
+configfile: "data/config.yaml"
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
@@ -30,7 +35,7 @@ rule trim_trimal:
 		params:
 			trimmer = config["trimming"]["trimal_parameters"]
 		singularity:
-			"docker://reslp/trimal:1.4.1"
+			containers["trimal"]	
 		shell:
 			"""
 			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment}
@@ -48,7 +53,7 @@ rule trim_aliscotri:
 			busco = "{busco}",
 			wd = os.getcwd()
 		singularity:
-			"docker://chrishah/alicut-aliscore-docker:2.31"
+			containers["aliscore"]	
 		shell:
 			"""
 			mkdir -p results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
@@ -91,7 +96,7 @@ rule get_trimmed_statistics:
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
-	singularity: "docker://reslp/concat:0.21"
+	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
@@ -109,7 +114,7 @@ rule filter_alignments:
 	benchmark:
 		"results/statistics/benchmarks/align/filter_alignments_{alitrim}_{aligner}.txt"
 	singularity:
-		"docker://reslp/biopython_plus:1.77"
+		containers["biopython"]	
 	params:
 		wd = os.getcwd(),
 		minsp=config["filtering"]["minsp"],
@@ -158,7 +163,7 @@ rule get_filter_statistics:
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
-	singularity: "docker://reslp/concat:0.21"
+	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""

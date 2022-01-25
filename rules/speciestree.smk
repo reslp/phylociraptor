@@ -1,8 +1,14 @@
-configfile:  "data/config.yaml"
-include: "concatenate.smk"
-
 import os.path
 import glob
+import yaml
+
+configfile:  "data/config.yaml"
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
+
+include: "concatenate.smk"
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
@@ -31,7 +37,7 @@ def return_trees(wildcards):
 #	threads:
 #		config["genetree"]["threads"]
 #	singularity:
-#		"docker://reslp/iqtree:2.0.7"
+#		containers["iqtree"]	
 #	shell:
 #		"""
 #		cd results/phylogeny/gene_trees/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}
@@ -101,7 +107,7 @@ rule astral_species_tree:
 	params:
 		wd = os.getcwd()
 	singularity:
-		"docker://reslp/astral:5.7.1"
+		containers["astral"]	
 	shell:
 		"""
 		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree}
