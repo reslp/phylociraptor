@@ -1,6 +1,6 @@
 ## This is a minimal example to quickly test if phylociraptor works
 
-Run these commands from inside the phylociraptor directory in this order to reproduce the minimal example.
+Run these commands from inside the phylociraptor directory in the given order to reproduce the minimal example.
 
 This minimal test dataset consists of six fungal genomes.
 
@@ -70,7 +70,7 @@ With a single thread (serial=1) this takes about 3 minutes.
 This takes about 4 minutes to complete.
 
 ```
-./phylocirpator filter-align --verbose -t serial=1
+./phylociraptor filter-align --verbose -t serial=1
 ```
 
 ### Use filtered alignments to estimate the best substitution model and calculate gene trees
@@ -78,7 +78,7 @@ This takes about 4 minutes to complete.
 This takes about 5 minutes to run using 4 threads.
 
 ```
-./phylocirpator modeltest --verbose -t serial=4
+./phylociraptor modeltest --verbose -t serial=4
 ```
 
 ### Calculate concatenated Maximum-Likelihood trees
