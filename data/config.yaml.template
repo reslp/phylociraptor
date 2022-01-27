@@ -10,7 +10,7 @@ busco:
     version: "3.0.2" #possible is "3.0.2" or "5.2.1"
     mode: "genome"
     threads: 2
-    augustus_species: "saccharomyces"
+    augustus_species: "saccharomyces" #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
     additional_parameters: ""
 
 # Setting filtering options for orthology and alignments:

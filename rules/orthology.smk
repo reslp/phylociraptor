@@ -214,7 +214,7 @@ if config["busco"]["version"] == "5.2.1":
 				filename="{input.assembly}"
 			fi
 			echo "Assembly used for BUSCO is "$filename 2>&1 | tee {log}
-			busco -i $filename -f --out {params.species} -c {threads} --augustus --augustus_species {params.sp} --lineage_dataset $(pwd)/{input.busco_set} -m {params.mode} {params.additional_params} 2>&1 | tee -a {log}
+			busco -i $filename -f --out {params.species} -c {threads} $(if [[ "{params.sp}" != "None" ]]; then echo "--augustus --augustus_species {params.sp}"; fi) --lineage_dataset $(pwd)/{input.busco_set} -m {params.mode} {params.additional_params} 2>&1 | tee -a {log}
 			# do some cleanup to save space
 			echo -e "\\n[$(date)]\\tCleaning up after BUSCO to save space" 2>&1 | tee -a {log}
 			basedir=$(pwd)
