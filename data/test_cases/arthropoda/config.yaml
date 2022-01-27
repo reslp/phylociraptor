@@ -1,6 +1,7 @@
 species: "data/arthropoda.csv"
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 20
+seed: #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
 
 # settings realted to busco
 busco:

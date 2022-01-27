@@ -576,10 +576,16 @@ align_text <- paste0(
   "\nParsimony informative sites cut-off: ", toString(pars_sites),
   "\nAlignment trimmers:\n   ", trimmers_outstring,
   "\nFiltering duplicated sequences: ", config_data$filtering$dupseq,
-  "\nMinimum number of sequences per alignment: ", config_data$filtering$minsp
-  
+  "\nMinimum number of sequences per alignment: ", config_data$filtering$minsp  
 )
 
+# check if seed was specified or not:
+if (config_data$seed == "") {
+	config_data$seed <- "random"
+} 
+reprod_text <- paste0(
+  "\n\nAnalysis seed: ", config_data$seed
+)
 
 additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0, y=10, label="setup:", hjust=0, size=4, fontface="bold.italic")+
@@ -588,6 +594,7 @@ additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0.2, y = 6.7, label = orthology_text, hjust = 0, size=3)+
   annotate("text", x = 0, y = 5, label="alignments:", hjust=0, size=4, fontface="bold.italic")+
   annotate("text", x = 0.2, y = 3.1, label = align_text, hjust = 0, size=3)+
+  annotate("text", x = 0.2, y = 0.8, label = reprod_text, hjust = 0, size=3, fontface="bold")+
   coord_cartesian(ylim = c(0, 10), xlim=c(0,10), clip = "off") #+ theme(text = element_text(size = 5)) 
 additional_info <- annotate_figure(additional_info, top="overview")
 additional_info

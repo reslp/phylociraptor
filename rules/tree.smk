@@ -53,13 +53,14 @@ rule raxmlng:
 		params:
 			bs = config["raxmlng"]["bootstrap"],
 			wd = os.getcwd(),
-			additional_params = config["raxmlng"]["additional_params"]
+			additional_params = config["raxmlng"]["additional_params"],
+			seed = config["seed"]
 		shell:
 			"""
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
 			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}
-			raxml-ng --msa {params.wd}/{output.alignment} --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
+			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
 			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
@@ -83,6 +84,7 @@ rule iqtree:
 			m = config["iqtree"]["model"],
 			maxmem = config["iqtree"]["maxmem"],
 			additional_params = config["iqtree"]["additional_params"],
+			seed=config["seed"],
 #			bootstrap_cutoff_file = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt",
 			genes = get_input_genes
 		threads:
@@ -114,9 +116,9 @@ rule iqtree:
 			echo "end;" >> concat.nex
 			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo {params.additional_params}
+				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 
 			else
-				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt AUTO -ntmax {threads} -redo -mem {params.maxmem} {params.additional_params}
+				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} -mem {params.maxmem} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params}
 			fi
 			#rm -r algn
 			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
