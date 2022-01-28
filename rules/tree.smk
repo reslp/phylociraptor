@@ -82,7 +82,6 @@ rule iqtree:
 			nt = "AUTO",
 			bb = config["iqtree"]["bootstrap"],
 			m = config["iqtree"]["model"],
-			maxmem = config["iqtree"]["maxmem"],
 			additional_params = config["iqtree"]["additional_params"],
 			seed=config["seed"],
 #			bootstrap_cutoff_file = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt",
@@ -115,11 +114,7 @@ rule iqtree:
 			echo "charpartition mine = "$charpart";" >> concat.nex
 			echo "end;" >> concat.nex
 			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
-			if [[ -z "{params.maxmem}" ]]; then
-				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 
-			else
-				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} -mem {params.maxmem} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params}
-			fi
+			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 
 			#rm -r algn
 			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}	
