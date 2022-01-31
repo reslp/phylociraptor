@@ -9,6 +9,7 @@ import yaml
 sample_data = pd.read_csv(config["species"])
 sample_data["species"] = sample_data["species"].str.replace(" ","_")
 sample_data.set_index("species", drop=False)
+samples_from_csv = sample_data["species"].to_list() # needed for crosscheck if taxa are removed or renamed in csv file. 
 print(sample_data["species"].to_list())
 
 # get list of containers to use:
@@ -53,6 +54,7 @@ def get_assemblies(wildcards):
 def select_species(dir="results/assemblies"):
 	sps = [sp.split("/")[-1].split(".fna")[0] for sp in glob.glob(dir+"/*fna*")]
 #	print("Species ("+str(len(sps))+"):"+str(sps))
+	sps = list(set(sps).intersection(samples_from_csv)) # crosscheck with CSV file to see if taxa have been removed
 	if config["exclude_orthology"]:
 		blacklist = []
 		with open(config["exclude_orthology"]) as file:
