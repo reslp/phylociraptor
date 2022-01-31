@@ -32,7 +32,7 @@ Local computer or solitary server:
 
 or 
 
-- Docker (this is still experimental; see information belwo)
+- Docker (this is still experimental; see information below)
 
 
 On a cluster:
