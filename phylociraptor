@@ -56,8 +56,8 @@ outdir_dict = {
 	"filter-orthology": ["results"],
 	"align": ["results"],
 	"filter-align": ["results/alignments/trimmed", "results/alignments/filtered"],
-	"speciestree": ["results/phylogeny/astral"],
-	"njtree": ["results/phylogeny/njtree"],
+	"speciestree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
+	"njtree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"modeltest": ["results/modeltest"]
 }
