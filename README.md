@@ -7,6 +7,8 @@
            /_/          /____/                         /_/                      
 ```
 
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/reslp/phylociraptor) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/reslp/phylociraptor) ![GitHub](https://img.shields.io/github/license/reslp/phylociraptor)
+
 # phylociraptor - Rapid phylogenomic tree calculator 
 
 This pipeline creates phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
