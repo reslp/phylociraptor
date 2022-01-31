@@ -105,12 +105,13 @@ rule astral_species_tree:
 	benchmark:
 		"results/statistics/benchmarks/speciestree/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.txt"
 	params:
-		wd = os.getcwd()
+		wd = os.getcwd(),
+		seed=config["seed"]
 	singularity:
 		containers["astral"]	
 	shell:
 		"""
-		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree}
+		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree} $(if [[ "{params.seed}" != "None" ]]; then echo "-s {params.seed}"; fi)
 		statistics_string="astral\t{wildcards.aligner}\t{wildcards.alitrim}\t{wildcards.bootstrap}\t$(cat {input.trees} | wc -l)\t$(cat {output.species_tree})"
 		echo -e $statistics_string > {params.wd}/{output.statistics}	
 		touch {output.checkpoint}
