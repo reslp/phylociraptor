@@ -123,7 +123,7 @@ def download(download_data, genome):
 	genome = genome.replace(" ", "_")
 	filename = url.split("/")[-1]
 	download_url_genome = url + "/" + filename + "_genomic.fna.gz"
-	print(now(), "Will download genome from:", download_url_genome)
+	print(now(), "Will try to download genome from:", download_url_genome)
 	if check_already_downloaded(args.outdir + genome + "_genomic_genbank.fna.gz"):
 		print(now(), "A genome has already been downloaded. Will not download again.")
 		return "success"
@@ -152,7 +152,7 @@ def download(download_data, genome):
 					print(now(), "There are currently too many requests to the NCBI database. Will try again in 30 seconds.")
 					time.sleep(30)
 				else:
-					print(now(), "A HTTP error occurred. Will stop.")
+					print(now(), "A HTTP error occurred. Will stop. Maybe the file you are trying to download does not exist? (eg. an older accession)")
 					return "failed"
 			except Exception as e:
 				print(now(), "An error occurred during download.")
@@ -175,10 +175,10 @@ for genome in genomes:
 		print(now(), "A specific accession '"+accession+"' has been provided")
 		if data.assembly_accession.str.fullmatch(accession).any():
 			species_data = data[data.assembly_accession == accession]
-			print(species_data.values.tolist())
+			#print(species_data.values.tolist())
 		else:
 			print(now(), "The accession wasn't found in the current list of genomes. Will check if there is an archived version.")
-			print(genome.split("=")[1].split(".")[0])
+			#print(genome.split("=")[1].split(".")[0])
 			accession_basename=genome.split("=")[1].split(".")[0]
 			if data.assembly_accession.str.startswith(accession_basename).any():
 				print(now(), "It looks like this is indeed an older version, will check if it is still available.")
