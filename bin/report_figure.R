@@ -1,9 +1,10 @@
+args <- commandArgs(trailingOnly=TRUE)
 
 wd <- getwd()
 setwd(paste0(wd,"/bin"))
 
 library(yaml)
-config_data <- read_yaml("../data/config.yaml")
+config_data <- read_yaml(paste0("../",args[2]))
 
 library(patchwork)
 library(RColorBrewer)

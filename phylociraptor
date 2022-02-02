@@ -242,6 +242,7 @@ Argumemts:
 	--verbose               Display more output.
 	--figure		Create a single figure report.
 				This only works after modeltest has finished.
+	--config-file           Relative custom config-file path. Only required for --figure (Default: data/config.yaml)
 	-h, --help              Display help.
 
 """
@@ -948,6 +949,7 @@ elif args.command=="report":
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
 	report_parser.add_argument("--figure", action="store_true", default=False)
+	report_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	report_args = report_parser.parse_args(args.arguments)
 	print(now(), "Will create a phylociraptor report...")
 	
@@ -965,8 +967,11 @@ elif args.command=="report":
         #        print(line, end="\r")
 	#if debug:
 	#	print(cmd)
+	# check for overrides of config file parameters	
 	if report_args.figure:
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", 'bin/report_figure.R']
+		if report_args.config_file:
+			cmd += check_config_file(report_args.config_file)
 	else:
 		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
 		cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
