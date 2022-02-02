@@ -23,7 +23,7 @@ singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
 debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 outfile_dict = {
-	"setup": ["data/config.yaml"],
+	"setup": ["results/checkpoints/modes/phylogenomics_setup.done"],
 	"orthology": ["results/checkpoints/modes/phylogenomics_setup.done"],
 	"filter-orthology": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done"],
 	"align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done"],
@@ -202,6 +202,7 @@ phylociraptor tree - Will calculate phylogenomic trees based on supermatrix (con
 Usage: phylociraptor tree <arguments>
 
 """ + standard_arguments + additional_arguments + """
+	--config-file           Custom config-file path. (Default: data/config.yaml)
 """
 
 sptree_help = """
@@ -210,6 +211,7 @@ phylociraptor speciestree - Will calculate single-gene trees and a species tree.
 Usage: phylociraptor speciestree <arguments>
 
 """ + standard_arguments + additional_arguments + """
+	--config-file           Custom config-file path. (Default: data/config.yaml)
 """
 
 njtree_help = """
@@ -218,6 +220,7 @@ phylociraptor njtree - Will calculate a NJ tree.
 Usage: phylociraptor njtree <arguments>
 
 """ + standard_arguments + additional_arguments + """
+	--config-file           Custom config-file path. (Default: data/config.yaml)
 """
 
 
@@ -227,6 +230,7 @@ phylociraptor modeltest - Will perform substitution model tests and calculate a 
 Usage: phylociraptor modeltest <arguments>
 
 """ + standard_arguments + additional_arguments + """
+	--config-file           Custom config-file path. (Default: data/config.yaml)
 """
 
 report_help = """
@@ -524,7 +528,7 @@ if args.command == "setup":
 #	setup_parser.add_argument("--dry", action="store_true")
 #	setup_parser.add_argument("-h", "--help", action="store_true")
 #	setup_parser.add_argument("--verbose", action="store_true", default=False)
-	setup_parser.add_argument("--config-file", action="store", dest="config_file")
+	setup_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	setup_parser.add_argument("--samples-csv", action="store", dest="samples_file")
 	setup_parser.add_argument("--busco-set", action="store", dest="busco_set")
 	setup_parser.add_argument("--add_genomes", action="store_true",default=False, dest="add_genomes")
@@ -573,7 +577,7 @@ elif args.command=="orthology":
 #	orthology_parser.add_argument("-h", "--help", action="store_true")
 #	orthology_parser.add_argument("--verbose", action="store_true", default=False)	
 	orthology_parser.add_argument("--busco_threads", action="store")
-	orthology_parser.add_argument("--config-file", action="store", dest="config_file")
+	orthology_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	orthology_parser.add_argument("--augustus_species", action="store")
 	orthology_parser.add_argument("--additional_params", action="store")
 	orthology_args = orthology_parser.parse_args(args.arguments)
@@ -624,7 +628,7 @@ elif args.command=="filter-orthology":
 #	forthology_parser.add_argument("--dry", action="store_true")
 #	forthology_parser.add_argument("-h", "--help", action="store_true")
 #	forthology_parser.add_argument("--verbose", action="store_true", default=False)
-	forthology_parser.add_argument("--config-file", action="store", dest="config_file")
+	forthology_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	forthology_parser.add_argument("--dupseq", action="store")
 	forthology_parser.add_argument("--cutoff", action="store")
 	forthology_parser.add_argument("--minsp", action="store")
@@ -690,7 +694,7 @@ elif args.command=="align":
 #	align_parser.add_argument("--dry", action="store_true")
 #	align_parser.add_argument("-h", "--help", action="store_true")
 #	align_parser.add_argument("--verbose", action="store_true", default=False)
-	align_parser.add_argument("--config-file", action="store", dest="config_file")
+	align_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	align_parser.add_argument("--method", action="store")
 	align_parser.add_argument("--threads", action="store")
 	align_parser.add_argument("--parameters", action="store")
@@ -745,7 +749,7 @@ elif args.command=="filter-align":
 #	falign_parser.add_argument("--dry", action="store_true")
 #	falign_parser.add_argument("-h", "--help", action="store_true")
 #	falign_parser.add_argument("--verbose", action="store_true", default=False)
-	falign_parser.add_argument("--config-file", action="store", dest="config_file")
+	falign_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	falign_parser.add_argument("--method", action="store")
 	falign_parser.add_argument("--parameters", action="store")
 	falign_parser.add_argument("--min_parsimony_sites", action="store")
@@ -791,6 +795,7 @@ elif args.command=="filter-align":
 elif args.command=="speciestree":
 	print(now(), "Welcome to phylociraptor speciestree v%s" % version)
 	sptree_parser = PhyloParser(add_help=False)
+	sptree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 #	sptree_parser.add_argument("-f", "--force", action="store_true")
 #	sptree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
 #	sptree_parser.add_argument("-c", "--cluster-config", action="store")
@@ -813,6 +818,10 @@ elif args.command=="speciestree":
 	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
+	# check for overrides of config file parameters	
+	if sptree_args.config_file:
+		cmd += check_config_file(sptree_args.config_file)
+	
 	cmd += get_additional_snakemake_flags(sptree_args.sm_args, sptree_args.rerun)
 	cmd += get_additional_singularity_flags(sptree_args.si_args)
 	
@@ -823,6 +832,7 @@ elif args.command=="speciestree":
 elif args.command=="njtree":
 	print(now(), "Welcome to phylociraptor njtree %s" % version)
 	njtree_parser = PhyloParser(add_help=False)
+	njtree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 #	njtree_parser.add_argument("-f", "--force", action="store_true")
 #	njtree_parser.add_argument("-t", "--cluster",  action="store", default="serial")
 #	njtree_parser.add_argument("-c", "--cluster-config", action="store")
@@ -845,6 +855,10 @@ elif args.command=="njtree":
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
+	# check for overrides of config file parameters	
+	if njtree_args.config_file:
+		cmd += check_config_file(njtree_args.config_file)
+	
 	cmd += get_additional_snakemake_flags(njtree_args.sm_args, njtree_args.rerun)
 	cmd += get_additional_singularity_flags(njtree_args.si_args)
 	
@@ -855,6 +869,7 @@ elif args.command=="njtree":
 elif args.command=="mltree":
 	print(now(), "Welcome to phylociraptor mltree v%s" % version)
 	tree_parser = PhyloParser(add_help=False)
+	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 #	tree_parser.add_argument("-f", "--force", action="store_true", help="Force this step in case it has been run before")
 #	tree_parser.add_argument("-t", "--cluster",  action="store", help="Submission system. Possible options: slurm, sge, torque, serial (no submission; default).", default="serial")
 #	tree_parser.add_argument("-c", "--cluster-config", action="store", help="Cluster config file.")
@@ -878,8 +893,13 @@ elif args.command=="mltree":
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
+	# check for overrides of config file parameters	
+	if tree_args.config_file:
+		cmd += check_config_file(tree_args.config_file)
+	
 	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun)
 	cmd += get_additional_singularity_flags(tree_args.si_args)
+	
 	
 	for line in execute_command(cmd, tree_args.verbose):
                 print(line, end="\r")
@@ -888,6 +908,7 @@ elif args.command=="mltree":
 elif args.command=="modeltest":
 	print(now(), "Welcome to phylociraptor modeltest v%s" % version)
 	model_parser = PhyloParser(add_help=False)
+	model_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 #	model_parser.add_argument("-f", "--force", action="store_true")
 #	model_parser.add_argument("-t", "--cluster",  action="store", default="serial")
 #	model_parser.add_argument("-c", "--cluster-config", action="store")
@@ -909,6 +930,10 @@ elif args.command=="modeltest":
 	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "-r", "all_modeltest", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
+	
+	# check for overrides of config file parameters	
+	if model_args.config_file:
+		cmd += check_config_file(model_args.config_file)
 	
 	cmd += get_additional_snakemake_flags(model_args.sm_args, model_args.rerun)
 	cmd += get_additional_singularity_flags(model_args.si_args)
