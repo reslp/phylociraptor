@@ -292,6 +292,10 @@ def get_flags(flags):
 		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
 	else:
 		ccf = flags["cluster_config"]
+		if ccf != None:
+			if not os.path.isfile(ccf):
+				print(now(), "ERROR: Specified cluster config file:", ccf, "not found.")
+				sys.exit(1)
 	for flag in flags.keys():
 		if flag in mapdict.keys() and flags[flag] != None:
 			if flag == "t" or flag == "cluster": #handle cluster specification
@@ -340,7 +344,7 @@ def check_config_file(f):
 		return ["--configfile", f]
 	else:
 		print(now(), "ERROR: Config file specified with --config-file not found:", f)
-		sys.exit(0)
+		sys.exit(1)
 
 def check_for_errors(result):
 	if result.startswith("WorkflowError"):
