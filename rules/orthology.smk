@@ -27,12 +27,18 @@ def get_busco_mode(wildcards):
 			if not config["busco"]["version"].startswith("5.") and config["busco"]["mode"] == "transcriptome":
 				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
+			elif not config["busco"]["version"].startswith("5.") and config["busco"]["mode"] == "protein":
+				print("phylociraptor: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				sys.exit(1)
 			else:	
 				return config["busco"]["mode"]
 		else:
 			mode = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
 			if mode == "transcriptome" and not config["busco"]["version"].startswith("5."):
 				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				sys.exit(1)
+			elif mode == "protein" and not config["busco"]["version"].startswith("5."):
+				print("phylociraptor: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
 			else:		
 				return mode 
