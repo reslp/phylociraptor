@@ -7,6 +7,7 @@ import subprocess
 from subprocess import PIPE
 import argparse
 from urllib.request import HTTPError
+import urllib.request, urllib.error, urllib.parse
 import urllib
 
 pars = argparse.ArgumentParser(prog="genome_download.py", description = """This script will download complete genomes from NCBI genbank""", epilog = """written by Philipp Resl""")
@@ -154,7 +155,7 @@ def download(download_data, genome):
 					print(now(), "A HTTP error occurred. Will stop.")
 					return "failed"
 			except Exception as e:
-				print(now(), "An error occurred during download:")
+				print(now(), "An error occurred during download.")
 				print(now(), "{}".format(e))
 				return "failed"
 	print(now(), "done")
@@ -174,10 +175,46 @@ for genome in genomes:
 		print(now(), "A specific accession '"+accession+"' has been provided")
 		if data.assembly_accession.str.fullmatch(accession).any():
 			species_data = data[data.assembly_accession == accession]
+			print(species_data.values.tolist())
 		else:
-			print(now(), "The accession wasn't found in the current list of genomes")
-			overview[genome.split("=")[0]] = "failed"
-			continue
+			print(now(), "The accession wasn't found in the current list of genomes. Will check if there is an archived version.")
+			print(genome.split("=")[1].split(".")[0])
+			accession_basename=genome.split("=")[1].split(".")[0]
+			if data.assembly_accession.str.startswith(accession_basename).any():
+				print(now(), "It looks like this is indeed an older version, will check if it is still available.")
+				bool_series = data.assembly_accession.str.startswith(accession_basename, na = False)
+				species_data = data[bool_series]
+				ftp_path = "/".join(species_data.iloc[0]["ftp_path"].split("/")[0:-1]) 	
+				response = urllib.request.urlopen(ftp_path)
+				content = response.read().decode('UTF-8')
+				found = False
+				folder=""
+				for line in content.split('"'):
+					if line.startswith(genome.split("=")[1]):
+						print(now(), "Found folder for accession", line)
+						folder = line			
+						found = True
+						break
+				if found == False:
+					print(now(), "Could not resolve specified accession version. Please check manually, maybe it does not exist any more?")
+					overview[genome.split("=")[0]] = "failed"
+					continue
+				else:	
+					ftp_path += "/"+folder.strip("/")
+					species_data["ftp_path"] = ftp_path
+					species_data["assembly_accession"] = genome.split("=")[1] 
+					# the information below has to be removed because it may be different for older accessions
+					# there is currently no way to get this directly from NCBI without creating more HTTP requests
+					species_data["version_status"] = "replaced"
+					species_data["seq_rel_date"] = "na"
+					species_data["refseq_category"] = "na"
+					species_data["wgs_master"] = "na"
+					species_data["asm_name"] = "na"
+					#print(species_data.values.tolist())
+			else:
+				print(now(), "Could not resolve specified accession version. Please check manually for typos.")
+				overview[genome.split("=")[0]] = "failed"
+				continue
 		overview[genome.split("=")[0].replace("_", " ")] = download(species_data, genome.split("=")[0])
 		continue
 
@@ -254,7 +291,7 @@ for genome in genomes:
 					overview[genome] = download(taxid_species_data[taxid_species_data.refseq_category == "representative genome"], genome)
 					continue
 				else:
-					print(now(), "There is now reference or representative genome available for, will download latest genome...", genome)
+					print(now(), "There is no reference or representative genome available for, will download latest genome...", genome)
 					dates = list(taxid_species_data["seq_rel_date"])
 					latest_date = dates[-1]
 					print(now(), "Latest genome of",genome,"was released:", latest_date, ". Will try to download this genome...")
