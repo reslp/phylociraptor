@@ -1,4 +1,3 @@
-configfile:  "data/config.yaml"
 import subprocess
 import glob
 import yaml

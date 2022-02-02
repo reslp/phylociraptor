@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import yaml
-configfile: "data/config.yaml"
 
 sample_data = pd.read_csv(config["species"]).set_index("species", drop=False)
 samples = [sample.replace(" ", "_") for sample in sample_data["species"].tolist()]

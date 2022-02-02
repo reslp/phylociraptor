@@ -1,7 +1,5 @@
 import yaml
 
-configfile: "data/config.yaml"
-
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
