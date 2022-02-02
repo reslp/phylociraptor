@@ -19,29 +19,29 @@ def get_busco_mode(wildcards):
 	sp.replace(" ", "_")
 	#first check of mode column exists:
 	if "mode" in list(sample_data.columns):
-		print("(phylociraptor): Will use custom provided BUSCO mode given in .csv file for species:", sp)
+		print("(phylociraptor): INFO: Will use custom provided BUSCO mode given in .csv file for species:", sp)
 		if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any(): #check if value was actually provided
 			print("(phylocirpator): No BUSCO mode value was provided for" , sp , ", will use the default:",config["busco"]["mode"]) 
 			if not config["busco"]["version"].startswith("5.") and config["busco"]["mode"] == "transcriptome":
-				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
 			elif not config["busco"]["version"].startswith("5.") and config["busco"]["mode"] == "protein":
-				print("phylociraptor: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
 			else:	
 				return config["busco"]["mode"]
 		else:
 			mode = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
 			if mode == "transcriptome" and not config["busco"]["version"].startswith("5."):
-				print("phylociraptor: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
 			elif mode == "protein" and not config["busco"]["version"].startswith("5."):
-				print("phylociraptor: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+				print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
 				sys.exit(1)
 			else:		
 				return mode 
 	else:
-		print("mode column not found, will use globally set option from config file.")		
+		print("phylocirpator: INFO: mode column not found, will use globally set option from config file.")		
 		return config["busco"]["mode"]
 	
 
