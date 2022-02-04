@@ -67,7 +67,6 @@ rule modeltest:
 	params:
 		wd = os.getcwd(),
 		busco = "{busco}",
-		maxmem = config["iqtree"]["maxmem"],
 		bb = config["genetree"]["boostrap"],
 		additional_params = config["iqtree"]["additional_params"],
 		seed = config["seed"]
