@@ -48,15 +48,15 @@ def get_busco_mode(wildcards):
 def get_assemblies(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
 	sp.replace(" ", "_")
-	if os.path.isfile("results/assemblies/" + sp + ".fna"):
-		return ["results/assemblies/" + sp + ".fna"]
-	elif os.path.isfile("results/assemblies/" + sp + ".fna.gz"):
-		return ["results/assemblies/" + sp + ".fna.gz"]
+	if os.path.isfile("results/assemblies/" + sp + ".fasta"):
+		return ["results/assemblies/" + sp + ".fasta"]
+	elif os.path.isfile("results/assemblies/" + sp + ".fasta.gz"):
+		return ["results/assemblies/" + sp + ".fasta.gz"]
 	else:
 		return []
 
 def select_species(dir="results/assemblies"):
-	sps = [sp.split("/")[-1].split(".fna")[0] for sp in glob.glob(dir+"/*fna*")]
+	sps = [sp.split("/")[-1].split(".fasta")[0] for sp in glob.glob(dir+"/*fasta*")]
 #	print("Species ("+str(len(sps))+"):"+str(sps))
 	sps = list(set(sps).intersection(samples_from_csv)) # crosscheck with CSV file to see if taxa have been removed
 	if config["exclude_orthology"]:

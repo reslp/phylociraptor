@@ -182,7 +182,7 @@ rule rename_assemblies:
 		mkdir -p results/assemblies
 		for spe in $(grep ",success" {input.overview}); do
 			sp=$(echo $spe | awk -F',' '{{print $1}}')
-			if [[ -f {params.wd}/results/assemblies/"$sp".fna.gz ]]; then
+			if [[ -f {params.wd}/results/assemblies/"$sp".fasta.gz ]]; then
 				continue
 			else
 				link="{params.wd}/results/downloaded_genomes/"$sp"_genomic_genbank.fna.gz"
@@ -191,18 +191,18 @@ rule rename_assemblies:
 					echo "$sp" >> {output.statistics} 
 					continue
 				else
-					ln -s $link {params.wd}/results/assemblies/"$sp".fna.gz
+					ln -s $link {params.wd}/results/assemblies/"$sp".fasta.gz
 				fi
 			fi
 		done	
 		for spe in {params.local_species}; do
 			sparr=(${{spe//,/ }})
-			if [[ -L {params.wd}/results/assemblies/"${{sparr[0]}}".fna ]]; then
+			if [[ -L {params.wd}/results/assemblies/"${{sparr[0]}}".fasta ]]; then
 				echo "${{sparr[0]}}" >> {output.statistics_local}
 				continue
 			else
 				echo "${{sparr[0]}}" >> {output.statistics_local}
-				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fna
+				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
 			fi
 		done
 		if [[ ! -f {output.statistics} ]]; then touch {output.statistics}; fi
