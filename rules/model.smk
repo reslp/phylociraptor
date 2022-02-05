@@ -49,10 +49,13 @@ def return_target_modeltest_log(wildcards):
         for busco in BUSCOS:
 		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
 			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
-#	input_files = glob.glob("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/*_aligned_trimmed.fas")
-#	for f in input_files:
-#		busco = f.split("/")[-1].replace("_aligned_trimmed.fas","")
-#		lis.append("results/modeltest/"+busco+"/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+".log")
+	return lis
+
+def return_target_modeltest_dir(wildcards):
+	lis = []
+        for busco in BUSCOS:
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
+			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco)
 	return lis
 
 rule modeltest:
@@ -90,17 +93,18 @@ rule aggregate_best_models:
 		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd(),
+		modeldirs = return_target_modeltest_dir
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
-		for file in $(ls -1 results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/*/*.log)
+		for file in $(echo "{input.logfiles}")
 		do
 			outname=$(basename $file | awk -F "." '{{print $1}}')
 			printf "$outname\t" >> {output.best_models}
 			cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
 		done
 		# now calculate mean bootstrap for each tree
-		for gene in $(ls -d results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/*)
+		for gene in $(echo "{params.modeldirs}")
 				do
 					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
 					bootstrapsum=$(echo "$bootstrapvalues" | bc)
