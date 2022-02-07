@@ -44,11 +44,12 @@ BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{
 #		touch {output.checkpoint}
 #		"""
 
-def return_target_modeltest_log(wildcards):
+def return_target_modeltest_check(wildcards):
 	lis = []
         for busco in BUSCOS:
 		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
-			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
+#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
+			lis.append("results/checkpoints/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_modeltest_"+wildcards.aligner+"_"+wildcards.alitrim+".done")
 	return lis
 
 def return_target_modeltest_dir(wildcards):
@@ -63,7 +64,7 @@ rule modeltest:
 #		alignment = get_alignment
 		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
 	output:
-		logfile = "results/modeltest/{aligner}-{alitrim}/{busco}/{busco}.log",
+#		logfile = "results/modeltest/{aligner}-{alitrim}/{busco}/{busco}.log",
 		checkpoint = "results/checkpoints/modeltest/{aligner}-{alitrim}/{busco}_modeltest_{aligner}_{alitrim}.done"
 	benchmark:
 		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.txt"
@@ -78,13 +79,14 @@ rule modeltest:
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		iqtree -s {input.alignment} -msub nuclear -redo --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params}
+		if [[ ! -d "results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}" ]]; then mkdir -p results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}; fi
+		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params}
 		touch {output.checkpoint}
 		"""
 
 rule aggregate_best_models:
 	input:
-		logfiles = return_target_modeltest_log
+		checkfiles = return_target_modeltest_check
 	output:
 		best_models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
 		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done",
@@ -97,11 +99,11 @@ rule aggregate_best_models:
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
-		for file in $(echo "{input.logfiles}")
+		for file in $(echo "{input.checkfiles}")
 		do
-			outname=$(basename $file | awk -F "." '{{print $1}}')
+			outname=$(basename $file | awk -F "_" '{{print $1}}')
 			printf "$outname\t" >> {output.best_models}
-			cat $file | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
+			cat results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$outname/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
 		done
 		# now calculate mean bootstrap for each tree
 		for gene in $(echo "{params.modeldirs}")
