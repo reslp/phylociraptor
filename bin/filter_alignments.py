@@ -25,7 +25,6 @@ if args.statfile:
 	with open(args.statfile, "r") as stats:
 		stats.readline()
 		for stat in stats:
-			print(stat.split("\t")[5])
 			stats_dict[stat.split("\t")[0]] = int(stat.split("\t")[5])	
 for al in algn_list:
 	if os.stat(al).st_size == 0:
