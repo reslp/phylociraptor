@@ -54,8 +54,9 @@ rule trim_aliscotri:
 			containers["aliscore"]	
 		shell:
 			"""
+			if [[ -d results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco} ]]; then rm -rf results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}; fi
 			mkdir -p results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
-			cd "results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}"
+			cd results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
 			ln -s -f  {params.wd}/{input.alignment} {params.busco}_aligned.fas 
 			Aliscore.pl {params.trimmer} -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
 			
