@@ -59,7 +59,7 @@ speciestree:
 
 genetree:
     method: ["iqtree"]
-    boostrap: 1000
+    bootstrap: 1000
     threads: 16
 
 # specific settings for individual tree reconstruction methods
