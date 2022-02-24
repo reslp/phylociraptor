@@ -11,9 +11,10 @@ def get_input_genes(wildcards):
 
 rule concatenate:
 	input:
+		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
 #		checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
 #		checkpoint = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
-		checkpoint = "results/checkpoints/modes/modeltest.done"
+#		checkpoint = "results/checkpoints/modes/modeltest.done"
 	output:
 		alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/concat.fas",
 		phylip_alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/concat.phy",
