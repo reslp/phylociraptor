@@ -52,11 +52,12 @@ def return_target_modeltest_check(wildcards):
 			lis.append("results/checkpoints/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_modeltest_"+wildcards.aligner+"_"+wildcards.alitrim+".done")
 	return lis
 
-def return_target_modeltest_dir(wildcards):
+def return_genes(wildcards):
 	lis = []
         for busco in BUSCOS:
 		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
-			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco)
+#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
+			lis.append(busco)
 	return lis
 
 rule modeltest:
@@ -71,7 +72,7 @@ rule modeltest:
 	params:
 		wd = os.getcwd(),
 		busco = "{busco}",
-		bb = config["genetree"]["boostrap"],
+		bb = config["genetree"]["bootstrap"],
 		additional_params = config["iqtree"]["additional_params"],
 		seed = config["seed"]
 	singularity:
@@ -95,27 +96,35 @@ rule aggregate_best_models:
 		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.txt"
 	params:
 		wd = os.getcwd(),
-		modeldirs = return_target_modeltest_dir
+		genes = return_genes
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
-		for file in $(echo "{input.checkfiles}")
+		for gene in {params.genes}
 		do
-			outname=$(basename $file | awk -F "_" '{{print $1}}')
-			printf "$outname\t" >> {output.best_models}
-			cat results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$outname/$outname.log | grep "Best-fit model:" | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}' >> {output.best_models}
+			model=$(cat results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$gene/$gene.log | grep "Best-fit model:" | tail -n 1 | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}')
+			# This should not happen
+			if [[ $(echo $model | wc -l) -eq 0 ]]
+			then
+				#this should not happen - just a failsafe
+				echo "ERROR: No model detected for gene: $gene" >&2
+			else
+				printf "$gene\t" >> {output.best_models}
+				echo $model >> {output.best_models}
+			fi
+
+			#now calculate mean bootsrap for each tree
+			bootstrapvalues=$(grep -E '\)[0-9]+:' -o results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$gene/$gene.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
+#			bootstrapsum=$(echo "$bootstrapvalues" | bc)
+			bootstrapsum=$(echo "$bootstrapvalues" | perl -ne 'chomp; @bs=split(/\+/); $sum=0; for (@bs){{$sum=$sum+$_}}; print "$sum"')
+		
+			totalbootstraps=$(echo "$bootstrapvalues" | sed 's/[0-9]//g' | wc -c)
+#			meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
+			meanbootstrap=$(( bootstrapsum / totalbootstraps ))
+			echo -e "$gene\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap" | tee -a {output.genetree_filter_stats}
 		done
-		# now calculate mean bootstrap for each tree
-		for gene in $(echo "{params.modeldirs}")
-				do
-					bootstrapvalues=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
-					bootstrapsum=$(echo "$bootstrapvalues" | bc)
-					totalbootstraps=$(grep -E '\)[0-9]+:' -o $gene/*.treefile | wc -l )
-					meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
-					genename=$(basename $gene)
-					echo -e "$genename\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap" | tee -a {output.genetree_filter_stats}
-				done
 		touch {output.checkpoint}
+
 		"""
 
 rule all_modeltest:
