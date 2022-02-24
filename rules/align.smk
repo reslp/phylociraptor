@@ -30,6 +30,8 @@ rule align_clustalo:
 			alignment = "results/alignments/full/clustalo/{busco}_aligned.fas",
 		benchmark:
 			"results/statistics/benchmarks/align/clustalo_align_{busco}.txt"
+		log:
+			"results/statistics/benchmarks/align/clustalo_align_{busco}.log.txt"
 		singularity:
 			containers["clustalo"]
 		threads:
@@ -38,7 +40,7 @@ rule align_clustalo:
 			config["alignment"]["clustalo_parameters"]
 		shell:
 			"""
-			clustalo -i {input.sequence_file} --threads={threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) > {output.alignment} 
+			clustalo -i {input.sequence_file} --threads={threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) 1> {output.alignment} 2> {log}
 			"""
 
 rule align_mafft:
@@ -49,6 +51,8 @@ rule align_mafft:
 			alignment = "results/alignments/full/mafft/{busco}_aligned.fas",
 		benchmark:
 			"results/statistics/benchmarks/align/mafft_align_{busco}.txt"
+		log:
+			"results/statistics/benchmarks/align/mafft_align_{busco}.log.txt"
 		singularity:
 			containers["mafft"]
 		threads:
@@ -57,7 +61,7 @@ rule align_mafft:
 			config["alignment"]["mafft_parameters"]
 		shell:
 			"""
-			mafft --thread {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) {input.sequence_file} > {output.alignment}
+			mafft --thread {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) {input.sequence_file} 1> {output.alignment} 2> {log}
 			"""
 
 rule aggregate_align:
