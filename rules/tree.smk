@@ -66,7 +66,8 @@ rule raxmlng:
 rule iqtree:
 		input:
 #			"results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt" 
-			"results/checkpoints/modes/modeltest.done"
+#			"results/checkpoints/modes/modeltest.done"
+			"results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
 		output:
 			checkpoint = "results/checkpoints/iqtree_{aligner}_{alitrim}_{bootstrap}.done",
 			statistics = "results/statistics/mltree/mltree_iqtree_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
