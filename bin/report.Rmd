@@ -20,6 +20,14 @@ library(data.table)
 library(ggpubr)
 library(gridExtra)
 library(RColorBrewer)
+library(yaml)
+
+args = commandArgs(trailingOnly=TRUE)
+print(args)
+config_data <- read_yaml(paste0("../",args[1]))
+
+pars_sites <-config_data$filtering$min_parsimony_sites
+pars_sites <- strtoi(pars_sites)
 
 parsimony_cutoff <- 3
 #set random seed for consistent colors
@@ -140,7 +148,7 @@ results/assemblies
 **Not downloaded:**<br />`r failed`    
 
 **Information on successfully downloaded genomes:**
-```{r genome_stats, echo=FALSE, out.height=500}
+```{r genome_stats, echo=TRUE, out.height=500}
 info <- ""
 if (file.exists(downloaded_genomes_statistics_file))
 {
@@ -150,7 +158,7 @@ if (file.exists(downloaded_genomes_statistics_file))
     info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
   }
   
-  data %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+  data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") # %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
 } else {
   info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
 }
@@ -364,8 +372,8 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 		return(read.csv(dat,header=T,sep="\t"))
 	}
 	cat("<br><b>Used aligner(s) and settings:</b>")
-	pars_sites <- tail(strsplit(data_combined_overview[1,1], " ")[[1]], 1)
-	pars_sites <- strtoi(pars_sites)
+	#pars_sites <- tail(strsplit(data_combined_overview[1,1], " ")[[1]], 1)
+	#pars_sites <- strtoi(pars_sites)
 	first_aligner <- paste(head(strsplit(data_combined_overview[1,1], " ")[[1]], length(strsplit(data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
 	first_aligner <- gsub("None", "", first_aligner)
 	cat(paste0("<br><b>1. </b>", first_aligner,"<br>"))	

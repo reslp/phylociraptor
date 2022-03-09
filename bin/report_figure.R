@@ -17,6 +17,10 @@ failed_genome_downloads_file <- "../results/downloaded_genomes/not_downloaded.tx
 successfull_genome_downloads_file <- "../results/downloaded_genomes/successfully_downloaded.txt"
 local_species_file <- "../results/statistics/local_species.txt"
 
+pars_sites <-config_data$filtering$min_parsimony_sites
+pars_sites <- strtoi(pars_sites)
+ 
+
 ## functions:
 
 read_my_overview <-function(dat) {
@@ -206,8 +210,8 @@ if (length(dirs)==0) {
   cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
 } else {
   #cat("<br><b>Used aligner(s) and settings:</b>")
-  pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
-  pars_sites <- strtoi(pars_sites)
+  #pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
+  #pars_sites <- strtoi(pars_sites)
   dat <- list()
   i <- 1
   alignment_statistics <- data.frame(aligner=c(), total=numeric(), pass=numeric(),fail=numeric())
@@ -274,8 +278,8 @@ if (length(dirs)==0) {
     return(read.csv(dat,header=T,sep="\t"))
   }
   #cat("<br><b>Used aligner(s) and settings:</b>")
-  pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
-  pars_sites <- strtoi(pars_sites)
+  #pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
+  #pars_sites <- strtoi(pars_sites)
   #first_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
   #first_aligner <- gsub("None", "", first_aligner)
   #cat(paste0("<br><b>1. </b>", first_aligner,"<br>"))	
@@ -581,9 +585,9 @@ align_text <- paste0(
 )
 
 # check if seed was specified or not:
-if (config_data$seed == "") {
+if (is.null(config_data$seed) || config_data$seed == "") {
 	config_data$seed <- "random"
-} 
+}
 reprod_text <- paste0(
   "\n\nAnalysis seed: ", config_data$seed
 )
