@@ -4,7 +4,7 @@ wd <- getwd()
 setwd(paste0(wd,"/bin"))
 
 library(yaml)
-config_data <- read_yaml(paste0("../",args[2]))
+config_data <- read_yaml(paste0("../",args[1]))
 
 library(patchwork)
 library(RColorBrewer)
