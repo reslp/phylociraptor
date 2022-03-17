@@ -1,3 +1,4 @@
+include: "functions.smk"
 import os.path
 import glob
 import yaml
@@ -7,6 +8,10 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 include: "concatenate.smk"
+
+aligners = get_aligners()		
+trimmers = get_trimmers()		
+bscuts = get_bootstrap_cutoffs()
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
 
@@ -117,7 +122,7 @@ rule astral_species_tree:
 
 rule all_speciestree:
 	input:
-		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], bootstrap=config["filtering"]["bootstrap_cutoff"])
+		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.done", aligner=aligners, alitrim=trimmers, bootstrap=bscuts)
 	output:
 		"results/checkpoints/modes/speciestree.done"
 	shell:

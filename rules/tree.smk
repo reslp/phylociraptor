@@ -1,3 +1,4 @@
+include: "functions.smk"
 import yaml
 
 # get list of containers to use:
@@ -5,6 +6,11 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 include: "concatenate.smk"
+
+aligners = get_aligners()		
+trimmers = get_trimmers()		
+tree_methods = get_treemethods()
+bscuts = get_bootstrap_cutoffs()
 
 rule partition_alignment:
 	input:
@@ -178,7 +184,7 @@ else:
 			"""
 rule all_trees:
 	input:
-		expand("results/checkpoints/{treeinfer}_{aligner}_{alitrim}_{bootstrap}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], treeinfer=config["tree"]["method"], bootstrap=config["filtering"]["bootstrap_cutoff"])
+		expand("results/checkpoints/{treeinfer}_{aligner}_{alitrim}_{bootstrap}.done", aligner=aligners, alitrim=trimmers, treeinfer=tree_methods, bootstrap=bscuts)
 	output:
 		"results/checkpoints/modes/trees.done"
 	shell:

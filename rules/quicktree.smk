@@ -1,3 +1,4 @@
+include: "functions.smk"
 import yaml
 
 # get list of containers to use:
@@ -5,6 +6,10 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 include: "concatenate.smk"
+
+aligners = get_aligners()		
+trimmers = get_trimmers()		
+bscuts = get_bootstrap_cutoffs()
 
 rule njtree:
 	input:
@@ -19,7 +24,7 @@ rule njtree:
 		
 rule all_njtree:
 	input:
-		expand("results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], bootstrap=config["filtering"]["bootstrap_cutoff"])
+		expand("results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre", aligner=aligners, alitrim=trimmers, bootstrap=bscuts)
 	output:
 		"results/checkpoints/modes/njtree.done"
 	shell:

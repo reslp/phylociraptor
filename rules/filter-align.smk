@@ -1,3 +1,4 @@
+include: "functions.smk"
 import subprocess
 import glob
 import yaml
@@ -21,6 +22,10 @@ def determine_concurrency_limit():
 		return
 
 batches = determine_concurrency_limit()
+
+
+aligners = get_aligners()		
+trimmers = get_trimmers()		
 
 rule trim_trimal:
 		input:
@@ -184,9 +189,9 @@ rule get_filter_statistics:
 rule all_filter_align:
 	input:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
-		checkpoint = expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		filtered = expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches),
-		algntrim = expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
+		checkpoint = expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=aligners),
+		filtered = expand("results/statistics/filter-{aligner}-{alitrim}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt", aligner=aligners, alitrim=trimmers, batch=batches),
+		algntrim = expand("results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt", aligner=aligners, alitrim=trimmers)
 	output:
 		checkpoint = "results/checkpoints/modes/filter_align.done",
 		stats = "results/statistics/filtered-alignments-stats.txt"

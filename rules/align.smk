@@ -1,6 +1,8 @@
+include: "functions.smk"
 import subprocess
 import glob
 import yaml
+import sys
 
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
@@ -21,6 +23,8 @@ def determine_concurrency_limit():
 		return
 
 batches = determine_concurrency_limit()
+
+aligners = get_aligners()		
 
 rule align_clustalo:
 		input:
@@ -110,7 +114,7 @@ rule all_align:
 	input:
 #		expand("results/alignments/full/{aligner}/{busco}_aligned.fas", aligner=config["alignment"]["method"], busco=BUSCOS),
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),
-		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], batch=batches)
+		expand("results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["concurrency"])+".txt", aligner=aligners, batch=batches)
 	output:
 		"results/checkpoints/modes/align.done"
 	shell:

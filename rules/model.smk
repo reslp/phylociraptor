@@ -1,3 +1,4 @@
+include: "functions.smk"
 import os.path
 import glob
 import yaml
@@ -7,6 +8,11 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
+
+aligners = get_aligners()		
+trimmers = get_trimmers()		
+tree_methods = get_treemethods()
+bscuts = get_bootstrap_cutoffs()
 
 #BUSCOS, = glob_wildcards("results/filtered_alignments/"+config["alignment"]["method"][0]+"/"+config["trimming"]["method"][0]+"/{busco}_aligned_trimmed.fas")
 
@@ -129,8 +135,8 @@ rule aggregate_best_models:
 
 rule all_modeltest:
 	input:
-		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"]),
-		expand("results/modeltest/genetree_filter_{aligner}_{alitrim}.txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"])
+		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=aligners, alitrim=trimmers),
+		expand("results/modeltest/genetree_filter_{aligner}_{alitrim}.txt", aligner=aligners, alitrim=trimmers)
 	output:
 		"results/checkpoints/modes/modeltest.done"
 	shell:
