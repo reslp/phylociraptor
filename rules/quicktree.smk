@@ -11,7 +11,7 @@ aligners = get_aligners()
 trimmers = get_trimmers()		
 bscuts = get_bootstrap_cutoffs()
 
-rule njtree:
+rule quicktree:
 	input:
 		rules.concatenate.output.stockholm_alignment
 	output:
@@ -22,7 +22,7 @@ rule njtree:
 		quicktree -in a {input} > {output}
 		"""
 		
-rule all_njtree:
+rule njtree:
 	input:
 		expand("results/phylogeny-{bootstrap}/njtree/{aligner}-{alitrim}/njtree.tre", aligner=aligners, alitrim=trimmers, bootstrap=bscuts)
 	output:

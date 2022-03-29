@@ -26,7 +26,7 @@ batches = determine_concurrency_limit()
 
 aligners = get_aligners()		
 
-rule align_clustalo:
+rule clustalo:
 		input:
 			checkpoint = "results/checkpoints/modes/filter_orthology.done",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas"
@@ -47,7 +47,7 @@ rule align_clustalo:
 			clustalo -i {input.sequence_file} --threads={threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) 1> {output.alignment} 2> {log}
 			"""
 
-rule align_mafft:
+rule mafft:
 		input:
 			checkpoint = "results/checkpoints/modes/filter_orthology.done",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas"
@@ -68,7 +68,7 @@ rule align_mafft:
 			mafft --thread {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) {input.sequence_file} 1> {output.alignment} 2> {log}
 			"""
 
-rule aggregate_align:
+rule aggregate_alignments:
 	input:
 		expand("results/alignments/full/{{aligner}}/{bus}_aligned.fas", aligner=config["alignment"]["method"], bus=BUSCOS)
 	output:
@@ -79,7 +79,7 @@ rule aggregate_align:
 		"""
 rule get_alignment_statistics:
 	input:
-		rules.aggregate_align.output.checkpoint
+		rules.aggregate_alignments.output.checkpoint
 	output:
 		statistics_alignment = "results/statistics/align-{aligner}/{aligner}_statistics_alignments-{batch}-"+str(config["concurrency"])+".txt",
 		overview_statistics = "results/statistics/align-{aligner}/{aligner}_overview-{batch}-"+str(config["concurrency"])+".txt"
@@ -110,7 +110,7 @@ rule get_alignment_statistics:
 		ovstats="${{ovstats}}\t{params.pars_sites}"
 		echo -e $ovstats > {output.overview_statistics}
 		"""
-rule all_align:
+rule align:
 	input:
 #		expand("results/alignments/full/{aligner}/{busco}_aligned.fas", aligner=config["alignment"]["method"], busco=BUSCOS),
 #		expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=config["alignment"]["method"]),

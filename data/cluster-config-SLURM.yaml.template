@@ -8,6 +8,7 @@ __default__:
    qos: mem_0096
    output: $(pwd)/log/slurm-%j.out
    error: $(pwd)/log/slurm-%j.err
+#### setup ####
 download_genome_overview:
    job-name: dloverview
 download_genomes:
@@ -18,115 +19,114 @@ rename_assemblies:
    job-name: renasse
 download_busco_set:
    job-name: dlbuscoset
-prepare_augustus:
-   job-name: prepaug
 get_genome_download_statistics:
    job-name: ggendlstat
 setup:
-   job-name: setup
+   job-name: SETUP
+###################
+#### orthology ####
 busco:
-   job-name: BUSCO 
-orthology:
-   job-name: ORTHOLOGY
-filter_orthology:
-   job-name: FILTORTH
-filter_alignments:
-   job-name: filtalgn
-part_filter_align:
-   job-name: FAL
-align_trim:
-   job-name: alntri
-filter_align:
-   job-name: FAL
-get_filter_statistics:
-   job-name: getfilstat 
-run_busco:
    job-name: rBUSCO
    mem: 16G
-extract_busco_table:
-   job-name: exBUSCO
+aggregate_orthology:
+   job-name: aggorth 
+extract_orthology_table:
+   job-name: exOrth
    mem: 12G
+orthology:
+   job-name: ORTHOLOGY
+###################
+#### filter-orthology ####
 create_sequence_files:
    job-name: exSeqfiles
    mem: 12G
 remove_duplicated_sequence_files:
    job-name: remdupseq
    mem: 12G
-get_all_trimmed_files:
-   job-name: gettrimfiles
-   mem: 12G
-aggregate_align:
-   job-name: AGA
+filter_orthology:
+   job-name: FILTORTH
+##########################
+#### align ####
+mafft:
+   job-name: mft
+   time: "02:00:00"
+   mem: 10G
+clustalo:
+   job-name: clo
+   time: "02:00:00"
+   mem: 10G
+aggregate_alignments:
+   job-name: aggalgn
    mem: 4G
    time: "05:00:00"
-all_align:
-   job-name: ALA
-   mem: 4G
-   time: "00:00:10"
 get_alignment_statistics:
    job-name: getalnstat
    mem: 4G
    time: "02:00:00"
-get_trimmed_statistics:
-   job-name: gettristat
-align_mafft:
-   job-name: alnm
-   time: "02:00:00"
-   mem: 10G
-align_clustalo:
-   job-name: alnc
-   time: "02:00:00"
-   mem: 10G
-trim_trimal:
+align:
+   job-name: ALIGN
+   time: "00:00:10"
+#############
+#### filter-align ####
+trimal:
    job-name: trimal
    mem: 10G
    time: "02:00:00"
-trim_aliscotri:
+aliscore:
    job-name: aliscore
    mem: 20G
    time: "24:00:00"
-iqtree:
-   job-name: iqtree
-   mem: 94G
-concatenate:
-   job-name: concat
-   mem: 8G
-modeltest:
+get_trimmed_statistics:
+   job-name: gettristat
+filter_alignments:
+   job-name: filtalgn
+get_filter_statistics:
+   job-name: getfilstat 
+filter_align:
+   job-name: FILTALGN
+######################
+#### modeltest ####
+iqtree_mt:
    job-name: mt
    mem: 64G
 aggregate_best_models:
    job-name: aggmodels
    mem: 10G
-part_modeltest:
-   job-name: part_modeltest
-   mem: 2G
-   time: "00:00:05"
+modeltest:
+   job-name: MODELTEST
+###################
+#### mltree ####
 raxmlng:
    job-name: raxmlng
    mem: 94G
-phylobayes:
-   job-name: phylobayes
-   mem: 16G
-merge_phylobayes_chains:
-   job-name: merge_phylobayes
-   mem: 4G
-part2:
-   job-name: part2
-   mem: 4G
-part3:
-   job-name: part3
-   mem: 4G
-astral_species_tree:
-   job-name: astral
-   mem: 48G
-iqtree_gene_trees:
-   job-name: iqtgt
-   mem: 32G
-aggregate_gene_trees:
-   job-name: agg_genetrees
-njtree:
-   job-name: njtree
-   mem: 16G
+iqtree:
+   job-name: iqtree
+   mem: 94G
 partition_alignment:
    job-name: partalgn
    mem: 10G
+mltree:
+   job-name: MLTREE
+###############
+#### speciestree #### 
+astral:
+   job-name: astral
+   mem: 48G
+aggregate_gene_trees:
+   job-name: agg_gt
+speciestree:
+   job-name: SPECIESTREE
+####################
+#### njtree ####
+quicktree:
+   job-name: quicktree
+   mem: 16G
+njtree:
+   job-name: NJTREE
+################
+#### Utility rules ####
+concatenate:
+   job-name: concat
+   mem: 8G
+
+

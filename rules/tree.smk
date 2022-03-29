@@ -182,7 +182,7 @@ else:
 			"""
 			touch {output.checkpoint}
 			"""
-rule all_trees:
+rule mltree:
 	input:
 		expand("results/checkpoints/{treeinfer}_{aligner}_{alitrim}_{bootstrap}.done", aligner=aligners, alitrim=trimmers, treeinfer=tree_methods, bootstrap=bscuts)
 	output:

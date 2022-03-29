@@ -6,6 +6,7 @@ __default__:
    q: mpi # change this according to your cluster configuration
    h_vmem: 4G # change this according to your cluster configuration. Make sure if you want to use h_vmem, mem, ... This has to be changed for all rules accordingly
    pe: mpi1node # change this according your cluster configuration
+#### setup ####
 download_genome_overview:
    N: dloverview
 download_genomes:
@@ -15,101 +16,104 @@ rename_assemblies:
    N: renasse
 download_busco_set:
    N: dlbuscoset
-prepare_augustus:
-   N: prepaug
 get_genome_download_statistics:
    N: ggendlstat
 setup:
-   N: setup
-busco:
-   N: BUSCO 
-orthology:
-   N: ORTHOLOGY
-filter_orthology:
-   N: FILTORTH
-filter_alignments:
-   N: filtalgn
-part_filter_align:
-   N: FAL
-align_trim:
-   N: alntri
-filter_align:
-   N: FAL
-get_filter_statistics:
-   N: getfilstat
-get_trimmed_statistics:
-   N: gettristat
+   N: SETUP
+###############
+#### orthology ####
 run_busco:
    N: rBUSCO
    h_vmem: 2G
-extract_busco_table:
-   N: exBUSCO
+aggregate_orthology:
+   N: aggorth 
+extract_orthology_table:
+   N: exOrth
    h_vmem: 12G
+orthology:
+   N: ORTHOLOGY
+###################
+#### filter-orthology ####
 create_sequence_files:
    N: exSeqfiles
    h_vmem: 12G
 remove_duplicated_sequence_files:
    N: remdupseq
    h_vmem: 12G
-get_all_trimmed_files:
-   N: gettrimfiles
-   h_vmem: 12G
-align_mafft:
-   N: alnm
+filter_orthology:
+   N: FILTORTH
+##########################
+#### align ####
+mafft:
+   N: mft
    h_vmem: 10G
-align_clustalo:
-   N: alnc
+clustalo:
+   N: clo
+   h_vmem: 10G
+aggregate_alignments:
+   N: aggalgn
    h_vmem: 10G
 get_alignment_statistics:
    N: alignstats
-trim_trimal:
+align:
+   N: ALIGN
+################
+#### filter-align ####
+trimal:
    N: trimal
    h_vmem: 10G
-trim_aliscotri:
+aliscore:
    N: aliscore
    h_vmem: 10G
-iqtree:
-   N: iqtree
-   h_vmem: 16G
-concatenate:
-   N: concat
-   h_vmem: 8G
-modeltest:
+get_trimmed_statistics:
+   N: gettristat
+filter_alignments:
+   N: filtalgn
+get_filter_statistics:
+   N: getfilstat
+filter_align:
+   N: FILTALGN
+#####################
+#### modeltest ####
+iqtree_mt:
    N: mt
    h_vmem: 8G
 aggregate_best_models:
    N: aggmodels
-part_modeltest:
-   N: part_modeltest
+modeltest:
+   N: MODELTEST
+###################
+#### mltree ####
 raxmlng:
    N: raxmlng
    h_vmem: 8G
-phylobayes:
-   N: phylobayes
-   h_vmem: 16G
-merge_phylobayes_chains:
-   N: merge_phylobayes
-   h_vmem: 4G
-part1:
-   N: part1
-   h_vmem: 4G
-part2:
-   N: part2
-   h_vmem: 4G
-part3:
-   N: part3
-   h_vmem: 4G
-astral_species_tree:
-   N: astral
-   h_vmem: 48G
-iqtree_gene_trees:
-   N: iqtgt
-   h_vmem: 2G
-aggregate_gene_trees:
-   N: agg_genetrees
-njtree:
-   N: njtree
+iqtree:
+   N: iqtree
    h_vmem: 16G
 partition_alignment:
    N: partalgn
    h_vmem: 10G
+mltree:
+   N: MLTREE
+################
+#### speciestree ####
+astral_species_tree:
+   N: astral
+   h_vmem: 48G
+aggregate_gene_trees:
+   N: agg_genetrees
+speciestree:
+   N: SPECIESTREE
+#####################
+#### njtree ####
+quicktree:
+   N: njtree
+   h_vmem: 16G
+njtree:
+   N: NJTREE
+################
+#### Utility rules ####
+concatenate:
+   N: concat
+   h_vmem: 8G
+#######################

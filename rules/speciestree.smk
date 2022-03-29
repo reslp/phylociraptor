@@ -96,7 +96,7 @@ rule aggregate_gene_trees:
 		"""
 
 
-rule astral_species_tree:
+rule astral:
 	input:
 		trees = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}/trees_{aligner}_{alitrim}.tre" 
 #		trees = rules.aggregate_gene_trees.output.trees,
@@ -120,7 +120,7 @@ rule astral_species_tree:
 		touch {output.checkpoint}
 		"""
 
-rule all_speciestree:
+rule speciestree:
 	input:
 		expand("results/checkpoints/astral_species_tree_{aligner}_{alitrim}_{bootstrap}.done", aligner=aligners, alitrim=trimmers, bootstrap=bscuts)
 	output:

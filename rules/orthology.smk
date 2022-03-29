@@ -73,7 +73,7 @@ def select_species(dir="results/assemblies"):
 species = select_species()
 print(species)
 if config["busco"]["version"] == "3.0.2":
-	rule run_busco:
+	rule busco:
 		input:
 			assembly = get_assemblies,
 			busco_set = "results/orthology/busco/busco_set/"+config["busco"]["set"]
@@ -158,7 +158,7 @@ if config["busco"]["version"] == "3.0.2":
 			"""
 
 if config["busco"]["version"] == "5.2.1":
-	rule run_busco:
+	rule busco:
 		input:
 			assembly = get_assemblies,
 			busco_set = "results/orthology/busco/busco_set/"+config["busco"]["set"]
@@ -247,7 +247,7 @@ if config["busco"]["version"] == "5.2.1":
 			touch {output.checkpoint}
 			"""
 
-rule busco:
+rule aggregate_orthology:
 	input:
 		checks = expand("results/checkpoints/busco/busco_{species}.done", species=species)
 	output:
@@ -257,10 +257,10 @@ rule busco:
 		touch {output}
 		"""
 
-rule extract_busco_table:
+rule extract_orthology_table:
 	input:
 		busco_set = "results/orthology/busco/busco_set/"+config["busco"]["set"],
-		busco = rules.busco.output
+		busco = rules.aggregate_orthology.output
 	output:
 		busco_table = "results/orthology/busco/busco_table.txt",
 		#checkpoint = "results/checkpoints/extract_busco_table.done"
@@ -279,7 +279,7 @@ rule extract_busco_table:
 			name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); 
 			printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 		"""
-rule all_orthology:
+rule orthology:
 	input:
 		expand("results/checkpoints/busco/busco_{species}.done", species=species),
 		#"results/checkpoints/busco.done",

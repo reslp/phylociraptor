@@ -66,7 +66,7 @@ def return_genes(wildcards):
 			lis.append(busco)
 	return lis
 
-rule modeltest:
+rule iqtree_mt:
 	input:
 #		alignment = get_alignment
 		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
@@ -133,7 +133,7 @@ rule aggregate_best_models:
 
 		"""
 
-rule all_modeltest:
+rule modeltest:
 	input:
 		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=aligners, alitrim=trimmers),
 		expand("results/modeltest/genetree_filter_{aligner}_{alitrim}.txt", aligner=aligners, alitrim=trimmers)

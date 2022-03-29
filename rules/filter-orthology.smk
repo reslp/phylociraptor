@@ -21,8 +21,6 @@ batches = determine_concurrency_limit()
 
 rule create_sequence_files:
 	input:
-		#busco_table = rules.extract_busco_table.output.busco_table,
-		#checkpoint = rules.orthology.output
 		table = "results/orthology/busco/busco_table.txt"
 	output:
 		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["concurrency"])),
@@ -102,7 +100,7 @@ rule remove_duplicated_sequence_files:
 		touch {output.checkpoint}
 		"""
 
-rule all_filter_orthology:
+rule filter_orthology:
 	input:
 		"results/checkpoints/remove_duplicated_sequence_files.done"
 	output:

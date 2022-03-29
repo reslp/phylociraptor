@@ -580,7 +580,7 @@ elif args.command=="orthology":
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
 		sys.exit(0)
-	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "all_orthology", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(orthology_args.cluster)
 	cmd += get_flags(vars(orthology_args))
 
@@ -624,7 +624,7 @@ elif args.command=="filter-orthology":
 	if check_required_files(args.command):
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
 		sys.exit(0)
-	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "all_filter_orthology", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "filter_orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(forthology_args.cluster)
 	cmd += get_flags(vars(forthology_args))
 	
@@ -680,7 +680,7 @@ elif args.command=="align":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "all_align", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(align_args.cluster)
 	cmd += get_flags(vars(align_args))
 
@@ -727,7 +727,7 @@ elif args.command=="filter-align":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "all_filter_align", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "filter_align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(falign_args.cluster)
 	cmd += get_flags(vars(falign_args))
 	
@@ -766,7 +766,7 @@ elif args.command=="speciestree":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "all_speciestree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "speciestree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
@@ -794,7 +794,7 @@ elif args.command=="njtree":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "-r", "all_njtree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
@@ -822,7 +822,7 @@ elif args.command=="mltree":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "-r", "all_trees", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
@@ -851,7 +851,7 @@ elif args.command=="modeltest":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "-r", "all_modeltest", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	

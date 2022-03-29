@@ -27,7 +27,7 @@ batches = determine_concurrency_limit()
 aligners = get_aligners()		
 trimmers = get_trimmers()		
 
-rule trim_trimal:
+rule trimal:
 		input:
 			checkpoint = "results/checkpoints/modes/align.done",
 			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
@@ -43,7 +43,7 @@ rule trim_trimal:
 			"""
 			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment}
 			"""
-rule trim_aliscotri:
+rule aliscore:
 		input:
 			checkpoint = "results/checkpoints/modes/align.done",
 			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
@@ -186,7 +186,7 @@ rule get_filter_statistics:
 		mv results/statistics/statistics.txt {output.statistics_filtered}
 		"""
 
-rule all_filter_align:
+rule filter_align:
 	input:
 		#"results/checkpoints/get_all_trimmed_alignments.done",
 		checkpoint = expand("results/checkpoints/{aligner}_aggregate_align.done", aligner=aligners),
