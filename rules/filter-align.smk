@@ -93,7 +93,7 @@ rule get_trimmed_statistics:
 	input:
 		alignments = expand("results/alignments/trimmed/{{aligner}}-{{alitrim}}/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 	output:
-		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}/statistics_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt"
+		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}/stats_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt"
 		#checkpoint = "results/checkpoints/trim/get_trim_statistics_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".done"
 	params:
 		wd = os.getcwd(),
@@ -111,7 +111,7 @@ rule get_trimmed_statistics:
 
 rule filter_alignments:
 	input:
-		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/statistics_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
+		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/stats_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 	output:
 		#checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done",
 		filter_info = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt",
@@ -133,7 +133,7 @@ rule filter_alignments:
 		mkdir -p results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}
 
 		# concatenate the statistics files from the individual batches (for some reason snakemake complained if I did it all in one step, so this looks a bit ugly now, but it runs)
-		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
+		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/stats_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
 		head -n 1 results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
 		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt | grep -v "^alignment" >> {output.trim_info}
 		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
