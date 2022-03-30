@@ -469,6 +469,12 @@ if (length(files) > 0) {
       theme(plot.title = element_text(hjust = 0.5))
     plots[[i]] <- p
   }
+  if (length(plots) == 6) { # the numbers below are hardcoded atm which is not very elegant
+    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], common.legend = TRUE, legend="bottom")
+  }
+  if (length(plots) == 5) {
+    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], common.legend = TRUE, legend="bottom")
+  }
   if (length(plots) == 4) {
     modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], common.legend = TRUE, legend="bottom")
   }

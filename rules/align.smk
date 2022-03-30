@@ -67,6 +67,26 @@ rule mafft:
 			"""
 			mafft --thread {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) {input.sequence_file} 1> {output.alignment} 2> {log}
 			"""
+rule muscle:
+		input:
+			checkpoint = "results/checkpoints/modes/filter_orthology.done",
+			sequence_file = "results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas"
+		output:
+			alignment = "results/alignments/full/muscle/{busco}_aligned.fas",
+		benchmark:
+			"results/statistics/benchmarks/align/muscle_align_{busco}.txt"
+		log:
+			"results/statistics/benchmarks/align/muscle_align_{busco}.log.txt"
+		singularity:
+			containers["muscle"]
+		threads:
+			int(config["alignment"]["threads"])
+		params:
+			config["alignment"]["muscle_parameters"]
+		shell:
+			"""
+			muscle -super5 {input.sequence_file} -threads {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) -output {output.alignment} 2> {log}
+			"""
 
 rule aggregate_alignments:
 	input:
