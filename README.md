@@ -51,6 +51,7 @@ Alignment:
 
 - clustalo 1.2.4 (http://www.clustal.org/omega/)
 - mafft 7.464 (https://mafft.cbrc.jp/alignment/software/)
+- MUSCLE 5.1 (https://drive5.com/muscle5/)
 
 Trimming:
 

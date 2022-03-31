@@ -30,6 +30,7 @@ html_title = project
 # NOTE: All the lines are after this are the theme-specific ones. These are
 #       written as part of the site generation pipeline for this project.
 # !! MARKER !!
+
 html_theme = "sphinx_rtd_theme"
 #html_theme = "furo"
 html_static_path = ['_static']

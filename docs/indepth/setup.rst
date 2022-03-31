@@ -13,6 +13,7 @@
 .. _biomartr: https://github.com/ropensci/biomartr
 .. _snakemake: https://snakemake.github.io/
 .. _singularity: https://sylabs.io/
+.. _docker: https://docker.com/
 
  
 =====================
@@ -25,9 +26,9 @@ Requirements
 
 Phylocirpator only has two requirements: 
 
-* `snakemake`_ 5.19.3+
+* `snakemake`_ 6.0.2
 
-* `singularity`_ 3.4.1+
+* `singularity`_ 3.4.1+ or `docker`_ 
 
 All other software used is prepackaged in containers and no installation is needed.
 
@@ -43,13 +44,13 @@ There are three simple options how to install phylocirator:
 
 .. code:: bash
 
-   git clone git@github.com:reslp/phylociraptor.git
+   git clone --recursive git@github.com:reslp/phylociraptor.git
 
 or
 
 .. code:: bash
 
-   git clone https://github.com/reslp/phylociraptor.git 
+   git clone --recursive https://github.com/reslp/phylociraptor.git 
 
 3. If you don't have git, you can download the latest version also as ZIP file:
 

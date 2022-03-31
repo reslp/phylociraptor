@@ -40,6 +40,12 @@ A possible way to solve this is to run this command before running phylociraptor
 This command disables the standard storage location of newly pulled singularity containers and uses a system wide tmp directory instead.
 
 
+----------------------------------------------
+Singularity is not installed on my HPC Cluster
+----------------------------------------------
+
+Please get in touch with your local HPC support team and ask them to install Singularity for you.
+
 -----------------------------------------------------
 ImportError: Unable to import required dependencies:
 -----------------------------------------------------
@@ -60,9 +66,9 @@ Error running slurm prolog:
 
 This means that SLURM encountered a problem executing SLURM internal scripts prior to the job execution. There can be several different error codes associated with this problem and it may be necessary to contact your HPC support team to resolve what specifically goes wrong. In our experience it can already be enough to simply resubmit the job for the error to disappear.
 
---------------------------
+-------------------------------------------------------------------
 When running phylociraptor I get the error IncompleteFilesException
---------------------------
+-------------------------------------------------------------------
 
 An example of how such an error can look like is this:
 
@@ -102,3 +108,14 @@ Several of my mafft alignment jobs fail
 ---------------------------------------
 
 We have encountered this when many long amino-acid sequences should be aligned. In such a case mafft can become quite memory hungry. When phylociraptor is run on a HPC cluster and mafft reaches the memory limit on a node the job will crash. A workaround is to add the flag :bash:`--memsave` to the mafft options.
+
+------------------------------------------
+My Maximum Likelihood trees don't complete
+------------------------------------------
+
+It is usually a good idea to check the respective log files in the :bash:`log` directory. On HPC systems with batch job submission there is usually a wall-time limit preventing jobs to run only for a maximum amount of time.
+Especially with larg phylogenomic datasets this limit can be reached quite easily. The solution to this problem is specific to the cluster environment and you may have to contact your local HPC support team for advice on how to extend the wall time limit.
+
+On SLURM based systems another solution is to add the line :bash:`dependency: "singleton"` to the iqtree or raxmlng (depending on what you use) section in your cluster config file. Next you can run the phylociraptor mltree step several times. The singleton dependency setting will tell SLURM to create a chain of jobs that have the same name. Look `here https://slurm.schedmd.com/sbatch.html`_ for additional details.
+ 
+

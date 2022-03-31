@@ -5,7 +5,7 @@
 Tutorial - A minimal example
 ============================
 
-This document guides you through a first example on how to run phylociraptor. This minmal dataset consists of 6 fungal genomes, three belonging to the Ascomycota and three to
+This document guides you through a first example on how to run phylociraptor. This minimal dataset consists of 6 fungal genomes, three belonging to the Ascomycota and three to
 Basidiomycota which will be downloaded during the first step of the run. Downstream analyses are carried out on 10 single-copy orthologous genes which will be identified in each genome with a modified BUSCO set.
 The so recovered genes will be aligned and trimmed and we will calculate single-gene trees for each gene. After this, we will perform a Maximum-Likelihood analyses on the full dataset and infer a species tree. The whole analysis should take about 1 hour to complete.
 
