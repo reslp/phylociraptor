@@ -69,11 +69,46 @@ rule raxmlng:
 			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
 			"""
+
+rule prepare_iqtree:
+		input:
+			"results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
+		output:
+			algn = directory("results/phylogeny-{bootstrap}/iqtree/{aligner}-{alitrim}/algn"),
+			nexus = "results/phylogeny-{bootstrap}/iqtree/{aligner}-{alitrim}/concat.nex"
+		singularity:
+			containers["iqtree"]
+		params:
+			wd = os.getcwd(),
+			models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
+			genes = get_input_genes
+		shell:
+			"""
+			mkdir {output.algn}
+			echo "$(date) - prepare_iqtree {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff ({wildcards.bootstrap}) before creating concatenated alignment" >> {params.wd}/results/statistics/runlog.txt
+			for gene in $(echo "{params.genes}")
+			do
+				cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas {output.algn}/
+			done
+			
+			echo "Will create NEXUS partition file with model information now." >> {params.wd}/results/statistics/runlog.txt
+			echo "#nexus" > {output.nexus}
+			echo "begin sets;" >> {output.nexus}
+			i=1
+			charpart=""
+			for gene in $(echo "{params.genes}")
+			do
+				cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{print "charset part"i" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> {output.nexus}
+				charpart=$charpart$(cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{printf($2":part"i", ")}}' | sed 's/\\(.*\\), /\\1, /')
+				i=$((++i))
+			done
+			echo "charpartition mine = "$charpart";" >> {output.nexus}
+			echo "end;" >> {output.nexus} concat.nex
+			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
+			"""
 rule iqtree:
 		input:
-#			"results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt" 
-#			"results/checkpoints/modes/modeltest.done"
-			"results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
+			rules.prepare_iqtree.output
 		output:
 			checkpoint = "results/checkpoints/iqtree_{aligner}_{alitrim}_{bootstrap}.done",
 			statistics = "results/statistics/mltree/mltree_iqtree_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
@@ -95,36 +130,11 @@ rule iqtree:
 			config["iqtree"]["threads"]
 		shell:
 			"""
-			rm -rf results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim}/algn
-			if [[ ! -d results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim} ]]; then mkdir -p results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim}; fi
 			cd results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim}/
-			mkdir algn
-			echo "$(date) - iqtree {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff ({wildcards.bootstrap}) before creating concatenated alignment" >> {params.wd}/results/statistics/runlog.txt
-			for gene in $(echo "{params.genes}")
-			do
-				cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas algn
-			done
-			# here we decide how iqtree should be run. In case modeltesting was run before, this will not be repeated here.				
-			echo "Will create NEXUS partition file with model information now."
-			echo "#nexus" > concat.nex
-			echo "begin sets;" >> concat.nex 
-			i=1
-			charpart=""
-			for gene in $(echo "{params.genes}")
-			do
-				cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{print "charset part"i" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> concat.nex
-				charpart=$charpart$(cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{printf($2":part"i", ")}}' | sed 's/\\(.*\\), /\\1, /')
-				i=$((++i))
-			done
-			echo "charpartition mine = "$charpart";" >> concat.nex
-			echo "end;" >> concat.nex
-			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 
-			#rm -r algn
 			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}	
-			cd {params.wd}
-			touch {output.checkpoint}
+			touch {params.wd}/{output.checkpoint}
 			"""
 
 if "phylobayes" in config["tree"]["method"]:

@@ -88,6 +88,8 @@ modeltest:
 raxmlng:
    N: raxmlng
    h_vmem: 8gb
+prepare_iqtree:
+   N: prepiqt
 iqtree:
    N: iqtree
    mem: 94gb

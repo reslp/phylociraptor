@@ -99,6 +99,8 @@ modeltest:
 raxmlng:
    job-name: raxmlng
    mem: 94G
+prepare_iqtree:
+   job-name: prepiqt
 iqtree:
    job-name: iqtree
    mem: 94G
