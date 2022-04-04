@@ -19,7 +19,13 @@ local_species_file <- "../results/statistics/local_species.txt"
 
 pars_sites <-config_data$filtering$min_parsimony_sites
 pars_sites <- strtoi(pars_sites)
- 
+
+# check if seed was specified or not:
+if (is.null(config_data$seed) || config_data$seed == "") {
+	config_data$seed <- "random"
+} else {
+	set.seed(strtoi(config_data$seed))
+	} 
 
 ## functions:
 
@@ -590,10 +596,6 @@ align_text <- paste0(
   "\nMinimum number of sequences per alignment: ", config_data$filtering$minsp  
 )
 
-# check if seed was specified or not:
-if (is.null(config_data$seed) || config_data$seed == "") {
-	config_data$seed <- "random"
-}
 reprod_text <- paste0(
   "\n\nAnalysis seed: ", config_data$seed
 )
