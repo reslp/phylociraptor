@@ -6,61 +6,12 @@ import subprocess
 import argparse
 import glob
 
-if sys.version_info[0] < 3:
-	raise Exception("Must be using Python 3")
-	exit(1)
-
-
 #some basic variables needed:
 try:
 	with open(".version", "r") as file:
 		version = file.readline().strip("\n")
 except FileNotFoundError:
 	version = "unkown"
-njobs = "10000"
-latency_wait = "10" #in seconds
-singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
-debug = False #turn debugging mode on (True) and off (False)
-cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
-outfile_dict = {
-	"setup": ["results/checkpoints/modes/phylogenomics_setup.done"],
-	"orthology": ["results/checkpoints/modes/phylogenomics_setup.done"],
-	"filter-orthology": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done"],
-	"align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done"],
-	"filter-align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done"],
-	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"mltree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"modeltest": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
-	}
-
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
-checkpoint_file_dict = {
-	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
-	"orthology": "results/checkpoints/modes/orthology.done",
-	"filter-orthology": "results/checkpoints/modes/filter_orthology.done",
-	"align": "results/checkpoints/modes/align.done",
-	"filter-align": "results/checkpoints/modes/filter_align.done",
-	"speciestree": "results/checkpoints/modes/speciestree.done",
-	"njtree": "results/checkpoints/modes/njtree.done",
-	"mltree": "results/checkpoints/modes/trees.done",
-	"modeltest": "results/checkpoints/modes/modeltest.done"
-}
-	
-
-outdir_dict = {
-	"setup": ["results/orthology/busco/busco_set", "results/assemblies", "results/downloaded_genomes"],
-	"orthology": ["results/orthology/busco"],
-	"align": ["results/alignments"],
-	"filter-orthology": ["results"],
-	"align": ["results"],
-	"filter-align": ["results/alignments/trimmed", "results/alignments/filtered"],
-	"speciestree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
-	"njtree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
-	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
-	"modeltest": ["results/modeltest"]
-}
 
 phylociraptor = """
 			     Welcome to
@@ -258,6 +209,68 @@ Argumemts:
 	-h, --help              Display help.
 
 """
+
+util_help = """
+phylociraptor util - Utilities for a posteri analyses of phylociraptor results.
+
+Usage: phylociraptor util <arguments>
+
+Argumemts:
+	get-lineage		retreive full lineage information for all included samples
+	compare-trees		visually compare multiple trees
+	plot-tree		plot a tree
+	-h, --help              Display help.
+
+"""
+
+if sys.version_info[0] < 3:
+	raise Exception("Must be using Python 3")
+	exit(1)
+
+njobs = "10000"
+latency_wait = "10" #in seconds
+singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
+debug = False #turn debugging mode on (True) and off (False)
+cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
+outfile_dict = {
+	"setup": ["results/checkpoints/modes/phylogenomics_setup.done"],
+	"orthology": ["results/checkpoints/modes/phylogenomics_setup.done"],
+	"filter-orthology": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done"],
+	"align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done"],
+	"filter-align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done"],
+	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"mltree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"modeltest": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
+	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
+	}
+
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
+checkpoint_file_dict = {
+	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
+	"orthology": "results/checkpoints/modes/orthology.done",
+	"filter-orthology": "results/checkpoints/modes/filter_orthology.done",
+	"align": "results/checkpoints/modes/align.done",
+	"filter-align": "results/checkpoints/modes/filter_align.done",
+	"speciestree": "results/checkpoints/modes/speciestree.done",
+	"njtree": "results/checkpoints/modes/njtree.done",
+	"mltree": "results/checkpoints/modes/trees.done",
+	"modeltest": "results/checkpoints/modes/modeltest.done"
+}
+	
+
+outdir_dict = {
+	"setup": ["results/orthology/busco/busco_set", "results/assemblies", "results/downloaded_genomes"],
+	"orthology": ["results/orthology/busco"],
+	"align": ["results/alignments"],
+	"filter-orthology": ["results"],
+	"align": ["results"],
+	"filter-align": ["results/alignments/trimmed", "results/alignments/filtered"],
+	"speciestree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
+	"njtree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
+	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
+	"modeltest": ["results/modeltest"]
+}
 
 
 def now():
@@ -522,6 +535,13 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--singularity", action="store",dest="si_args", default="")
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
+
+class UtilParser(argparse.ArgumentParser):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.add_argument("-h", "--help", action="store_true")
+		self.add_argument("--verbose", action="store_true", default=False)	
+	
 
 if args.command == "setup":
 	print(now(), "Welcome to phylociraptor setup v%s" % version)
@@ -1124,6 +1144,44 @@ elif args.command == "check":
 				filter_align_done = True
 			print(" ", mode," ...", '\033[92m', "DONE", '\033[0m')
 	print("\nWARNING: phylociraptor check is just a quick and shallow verification of the run. In case you run into problems, please also check logfiles in the log directory for more in-depth diagnostics.")  
+
+elif args.command == "util":
+	print(now(), "Welcome to phylociraptor util v%s" % version)
+	#util_parser = argparse.ArgumentParser(add_help=False)
+	#util_parser.add_argument("-h", "--help", action="store_true")
+	#util_parser.add_argument("command", action="store", nargs="?")
+	#util_parser.add_argument("--verbose", action="store_true", default=False)
+	#util_args = util_parser.parse_args(args.arguments)
+
+	if args.arguments[0] == "-h" or args.arguments[0] == "--help" or len(args.arguments) == 0: 
+		print(help_message(util_help))
+		sys.exit(0)
+	which_util = args.arguments.pop(0)
+	
+	if which_util == "get-lineage":
+		gl_parser = UtilParser(add_help=False)
+		gl_parser.add_argument("-g","--genomefile", action="store", default="results/statistics/downloaded_genomes_statistics.txt")
+		gl_parser.add_argument("-o", "--output", action="store") 
+#		gl_parser.add_argument("-v", "--verbose", action="store_true", default=False) 
+		gl_args = gl_parser.parse_args(args.arguments) 
+		print(gl_args)
+		if gl_args.help: 
+			print("help")
+			#print(help_message(getlineage_help))
+			sys.exit(0)
+		if not gl_args.output:
+			print("You need to specify an output file with -o/--output")
+			sys.exit(1)
+		if not os.path.isfile(gl_args.genomefile):
+			print("Genome file not found")
+			sys.exit(1)
+		cmd = ["singularity", "exec", "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.output]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, gl_args.verbose):
+			print(line, end="\r")
+		sys.exit(0)		
+	
 
 else:
 	print("Runmode not recognized: %s" % args.command)
