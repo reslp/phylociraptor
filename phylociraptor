@@ -1166,7 +1166,7 @@ elif args.command == "util":
 		gl_parser = UtilParser(add_help=False)
 		gl_parser.add_argument("-g","--genomefile", action="store", default="results/statistics/downloaded_genomes_statistics.txt")
 		gl_parser.add_argument("-o", "--output", action="store") 
-#		gl_parser.add_argument("-v", "--verbose", action="store_true", default=False) 
+		gl_parser.add_argument("--quiet", action="store_true", default=False) 
 		gl_args = gl_parser.parse_args(args.arguments) 
 #		print(gl_args)
 		if gl_args.help: 
@@ -1182,9 +1182,56 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.output]
 		if debug:
 			print(cmd)
-		for line in execute_command(cmd, gl_args.verbose):
+		for line in execute_command(cmd, not gl_args.quiet):
 			print(line, end="\r")
 		sys.exit(0)		
+	if which_util == "compare-trees":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-i","--intrees", action="store", default="all")
+		qs_parser.add_argument("-o", "--outfile", action="store") 
+		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
+		qs_parser.add_argument("-q", "--nquartets", action="store", default=None)
+		qs_parser.add_argument("-t", "--threads", action="store", default="1")
+		qs_parser.add_argument("-l", "--lineagefile", action="store")
+		qs_parser.add_argument("-b", "--stopby", action="store", default=None)
+		qs_parser.add_argument("--selecttaxa", action="store")
+		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_args = qs_parser.parse_args(args.arguments) 
+#		print(gl_args)
+		if qs_args.help: 
+			print("help")
+			sys.exit(0)
+		if not qs_args.outfile:
+			print(now(),"You need to specify an output file with -o/--outfile")
+			sys.exit(1)
+		if not qs_args.intrees:
+			print(now(),"No input trees specified")
+			sys.exit(1)
+		elif qs_args.intrees == "all":
+			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
+			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
+			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/concat.tre")
+			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
+			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
+		else:
+			all_trees = qs_args.intrees	
+		cmd = ["singularity", "exec", "docker://reslp/phylopy:2", "python", "bin/compare_trees.py", "-i", all_trees,  "-o", qs_args.outfile, "-s", qs_args.seed, "-t", qs_args.threads]
+
+		if qs_args.lineagefile and qs_args.selecttaxa:
+			cmd += ["-l", qs_args.lineagefile, "--selecttaxa", qs_args.selecttaxa]
+		if qs_args.nquartets:
+			cmd += ["-q", qs_args.nquartets]
+		elif qs_args.stopby:
+			cmd += ["-b", qs_args.stopby]
+		else:
+			print(now(), "You need to either specify a stopping criterion (-b) or the total number of quartets (-q).")
+			sys.exit(0)
+			
+
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet):
+			print(line, end="\r")
 	
 
 else:
