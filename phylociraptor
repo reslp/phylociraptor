@@ -1153,10 +1153,14 @@ elif args.command == "util":
 	#util_parser.add_argument("--verbose", action="store_true", default=False)
 	#util_args = util_parser.parse_args(args.arguments)
 
-	if args.arguments[0] == "-h" or args.arguments[0] == "--help" or len(args.arguments) == 0: 
+	if  len(args.arguments) == 0: 
 		print(help_message(util_help))
 		sys.exit(0)
-	which_util = args.arguments.pop(0)
+	elif args.arguments[0] == "-h" or args.arguments[0] == "--help":
+		print(help_message(util_help))
+		sys.exit(0)
+	else:
+		which_util = args.arguments.pop(0)
 	
 	if which_util == "get-lineage":
 		gl_parser = UtilParser(add_help=False)
@@ -1164,7 +1168,7 @@ elif args.command == "util":
 		gl_parser.add_argument("-o", "--output", action="store") 
 #		gl_parser.add_argument("-v", "--verbose", action="store_true", default=False) 
 		gl_args = gl_parser.parse_args(args.arguments) 
-		print(gl_args)
+#		print(gl_args)
 		if gl_args.help: 
 			print("help")
 			#print(help_message(getlineage_help))
