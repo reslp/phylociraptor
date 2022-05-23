@@ -327,7 +327,8 @@ if __name__ == '__main__':
 	with open(outfile + ".treelist.tsv", "w") as f:
 		i = 1
 		for tree in treenames:
-			print("T"+str(i), tree, file=f)
+			print("T"+str(i), tree, file=f, sep="\t")
+			i += 1
 	end = time.time()
 	print("Tree comparison is done.")
 	print("\nThe following output has been created:")
