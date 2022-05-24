@@ -211,14 +211,15 @@ Argumemts:
 """
 
 util_help = """
-phylociraptor util - Utilities for a posteri analyses of phylociraptor results.
+phylociraptor util - Utilities for a-posteriori analyses of phylociraptor results.
 
 Usage: phylociraptor util <arguments>
 
 Argumemts:
-	get-lineage		retreive full lineage information for all included samples
-	compare-trees		visually compare multiple trees
-	plot-tree		plot a tree
+	get-lineage		retreive full lineage information for all included samples.
+	compare-trees		compare trees based on the occurence of quartets.
+	plot-tree		plot one or more trees.
+	plot-conflicts		plot conflicts between two trees based on quartet comparison.
 	-h, --help              Display help.
 
 """
@@ -1179,7 +1180,7 @@ elif args.command == "util":
 		if not os.path.isfile(gl_args.genomefile):
 			print("Genome file not found")
 			sys.exit(1)
-		cmd = ["singularity", "exec", "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.output]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.output]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not gl_args.quiet):
@@ -1215,7 +1216,7 @@ elif args.command == "util":
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
 			all_trees = qs_args.intrees	
-		cmd = ["singularity", "exec", "docker://reslp/phylopy:2", "python", "bin/compare_trees.py", "-i", all_trees,  "-o", qs_args.outfile, "-s", qs_args.seed, "-t", qs_args.threads]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/phylopy:2", "python", "bin/compare_trees.py", "-i", all_trees,  "-o", qs_args.outfile, "-s", qs_args.seed, "-t", qs_args.threads]
 
 		if qs_args.lineagefile and qs_args.selecttaxa:
 			cmd += ["-l", qs_args.lineagefile, "--selecttaxa", qs_args.selecttaxa]
@@ -1232,8 +1233,76 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
-	
+	if which_util == "plot-tree":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-i","--intrees", action="store", default="all")
+		qs_parser.add_argument("-o", "--outprefix", action="store", default="tree-plot") 
+		qs_parser.add_argument("-g", "--outgroup", action="store", default="none")
+		qs_parser.add_argument("-l", "--lineagefile", action="store", default="none")
+		qs_parser.add_argument("-e", "--level", action="store", default="none")
+		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
+		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help: 
+			print("help")
+			sys.exit(0)
+		if not qs_args.intrees:
+			print(now(),"No input trees specified")
+			sys.exit(1)
+		elif qs_args.intrees == "all":
+			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
+			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
+			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/concat.tre")
+			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
+			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
+		else:
+			all_trees = qs_args.intrees	
+		
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
+		cmd += ["plot", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
 
+		print(cmd)
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet):
+			print(line, end="\r")
+	if which_util == "plot-conflicts":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-i","--intrees", action="store", default=None)
+		qs_parser.add_argument("-g", "--outgroup", action="store", default="none")
+		qs_parser.add_argument("-l", "--lineagefile", action="store", default="none")
+		qs_parser.add_argument("-q", "--quartetfile", action="store", default=None)
+		qs_parser.add_argument("-e", "--level", action="store", default="none")
+		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
+		qs_parser.add_argument("--treelist", action="store", default=None)
+		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help: 
+			print("help")
+			sys.exit(0)
+		if not qs_args.intrees:
+			print(now(),"No input trees specified")
+			sys.exit(0)
+		elif len(qs_args.intrees.split(",")) != 2:
+			print(now(), "Need exactly two trees for comparison, paths should be seperated by a comma (,).")
+			sys.exit(0)
+		else:
+			all_trees = qs_args.intrees	
+		if not qs_args.quartetfile:
+			print(now(), "You need to provide a quartet conflict file.")
+			sys.exit(1)
+		if not qs_args.treelist:
+			print(now(), "You need to provide the treelist file.")
+			sys.exit(1)
+		
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
+		cmd += ["conflicts", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
+
+		print(cmd)
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet):
+			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
