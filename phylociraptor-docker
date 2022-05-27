@@ -48,7 +48,7 @@ TMPFS="-v $(pwd)/.tmp:/tmp"
 BINDPOINTS="-v $(pwd):/home/$US/phylociraptor"
 REUSE="TRUE" #when this is enabled, the container is continuously updated as singularity images are pulled. So they don't have to be pulled multiple times.
 if [[ $REUSE == "TRUE" ]]; then
-	echo "docker run -it $DOCKER_USER $BINDPOINTS --privileged reslp/phylociraptor:$VER phylociraptor $@"
+#	echo "docker run -it $DOCKER_USER $BINDPOINTS --privileged reslp/phylociraptor:$VER phylociraptor $@"
 	docker run -it $DOCKER_USER $BINDPOINTS --privileged reslp/phylociraptor:$VER phylociraptor $@ 
 	newid=$(docker container ls -all | grep "reslp/phylociraptor:$VER" | cut -d" " -f 1)
 	docker commit $newid reslp/phylociraptor:$VER &> /dev/null
