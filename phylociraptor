@@ -929,7 +929,6 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not gl_args.quiet):
 			print(line, end="\r")
-		sys.exit(0)		
 	if which_util == "estimate-conflict":
 		qs_parser = UtilParser(add_help=False)
 		qs_parser.add_argument("-i","--intrees", action="store", default="all")
@@ -969,7 +968,7 @@ elif args.command == "util":
 			cmd += ["-b", qs_args.stopby]
 		else:
 			print(now(), "You need to either specify a stopping criterion (-b) or the total number of quartets (-q).")
-			sys.exit(0)
+			sys.exit(1)
 			
 
 		if debug:
@@ -1024,10 +1023,10 @@ elif args.command == "util":
 			sys.exit(0)
 		if not qs_args.intrees:
 			print(now(),"No input trees specified")
-			sys.exit(0)
+			sys.exit(1)
 		elif len(qs_args.intrees.split(",")) != 2:
 			print(now(), "Need exactly two trees for comparison, seperated by a comma (,).")
-			sys.exit(0)
+			sys.exit(1)
 		else:
 			all_trees = qs_args.intrees	
 		if not qs_args.quartetfile:
@@ -1044,10 +1043,25 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
+	if which_util == "plot-similarity":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-s","--simmatrix", action="store", default=None)
+		qs_parser.add_argument("-r", "--treelist", action="store", default="none")
+		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help: 
+			print(help_message(util_plot_similarity_help))
+			sys.exit(0)
+		if not qs_args.simmatrix:
+			print(now(), "You have to the similarity matrix file created with phylociraptor util estimate-conflict")
+			sys.exit(1)	
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet):
+			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
-
-
 
 print(now(), "DONE")	
