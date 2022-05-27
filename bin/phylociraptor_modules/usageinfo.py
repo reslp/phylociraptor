@@ -290,8 +290,8 @@ Required Arguments:
 				Naming follows the first column in the *.treelist.csv file.
 				Example: -i T1-T5 will plot conflicts between T1 and T5 in the
 					 treelist file.
-	-q, --quartetfile	*.quartets.csv file from phylociraptor util estimate-conflicts.
-	-r, --treelist		*.treelist.csv file from phylociraptor util estimate-conflicts.
+	-q, --quartetfile	*.quartets.csv file from phylociraptor util estimate-conflict.
+	-r, --treelist		*.treelist.csv file from phylociraptor util estimate-conflict.
 	
 Optional Arguments:
 	-s, --seed		Random seed number for reproducibility.
@@ -301,6 +301,19 @@ Optional Arguments:
 				Has to be used together with -l/--lineagefile.
 	-g, --outgroup		Comma seperated list of tips which should be used as Outgroup.
 				Trees will be rerooted accordingly.
+	--quiet			Suppress on-screen output.
+
+"""
+util_plot_similarity_help = """
+phylociraptor util plot-similarity - Create similarity heatmap of trees.
+
+Usage: phylociraptor util plot-similarity <arguments>
+
+Required Arguments:
+	-q, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
+	
+Optional Arguments:
+	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict to create tree comparison PCA.
 	--quiet			Suppress on-screen output.
 
 """
