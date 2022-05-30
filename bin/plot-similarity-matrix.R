@@ -18,11 +18,32 @@ data <- read.csv(matrix_file)
 data <- melt(data)
 colnames(data) <- c("First", "Second", "Similarity")
 data$First <- factor(data$First, levels=levels(data$Second))
-
-pdf(file="similarity-matrix.pdf", width=20, height=10)
-ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, 4), nsmall=2)))
-dev.off()
+if (treelistfile == "none") {
+  cat("Plotting without detailed tree name information.\n")
+  pdf(file="similarity-matrix.pdf", width=20, height=10)
+  p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, 4), nsmall=2)))
+  print(p)
+  dev.off()
+} else {
+  cat("Using detailed tree name information for plotting.\n")
+  treelist <- read.csv(treelistfile, sep="\t", header=F)
+  newtreenames <- c() 
+  for (names in strsplit(treelist$V2,"/")){
+    newtreenames <-c(newtreenames, paste0(names[3], "-", names[4], "-", strsplit(names[2], "-")[[1]][2]))
+  }
+  treelist$V2 <- newtreenames
+  data$First <- treelist$V2[match(data$First, treelist$V1)]
+  data$Second <- treelist$V2[match(data$Second, treelist$V1)]
+  pdf(file="similarity-matrix.pdf", width=20, height=10)
+  p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, 4), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  print(p)
+  dev.off()
+  
+}
 cat("Plot file: similarity-matrix.pdf created successfully.\n")
+quit()
+
+
 
 
 if (treelistfile != "none") {
@@ -42,8 +63,6 @@ if (treelistfile != "none") {
     return(dist_df)
   }
   ###
-  
-  
   
   treelist <- read.csv(treelistfile, header=F, check.names=FALSE, sep="\t")
   colnames(treelist) <- c("tree", "path")
@@ -68,38 +87,71 @@ if (treelistfile != "none") {
   
   dists <- list()
   cat("Now calculating distances, please be patient...\n")
-  for (i in 1:length(trees)) {
+system.time(
+  for (i in 1:1) {
     cat(paste0("Calculating pairwise distances for tree ", i, "...\n"))
     dist <- cophenetic.phylo(trees[[i]])
     melted_dist <- melt_dist(dist)
+    print(nrow(melted_dist))
     visited <- c()
     remaining_tips <- all_tips
     names <- c()
     distances <- c()
-    for (sp1 in all_tips) {
-      visited <- c(visited, sp1)
-      remaining_tips <- remaining_tips[!remaining_tips %in% visited]
-      for (sp2 in remaining_tips) {
-        if (verbose == TRUE) {
-          cat(paste0("Tree ",i, ": ", sp1, " - ", sp2, "\n"))
-        }
-        if (sp1 == sp2) {next}
-        distance <- subset(melted_dist, (iso1==sp1 & iso2==sp2))$dist
-        if (length(distance) == 0) {
-          distance <- subset(melted_dist, (iso1==sp2 & iso2==sp1))$dist
-        } 
-        if (length(distance) == 0) {distance <- NA}
-        distances <- c(distances, distance)
-        names <- c(names, paste0(sp1, "-",sp2))
+    all_combinations <- t(combn(all_tips, 2))
+    #nrow(all_combinations)
+    for (j in 1:100) {
+      sp1 <- all_combinations[j, 1]
+      sp2 <- all_combinations[j, 2]
+      if (verbose == TRUE) {
+        cat(paste0("Tree ",i, ": ", sp1, " - ", sp2, "\n"))
       }
+      if (sp1 %in% melted_dist$iso1 && sp2 %in% melted_dist$iso2) {
+        distance <- subset(melted_dist, (iso1==sp1 & iso2==sp2))$dist
+      } else if (sp2 %in% melted_dist$iso1 && sp1 %in% melted_dist$iso2) {
+        distance <- subset(melted_dist, (iso1==sp2 & iso2==sp1))$dist
+      } else {
+        distance <- NA
+      }
+      distances <- c(distances, distance)
+      names <- c(names, paste0(sp1, "-",sp2))
     }
     df <- data.frame(distances)
     rownames(df) <- names
     colnames(df) <- paste0("tree", i)
     dists[[i]] <- df
   }
+)
+
+
+sp2 %in% melted_dist$iso1
+sp1 %in% melted_dist$iso1
+df
+    # for (sp1 in all_tips[1:10]) {
+    #   visited <- c(visited, sp1)
+    #   remaining_tips <- remaining_tips[!remaining_tips %in% visited]
+    #   for (sp2 in remaining_tips[1:10]) {
+    #     if (verbose == TRUE) {
+    #       cat(paste0("Tree ",i, ": ", sp1, " - ", sp2, "\n"))
+    #     }
+    #     if (sp1 == sp2) {next}
+    #     distance <- subset(melted_dist, (iso1==sp1 & iso2==sp2))$dist
+    #     if (length(distance) == 0) {
+    #       distance <- subset(melted_dist, (iso1==sp2 & iso2==sp1))$dist
+    #     } 
+    #     if (length(distance) == 0) {distance <- NA}
+    #     distances <- c(distances, distance)
+    #     names <- c(names, paste0(sp1, "-",sp2))
+    #   }
+    # }
+    # df <- data.frame(distances)
+    # rownames(df) <- names
+    # colnames(df) <- paste0("tree", i)
+    # dists[[i]] <- df
+  }
+  dists
   complete_df <- do.call("cbind", dists)
   complete_df <- t(complete_df) 
+  complete_df
   write.csv(file="pairwise-distance-matrix.csv", complete_df, sep=",")
 }
 
