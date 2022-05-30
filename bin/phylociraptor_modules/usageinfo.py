@@ -38,6 +38,7 @@ Commands:
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run
+	util			Utilities for a posteriori analyses of trees
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -216,6 +217,7 @@ Argumemts:
 	estimate-conflict	estimate conflict between trees based on the occurence of quartets.
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
+	plot-similarity		plot heatmap of quartet similarity.
 	-h, --help              Display help.
 
 """
@@ -310,7 +312,7 @@ phylociraptor util plot-similarity - Create similarity heatmap of trees.
 Usage: phylociraptor util plot-similarity <arguments>
 
 Required Arguments:
-	-q, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
+	-s, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
 	
 Optional Arguments:
 	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict to create tree comparison PCA.
