@@ -1,13 +1,13 @@
-library(phytools, quietly = T)
-library(ape, quietly = T)
-library(ggtree, quietly = T)
-library(magrittr, quietly = T)
-library(tidytree, quietly = T)
-library(patchwork, quietly = T)
-library(cowplot, quietly = T)
-#library(stringr)
-library(ggplot2, quietly = T)
-library(reshape2, quietly = T)
+options(warn=-1)
+suppressMessages(library(phytools))
+suppressMessages(library(ape))
+suppressMessages(library(ggtree))
+suppressMessages(library(magrittr))
+suppressMessages(library(tidytree))
+suppressMessages(library(patchwork))
+suppressMessages(library(cowplot))
+suppressMessages(library(ggplot2))
+suppressMessages(library(reshape2))
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -15,10 +15,8 @@ args <- commandArgs(trailingOnly=TRUE)
 runmode <- args[1] # different run modes should be: plot, conflicts and
 wd <- args[2]
 setwd(wd)
-print(wd)
-print(args)
 if (runmode == "plot") {
-  print("Will plot trees...")
+  cat("Will plot trees...\n")
   seed <- args[3]
   treenames <- args[4]
   outgroup <- args[5]
@@ -45,31 +43,18 @@ if (runmode == "plot") {
 outgroup <- strsplit(outgroup,",")[[1]]
 treenames <- strsplit(treenames,",")[[1]]
 
-print(outgroup)
-print(treenames)
-print(conflictfile)
-print(lineage_file)
+#print(outgroup)
+#print(treenames)
+#print(lineage_file)
 
 #set seed if specified
 if (seed != "random") {
   set.seed(seed)
 }
 
-
-#quit(1)
-
-#the settings here are for testing
-#level <- "order"
-#runmode <- "plot"
-#treenames <- c('results/phylogeny-80/iqtree/mafft-trimal/concat.contree', 'results/phylogeny-80/iqtree/clustalo-trimal/concat.contree', 'results/phylogeny-80/iqtree/clustalo-aliscore/concat.contree', 'results/phylogeny-80/iqtree/mafft-aliscore/concat.contree', 'results/phylogeny-85/iqtree/mafft-trimal/concat.contree', 'results/phylogeny-85/iqtree/clustalo-trimal/concat.contree', 'results/phylogeny-85/iqtree/clustalo-aliscore/concat.contree', 'results/phylogeny-85/iqtree/mafft-aliscore/concat.contree', 'results/phylogeny-75/iqtree/mafft-trimal/concat.contree', 'results/phylogeny-75/iqtree/clustalo-trimal/concat.contree', 'results/phylogeny-75/iqtree/clustalo-aliscore/concat.contree', 'results/phylogeny-75/iqtree/mafft-aliscore/concat.contree', 'results/phylogeny-80/astral/mafft-trimal/species_tree.tre', 'results/phylogeny-80/astral/clustalo-trimal/species_tree.tre', 'results/phylogeny-80/astral/clustalo-aliscore/species_tree.tre', 'results/phylogeny-80/astral/mafft-aliscore/species_tree.tre', 'results/phylogeny-85/astral/mafft-trimal/species_tree.tre', 'results/phylogeny-85/astral/clustalo-trimal/species_tree.tre', 'results/phylogeny-85/astral/clustalo-aliscore/species_tree.tre', 'results/phylogeny-85/astral/mafft-aliscore/species_tree.tre', 'results/phylogeny-75/astral/mafft-trimal/species_tree.tre', 'results/phylogeny-75/astral/clustalo-trimal/species_tree.tre', 'results/phylogeny-75/astral/clustalo-aliscore/species_tree.tre', 'results/phylogeny-75/astral/mafft-aliscore/species_tree.tre')
-
-#outgroup <- c("Ramazzottius_varieornatus", "Hypsibius_dujardini")
-#lineage_file <- "lineage_arthropods.txt"
-#conflictfile <- "output.txt"
-
 # load lineage information file and fill missing values
 if (lineage_file == "none") {
-  cat("No lineage file found.\n")
+  cat("No lineage file specified. Will not plot lineage information.\n")
 } else {
   lineages <- read.csv(lineage_file, header=T, sep="\t", na=c(""))
   lineages[is.na(lineages)] <- "missing"
@@ -207,7 +192,7 @@ generate_color <- function(label) {
 }
   
 get_conflicts <- function(tree, conflict_quartets) {
-  if (length(conflict_quartets) == 0) {print("WARNING: NO CONFLICTS IN SELECTION!")}
+  if (length(conflict_quartets) == 0) {cat("WARNING: NO CONFLICTS IN SELECTION!\n")}
   edge_thickness <- rep(1, length(tree$edge.length)+1)
   for (quat in conflict_quartets) {
     left <- strsplit(quat, "-")[[1]][1]
@@ -216,10 +201,6 @@ get_conflicts <- function(tree, conflict_quartets) {
     left2 <- strsplit(left, ",")[[1]][2]
     right1 <- strsplit(right, ",")[[1]][1]
     right2 <- strsplit(right, ",")[[1]][2]
-    #print(paste0(left1, "->", left2))
-    #print(paste0(right1, "->", right2))
-    #  npleft <- nodepath(tree, from=which(tree$tip.label == left1), to=which(tree$tip.label == left2))
-    #  npright <- nodepath(tree, from=which(tree$tip.label == right1), to=which(tree$tip.label == right2))
     #identify nodes between tips
     mcanodel <- getMRCA(tree, c(which(tree$tip.label == left1), which(tree$tip.label == left2)))
     mcanoder <- getMRCA(tree, c(which(tree$tip.label == right1), which(tree$tip.label == right2)))
@@ -227,13 +208,10 @@ get_conflicts <- function(tree, conflict_quartets) {
     pathl2 <- nodepath(tree, from=mcanodel, to=which(tree$tip.label == left2))
     pathr1 <- nodepath(tree, from=mcanoder, to=which(tree$tip.label == right1))
     pathr2 <- nodepath(tree, from=mcanoder, to=which(tree$tip.label == right2))
-    #print(paste0(mcanodel, " ", mcanoder))
     npancestor <- nodepath(tree, from=mcanodel, to=mcanoder)
-    #print(paste0(mcanodel, " ", mcanoder))
     all_nodes_to_highlight <- c(pathl1, pathl2, pathr1, pathr2, npancestor)
     #all_nodes_to_highlight <- c(npancestor)
     
-    #print(all_nodes_to_highlight)
     # now select which edges in the tree
     p <- ggtree(tr = tree, ladderize = FALSE) 
     edgeorder <- data.frame(parent=p$data$parent, node=p$data$node)
@@ -256,24 +234,22 @@ get_conflicts <- function(tree, conflict_quartets) {
 }
 
 get_conflicts_and_support <- function(tree, conflict_quartets) {
-  if (length(conflict_quartets) == 0) {print("WARNING: NO CONFLICTS IN SELECTION!")}
+  if (length(conflict_quartets) == 0) {cat("WARNING: NO CONFLICTS IN SELECTION!\n")}
   edge_thickness <- rep(1, length(tree$edge.length)+1)
+  i <- 1
   for (quat in names(conflict_quartets)) {
     if (quat == "") {next} # not sure why this happens, but apparently it does sometimes
     if (length(strsplit(quat, ",")[[1]]) < 3) {
-      print(paste0("Not a proper Quartet. Will skip: ", quat))
+      cat(paste0("Not a proper Quartet. Will skip: ", quat, "\n"))
       next
       }
+    cat(paste0("\rQuartet ", i, "/", length(names(conflict_quartets)), ": ", quat))
     left <- strsplit(quat, "-")[[1]][1]
     right <- strsplit(quat, "-")[[1]][2]
     left1 <- strsplit(left, ",")[[1]][1]
     left2 <- strsplit(left, ",")[[1]][2]
     right1 <- strsplit(right, ",")[[1]][1]
     right2 <- strsplit(right, ",")[[1]][2]
-    #print(paste0(left1, "->", left2))
-    #print(paste0(right1, "->", right2))
-    #  npleft <- nodepath(tree, from=which(tree$tip.label == left1), to=which(tree$tip.label == left2))
-    #  npright <- nodepath(tree, from=which(tree$tip.label == right1), to=which(tree$tip.label == right2))
     #identify nodes between tips
     mcanodel <- getMRCA(tree, c(which(tree$tip.label == left1), which(tree$tip.label == left2)))
     mcanoder <- getMRCA(tree, c(which(tree$tip.label == right1), which(tree$tip.label == right2)))
@@ -281,13 +257,9 @@ get_conflicts_and_support <- function(tree, conflict_quartets) {
     pathl2 <- nodepath(tree, from=mcanodel, to=which(tree$tip.label == left2))
     pathr1 <- nodepath(tree, from=mcanoder, to=which(tree$tip.label == right1))
     pathr2 <- nodepath(tree, from=mcanoder, to=which(tree$tip.label == right2))
-    #print(paste0(mcanodel, " ", mcanoder))
     npancestor <- nodepath(tree, from=mcanodel, to=mcanoder)
-    #print(paste0(mcanodel, " ", mcanoder))
     all_nodes_to_highlight <- c(pathl1, pathl2, pathr1, pathr2)
-    #all_nodes_to_highlight <- c(npancestor)
     
-    #print(all_nodes_to_highlight)
     # now select which edges in the tree
     p <- ggtree(tr = tree, ladderize = FALSE) 
     edgeorder <- data.frame(parent=p$data$parent, node=p$data$node)
@@ -303,32 +275,15 @@ get_conflicts_and_support <- function(tree, conflict_quartets) {
         edge_thickness[edge] = edge_thickness[edge] + 1
       }
     } 
-    #if (conflict_quartets[quat,] == 1 ) {
-    #  for (edge in edges_with_conflict) {
-    #    edge_thickness[edge] = edge_thickness[edge] - 1
-    #  }
-    #}
     
-    
+    i <- i + 1 
   }
   thickness <- data.frame(edge=1:length(edge_thickness), conflict=edge_thickness)
   thickness$logthick <- log(thickness$conflict+1)
   return(thickness)
-  
 }
 
-####################
-# CODE STARTS HERE #
-####################
-# TODO:
-# - Create Order annotations for singletons
-# - Add additional support categories
-
-
-
 # generate some colors
-
-
 if (runmode == "plot") {
   if (level == "none") {
     cat("Plotting tree(s) without lineage information.\n")
@@ -356,9 +311,8 @@ if (runmode == "plot") {
       # this is where we decide how to plot (conflicts or not). Maybe this will be refactored later...
       cat(paste0("Plot tree: ", prefix, "\n"))
       if (runmode == "conflicts") {
-        print("Extracting Conflicts:")
+        cat("Extracting Conflicts:\n")
         conflicts_info <- get_conflicts_and_support(tree, conflict_quartets)
-        print(conflicts_info)
         
         t2 <- ggtree(tree, branch.length='none', aes(size=conflicts_info$conflict)) +theme(legend.position = c("none")) +geom_tiplab()
         
@@ -539,7 +493,7 @@ if (runmode == "plot") {
     dev.off()
   }
 }else if (runmode == "conflicts") {
-  print("plotting conflicts")
+  cat("Plotting conflicts...")
   treepath1 <- treelist$path[treelist["tree"] == treenames[1]]
   bs_cutoff <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
   algorithm <- strsplit(treepath1,"/")[[1]][3]
@@ -569,10 +523,11 @@ if (runmode == "plot") {
   }
 
   cat(paste0("Plot will be based on ", as.character(length(names(conflicts_t[conflicts_t == 0]))), " conflicting quartets.\n"))
-  
-  cat("Extracting Conflicts:\n")
-  conflicts_info1 <- get_conflicts_and_support(tree1, conflicts_t)
-  conflicts_info2 <- get_conflicts_and_support(tree2, conflicts_t)
+ 
+  cat("Extracting Conflicts for first tree:\n")
+  conflicts_info1 <- get_conflicts_and_support(tree1, conflicts_t[conflicts_t == 0])
+  cat("Extracting Conflicts for second tree:\n")
+  conflicts_info2 <- get_conflicts_and_support(tree2, conflicts_t[conflicts_t == 0])
 
   cat("Plot conflitcs between trees...\n")
   if (lineage_file != "none") {
