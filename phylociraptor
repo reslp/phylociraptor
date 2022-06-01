@@ -934,7 +934,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-i","--intrees", action="store", default="all")
 		qs_parser.add_argument("-o", "--outfile", action="store") 
 		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
-		qs_parser.add_argument("-q", "--nquartets", action="store", default=None)
+		qs_parser.add_argument("-n", "--nquartets", action="store", default=None)
 		qs_parser.add_argument("-t", "--threads", action="store", default="1")
 		qs_parser.add_argument("-l", "--lineagefile", action="store")
 		qs_parser.add_argument("-b", "--stopby", action="store", default=None)
@@ -967,7 +967,7 @@ elif args.command == "util":
 		elif qs_args.stopby:
 			cmd += ["-b", qs_args.stopby]
 		else:
-			print(now(), "You need to either specify a stopping criterion (-b) or the total number of quartets (-q).")
+			print(now(), "You need to either specify a stopping criterion (-b) or the total number of quartets (-n).")
 			sys.exit(1)
 			
 
