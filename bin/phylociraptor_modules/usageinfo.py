@@ -312,10 +312,17 @@ phylociraptor util plot-similarity - Create similarity heatmap of trees.
 Usage: phylociraptor util plot-similarity <arguments>
 
 Required Arguments:
-	-s, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
+	-m, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
 	
 Optional Arguments:
-	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict to create tree comparison PCA.
+	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
+				When this file is provided, a tip2tip distance analysis will be performed.
+				The results will be plotted as PCA and provided as CSV file.
+	-s, --seed		Random seed for reproducibility.
+	-n, --ndistances	Number of tip2tip distances to be calculated.
+				Only meaningful when combined with -r/--treelist
+	-t, --threads		Number of threads for tip2tip distance analysis.
+				Only meaningful when combined with -r/--treelist
 	--quiet			Suppress on-screen output.
 
 """

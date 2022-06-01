@@ -1045,17 +1045,21 @@ elif args.command == "util":
 			print(line, end="\r")
 	if which_util == "plot-similarity":
 		qs_parser = UtilParser(add_help=False)
-		qs_parser.add_argument("-s","--simmatrix", action="store", default=None)
+		qs_parser.add_argument("-m","--simmatrix", action="store", default=None)
 		qs_parser.add_argument("-r", "--treelist", action="store", default="none")
-		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_parser.add_argument("--quiet", action="store_true", default=False)
+		qs_parser.add_argument("-t", "--threads", action="store", default="1") 
+		qs_parser.add_argument("-n", "--ndistances", action="store", default="all")
+		qs_parser.add_argument("-s", "--seed", action="store", default="random")
 		qs_args = qs_parser.parse_args(args.arguments) 
+		print(qs_args)
 		if qs_args.help: 
 			print(help_message(util_plot_similarity_help))
 			sys.exit(0)
 		if not qs_args.simmatrix:
 			print(now(), "You have to the similarity matrix file created with phylociraptor util estimate-conflict")
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
