@@ -99,6 +99,7 @@ Commands:
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run
+	util			Utilities for a posteriori analyses of trees
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -225,6 +226,10 @@ $ ./phylociraptor speciestree -t sge -c data/cluster_config-SGE.yaml
 ```
 $ ./phylociraptor report
 ```
+
+## A posteriori analyses of trees calculated using phylociraptor
+
+Phylociraptor provides several utilities to investigate tree similarity and plot trees. Please refer to the [documentation](https://phylociraptor.readthedocs.io) for additional details.
 
 ## Using Docker
 
