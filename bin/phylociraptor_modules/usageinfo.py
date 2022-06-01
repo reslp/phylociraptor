@@ -213,7 +213,7 @@ phylociraptor util - Utilities for a-posteriori analyses of phylociraptor result
 Usage: phylociraptor util <arguments>
 
 Argumemts:
-	get-lineage		retreive full lineage information for all included samples.
+	get-lineage		retrieve full lineage information for all included samples.
 	estimate-conflict	estimate conflict between trees based on the occurence of quartets.
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
@@ -243,10 +243,9 @@ phylociraptor util estimate-conflict - Estimates conflicts between trees based o
 Usage: phylociraptor util estimate-conflict <arguments>
 
 Required Arguments:
-	-i, --intrees		Relative paths to input trees in results folder. (Default: all)
-				Default: results/statistics/downloaded_genomes_statistics.txt	
+	-i, --intrees		Relative paths to input trees in results folder, seperated by commas. (Default: all)
 	-o, --outprefix		Output file name prefix.
-	-q, --nquartets		Total number of quartets to be calculated. Use either this or --stopby.
+	-n, --nquartets		Total number of quartets to be calculated. Use either this or --stopby.
 	-b, --stopby		Stoping criterion. There are two options:
 					-b conflicts=100 stops as soon as 100 conflicts have been found.
 					--stopby tipcoverage=100 stops as soon as every tip is in at least 100 quartets.
@@ -254,7 +253,8 @@ Optional Arguments:
 	-s, --seed		Random seed number for reproducibility. (Default: random)
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
 				Mandatory when using-a/--selecttaxa.
-	-a, --selecttaxa	Sample quartets only from tips beloning to specific taxa.
+	-a, --selecttaxa	Sample quartets only from tips belonging to specific taxa.
+				Requires output from phylociraptor util get-lineage.
 					Examples: --selecttaxa order=Diperta,Hymenoptera
 	-t, --threads		Number of threads. (Default: 1)
 	
@@ -263,21 +263,21 @@ Optional Arguments:
 """
 
 util_plot_tree_help = """
-phylociraptor util plot-tree - Estimates conflicts between trees based on quartets.
+phylociraptor util plot-tree - Plot one or more phylogenomic trees.
 
 Usage: phylociraptor util plot-tree <arguments>
 
 Required Arguments:
-	-i, --intrees		Relative paths to input trees in results folder. (Default: all)
-				Default: results/statistics/downloaded_genomes_statistics.txt	
+	-i, --intrees		Relative paths to input trees in results folder, separated by commas. (Default: all)
+	
+Optional Arguments:
 	-o, --outprefix		Output file name prefix.
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
 	-e, --level		Taxonomic level in lineage file which should be plotted.
-	
-Optional Arguments:
-	-s, --seed		Random seed number for reproducibility.
+	-s, --seed		Random seed number for reproducibility. (Default: random)
 	-g, --outgroup		Comma seperated list of tips which should be used as Outgroup.
 				Trees will be rerooted accordingly.
+				(Default: none)
 	--quiet			Suppress on-screen output.
 
 """
@@ -288,26 +288,29 @@ phylociraptor util plot-conflict - Visualizes conflicts between two trees.
 Usage: phylociraptor util plot-conflict <arguments>
 
 Required Arguments:
-	-i, --intrees		Two trees for which conflicts should be visualized.
+	-i, --intrees		Two trees for which conflicts should be visualized, separated by a dash.
 				Naming follows the first column in the *.treelist.csv file.
-				Example: -i T1-T5 will plot conflicts between T1 and T5 in the
+				Example: -i T1,T5 will plot conflicts between T1 and T5 in the
 					 treelist file.
 	-q, --quartetfile	*.quartets.csv file from phylociraptor util estimate-conflict.
 	-r, --treelist		*.treelist.csv file from phylociraptor util estimate-conflict.
 	
 Optional Arguments:
-	-s, --seed		Random seed number for reproducibility.
+	-s, --seed		Random seed number for reproducibility. (Default: random)
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
 				Is required when -e/--level should be used.
+				(Default: none)
 	-e, --level		Taxonomic level in lineage file which should be plotted.
 				Has to be used together with -l/--lineagefile.
+				(Default: none)
 	-g, --outgroup		Comma seperated list of tips which should be used as Outgroup.
 				Trees will be rerooted accordingly.
+				(Default: none)
 	--quiet			Suppress on-screen output.
 
 """
 util_plot_similarity_help = """
-phylociraptor util plot-similarity - Create similarity heatmap of trees.
+phylociraptor util plot-similarity - Create similarity heatmap for trees and calculate tip2tip distances.
 
 Usage: phylociraptor util plot-similarity <arguments>
 
@@ -318,10 +321,11 @@ Optional Arguments:
 	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
 				When this file is provided, a tip2tip distance analysis will be performed.
 				The results will be plotted as PCA and provided as CSV file.
-	-s, --seed		Random seed for reproducibility.
-	-n, --ndistances	Number of tip2tip distances to be calculated.
+				(Default: none)
+	-s, --seed		Random seed for reproducibility. (Default: random)
+	-n, --ndistances	Number of tip2tip distances to be calculated. (Default: all)
 				Only meaningful when combined with -r/--treelist
-	-t, --threads		Number of threads for tip2tip distance analysis.
+	-t, --threads		Number of threads for tip2tip distance analysis. (Default: 1)
 				Only meaningful when combined with -r/--treelist
 	--quiet			Suppress on-screen output.
 
