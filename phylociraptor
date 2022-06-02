@@ -953,7 +953,7 @@ elif args.command == "util":
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
 			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
-			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/concat.tre")
+			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/raxmlng.raxml.support")
 			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
@@ -994,7 +994,7 @@ elif args.command == "util":
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
 			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
-			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/concat.tre")
+			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/raxmlng.raxml.support")
 			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
