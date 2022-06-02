@@ -12,6 +12,7 @@ import datetime
 import argparse
 import glob
 import os
+import math
 from rpy2.robjects.packages import importr
 from rpy2 import robjects as ro
 
@@ -19,22 +20,7 @@ def reduce_trees(treelist, quat):
 	sorted_trees = []
 	i = 1
 	for tree in treelist:
-		#try:
-		#	tree = Tree(tree.retain_taxa_with_labels(quat).as_string(schema="newick"))
-		#tree2 = Tree(tree.as_string(schema="newick"))
-		#except dp.utility.error.SeedNodeDeletionException:
-		#	print("SeedNodeDeletionException: Error trying to reduce the tree, will skip this quartet:")
-		#	print("Tree:",treelist.index(tree)+1, quat)
-		#	return 0
-		#tree.rx[4] = ro.r("NULL")
 		tiplabels = list(tree.rx2("tip.label"))
-
-	#	# debug code:
-	#	if not any(x in tiplabels for x in quat):
-	#		print(quat, tiplabels)
-	#	else:
-	#		print("Quartet tips contained in tree.")
-
 		tf_list = []
 		for tip in tiplabels:
 			if tip in quat:
@@ -45,9 +31,6 @@ def reduce_trees(treelist, quat):
 		redtree = ape.drop_tip(tree, tipss)
 		treestr2 = ape.write_tree(ape.drop_tip(tree, tipss))
 		treestr = treestr2[0].strip(";")
-		#treestr = tree.write(format=9).strip(";")
-		#treestr = tree.prune(quat)
-		#print(tree2.write(format=9))
 		if len(list(redtree.rx2("tip.label"))) != 4:
 			missing = [tip for tip in quat if tip not in list(redtree.rx2("tip.label"))] 
 			print(quat, "is not properly represented in tree", i, "Missing tips:", missing)
@@ -69,11 +52,9 @@ def reduce_trees(treelist, quat):
 					second_element = 1
 		sorted_trees.append("-".join(sorted(sorted_tree)))
 		i += 1
-#	return [Tree(t.extract_tree_with_taxa_labels(quat).as_string(schema="newick")) for t in treelist] 
 	return sorted_trees
 
 def reformat_quat(quat):
-#	sorted(quat)
 	return quat[0] + "," + quat[1] + "-" + quat[2] + "," + quat[3]
 
 def compare_trees(treelist, combinations):
@@ -128,9 +109,6 @@ def compute_single_quat(tl,i, quat, combinations):
 	tl2 = reduce_trees(tl, quat)
 	if tl2 == 0:
 		return 0
-#	print(tl2)
-#	reformatted_quat = reformat_quat(quat)
-#	result = float(compare_trees(tl2, reformatted_quat))
 	result = compare_trees(tl2, combinations)
 	return (tl2[0], result)
 	
@@ -160,7 +138,7 @@ if __name__ == '__main__':
 		ncpus = int(args.threads)
 	if args.intrees == "all":
 		iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
-		raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/concat.tre")
+		raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/raxmlng.raxml.support")
 		astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
 		#all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		treenames = iqtree_trees +raxml_trees + astral_trees
@@ -197,11 +175,6 @@ if __name__ == '__main__':
 				sys.exit(0)
 	else:
 		taxon_list = [taxon for taxon in set(all_tips)]
-		#selected_tips = [tip for tree in tl for tip in list(tree.rx2("tip.label"))]
-		#taxon_list = []
-		#for taxon in set(all_tips): #only use tips present in all trees to avoid spurious comparisons
-		#	if all_tips.count(taxon) == len(tl):
-		#		taxon_list += taxon
 	
 	random.shuffle(taxon_list)
 
@@ -218,6 +191,11 @@ if __name__ == '__main__':
 	if args.nquartets: # 1. by specifying a max number
 		input_list=[]
 		nquartets = int(args.nquartets)
+		total_quartets = math.factorial(len(taxon_list)) / (math.factorial(len(taxon_list) - 4) * math.factorial(4))
+		if total_quartets < nquartets:
+			print("WARNING: The total number of possible quartets (",total_quartets,") is smaller than the specified nquartets.")
+			#nquartets = int(total_quartets)
+			
 		print("No. of quartets to be calculated:", nquartets)
 		for i in range(nquartets):
 			quartet = next(random_combination(taxon_list, 4))
@@ -294,9 +272,6 @@ if __name__ == '__main__':
 			results_dict[result[0]] = result[1]
 			i += 1
 	df = pd.DataFrame.from_dict(results_dict)	
-	#print(df)	
-	#conflicts= df.loc[:, df.sum() < len(tl)]
-	#print(conflicts)
 	print("Calculating sampling coverage of tips:")
 	with open(outfile +".tip_sampling_coverage.tsv", "w") as f:
 		for tip in taxon_list:
@@ -304,10 +279,10 @@ if __name__ == '__main__':
 
 	print("Saving results. Prefix:", outfile)
 	df.transpose().to_csv(outfile + ".quartets.csv", index_label="quartet", quoting=False) 
-	#print("No. of quartets contributing to conflicts:", len(conflicts.columns.values.tolist()))
 	
 	print("Calculating pairwise comparison of trees (% similarity based on quartetts)...")
-	df_comp = df.sum(axis=1).sort_index()/nquartets
+	dif = len(df.columns.to_list()) # get total number of actually computed quartets. This can be smaller as nquartets eg. when there are few tips!
+	df_comp = df.sum(axis=1).sort_index()/dif
 	df_comp = df_comp.sort_index()	
 	combinations = df_comp.index.to_list()
 	index_names = ["T"+ str(i+1) for i in range(0,len(tl))]
