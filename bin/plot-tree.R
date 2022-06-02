@@ -8,6 +8,7 @@ suppressMessages(library(patchwork))
 suppressMessages(library(cowplot))
 suppressMessages(library(ggplot2))
 suppressMessages(library(reshape2))
+suppressMessages(library(RColorBrewer))
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -349,7 +350,7 @@ if (runmode == "plot") {
   } else {
     if (length(na.omit(lineages[,level])) <= 11) {
       # prettier colors when there are not too many different models
-      cols <- brewer.pal(length(node_names), "BrBG")	
+      cols <- brewer.pal(length(na.omit(lineages[,level])), "BrBG")	
     } else {
       # we need more colors
       color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
