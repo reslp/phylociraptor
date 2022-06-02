@@ -37,6 +37,7 @@ alignment:
     threads: 8
     mafft_parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
     clustalo_parameters: 
+    muscle_parameters:
 # possible trimming options: trimal, aliscore
 trimming: 
     method: ["trimal", "aliscore"] 
