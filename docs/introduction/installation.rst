@@ -51,6 +51,7 @@ The probably best way is to clone the repository directly using git (if availabl
 
 		report			Create a HTML report of the run
                 check                   Quickly check status of the run
+		util			Utilities for a posteriori analyses of trees
 	
 		-v, --version 		Print version
 		-h, --help		Display help

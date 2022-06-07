@@ -22,3 +22,8 @@ numerical_underflow/
 docs/_build/
 docs/.DS_Store
 docs/*/.DS_Store
+bin/phylociraptor_modules/__pycache__/
+*.pdf
+*.csv
+*.txt
+*.tsv

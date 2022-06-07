@@ -81,7 +81,7 @@ $ ./phylociraptor
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	  the rapid phylogenomic tree calculator, ver.0.9.0
+	  the rapid phylogenomic tree calculator, ver.0.9.7
 
 
 Usage: phylociraptor <command> <arguments>
@@ -99,6 +99,7 @@ Commands:
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run
+	util			Utilities for a posteriori analyses of trees
 
 	-v, --version 		Print version
 	-h, --help		Display help
@@ -225,6 +226,10 @@ $ ./phylociraptor speciestree -t sge -c data/cluster_config-SGE.yaml
 ```
 $ ./phylociraptor report
 ```
+
+## A posteriori analyses of trees calculated using phylociraptor
+
+Phylociraptor provides several utilities to investigate tree similarity and plot trees. Please refer to the [documentation](https://phylociraptor.readthedocs.io) for additional details.
 
 ## Using Docker
 
