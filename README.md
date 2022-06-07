@@ -81,7 +81,7 @@ $ ./phylociraptor
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	  the rapid phylogenomic tree calculator, ver.0.9.0
+	  the rapid phylogenomic tree calculator, ver.0.9.7
 
 
 Usage: phylociraptor <command> <arguments>
