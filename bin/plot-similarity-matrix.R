@@ -31,9 +31,11 @@ data <- read.csv(matrix_file)
 data <- melt(data)
 colnames(data) <- c("First", "Second", "Similarity")
 data$First <- factor(data$First, levels=levels(data$Second))
+pwidth <- 30
+pheight <- 14
 if (treelistfile == "none") {
   cat("Plotting without detailed tree name information.\n")
-  pdf(file="similarity-matrix.pdf", width=20, height=10)
+  pdf(file=paste0("quartet-similarity-heatmap-", length(unique(data$First)), "-trees.pdf"), width=pwidth, height=pheight)
   p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, 4), nsmall=2)))
   print(p)
   dev.off()
@@ -50,14 +52,14 @@ if (treelistfile == "none") {
 
   p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, 4), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-  pdf(file=paste0("quartet-similarity-heatmap-",length(unique(data$First)),"-trees.pdf"), width=20, height=10)
+  pdf(file=paste0("quartet-similarity-heatmap-",length(unique(data$First)),"-trees.pdf"), width=pwidth, height=pheight)
   print(p)
   dev.off()
   
 }
 
-cat("\nA treelist file was specified. Will therefore also calculate tip 2 tip distances as a measure of tree similarity.\n")
 if (treelistfile != "none") {
+  cat("\nA treelist file was specified. Will therefore also calculate tip 2 tip distances as a measure of tree similarity.\n")
   ### the melt_dist function is from: https://github.com/andersgs/harrietr/blob/master/R/melt_distance.R
   melt_dist <- function(dist, order = NULL, dist_name = 'dist') {
     if(!is.null(order)){
