@@ -664,7 +664,7 @@ elif args.command=="report":
 			cmd += [report_args.config_file]
 	else:
 		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
-		cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3", "Rscript", "-e", rcommand]
+		cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3_DT", "Rscript", "-e", rcommand]
 		if report_args.config_file:
 			cmd += [report_args.config_file]
 	#proc = subprocess.run(cmd)

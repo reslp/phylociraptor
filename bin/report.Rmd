@@ -1,8 +1,27 @@
 ---
 title: phylociraptor           
 output: 
-    html_document
+    html_document:
+        toc: TRUE
+        toc_float: TRUE
+        toc_side: left
 ---
+
+```{css toc-content, echo = FALSE}
+#TOC {
+  left: 100px;
+  margin: 20px 0px 25px 0px;
+}
+
+.main-container {
+    margin-right: 100px;
+
+}
+div.main-container {
+  max-width: 100%;
+}
+```
+
 ## {.tabset .tabset-fade}
 
 ```{r setup, echo=FALSE, message=FALSE}
@@ -21,17 +40,21 @@ library(ggpubr)
 library(gridExtra)
 library(RColorBrewer)
 library(yaml)
+library(DT)
 
 args = commandArgs(trailingOnly=TRUE)
-print(args)
 config_data <- read_yaml(paste0("../",args[1]))
 
 pars_sites <-config_data$filtering$min_parsimony_sites
 pars_sites <- strtoi(pars_sites)
 
 parsimony_cutoff <- 3
-#set random seed for consistent colors
-set.seed(1000)
+# check if seed was specified or not:
+if (is.null(config_data$seed) || config_data$seed == "") {
+	config_data$seed <- "random"
+} else {
+	set.seed(strtoi(config_data$seed))
+} 
 
 #knitr::opts_chunk$set(dev = 'pdf')
 # function to convert seconds to better formated time:
@@ -98,7 +121,7 @@ base_size <- 12
 ```
 
 
-### Setup
+# Setup
 
 ```{r genomes, echo=FALSE}
 if (file.exists(failed_genome_downloads_file))
@@ -148,17 +171,22 @@ results/assemblies
 **Not downloaded:**<br />`r failed`    
 
 **Information on successfully downloaded genomes:**
-```{r genome_stats, echo=TRUE, out.height=500}
+```{r genome_stats, echo=F, out.height=500}
 info <- ""
 if (file.exists(downloaded_genomes_statistics_file))
 {
   if (file.size(downloaded_genomes_statistics_file) != 0) {
-      data <- read.csv(downloaded_genomes_statistics_file, sep="\t", header=T)
+      data <- read.csv(downloaded_genomes_statistics_file, sep="\t", header=T, row.names=NULL)
   } else {
     info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
   }
+  #data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") # %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+  # colum headers are off by one, this hack should fix it:
+  colnames(data) <- c(colnames(data)[2:length(colnames(data))], " ")
   
-  data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") # %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
+  datatable(data, class="display" ,rownames=F, extensions = c('Buttons',"FixedColumns"), options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), scrollX=T, fixedColumns=list(leftColumns=1))
+  #datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = T, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=c("copy", "csv", "excel", "pdf", "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+) 
 } else {
   info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
 }
@@ -167,9 +195,9 @@ if (file.exists(downloaded_genomes_statistics_file))
 `r info`
 
 
-### Orthology
+# Orthology
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, results="asis"}
 
 if (file.exists(busco_overview_file)){
   busco_overview <- read.table(busco_overview_file, sep="=", header=F)
@@ -233,6 +261,7 @@ results/orthology/busco
 `r failed_genomes`
 
 
+**Orthology overview table:**  
 ```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F, results="asis"}
 if (file.exists(busco_summary_file))
 {	
@@ -247,75 +276,25 @@ if (file.exists(busco_summary_file))
   data$species <- spnames
   data$total <- NULL
   data$complete <- NULL
-  data$single_copy <- color_bar("#6198B8")(data$single_copy)
-  data$duplicated <- color_bar("#E37332")(data$duplicated)
-  data$fragmented <- color_bar("#C6E88B")(data$fragmented)
-  data$missing <- color_bar("#BCB2CF")(data$missing)
-  data %>% kbl(escape=F) %>% kable_styling("hover", full_width=F, fixed_thead = T) 
+  # old plotting:
+  #data$single_copy <- color_bar("#6198B8")(data$single_copy)
+  #data$duplicated <- color_bar("#E37332")(data$duplicated)
+  #data$fragmented <- color_bar("#C6E88B")(data$fragmented)
+  #data$missing <- color_bar("#BCB2CF")(data$missing)
+  #data %>% kbl(escape=F) %>% kable_styling("hover", full_width=F, fixed_thead = T) 
+  rownames(data) <- data$species
+  data$species <- NULL
+  data2 <- mutate_all(data, function(x) as.numeric(as.character(x)))
+
+  data <- data2
+  # new plotting:
+  datatable(data, class="display" ,rownames=T, extensions = c('Buttons'),
+  options = list(dom = 'Bfrtip', buttons = list('copy', 'csv', 'excel', list(extend = "pdf",title = "Orthology overview", pageSize = "A4",orientation = "landscape"), 'print'))) %>% 
+  formatStyle("single_copy", background = styleColorBar(c(0,max(data)), '#b2df8a'), backgroundSize = '98% 88%', backgroundRepeat = 'no-repeat', backgroundPosition = 'center') %>% formatStyle("duplicated", background = styleColorBar(c(0, max(data)), '#a6cee3'), backgroundSize = '98% 88%', backgroundRepeat = 'no-repeat', backgroundPosition = 'center') %>% formatStyle("fragmented", background = styleColorBar(c(0, max(data)), '#fdbf6f'), backgroundSize = '98% 88%', backgroundRepeat = 'no-repeat', backgroundPosition = 'center') %>% formatStyle("missing", background = styleColorBar(c(0, max(data)), '#fb9a99'), backgroundSize = '98% 88%', backgroundRepeat = 'no-repeat', backgroundPosition = 'center')
 } else {
 	cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
 }
 
-## this is the old version of plotting BUSCO results, it is difficult to get right for different numbers of genomes.
-## I will keep this though in case we want to add the possibility to output PDFs of BUSCO results.
-##function to create subchunks. from here: http://michaeljw.com/blog/post/subchunkify/
-#subchunkify <- function(g, fig_height=7, fig_width=5) {
-#  g_deparsed <- paste0(deparse(
-#    function() {g}
-#  ), collapse = '')
-#  dpi <- 150
-#  sub_chunk <- paste0("
-#  `","``{r sub_chunk_", floor(runif(1) * 10000), ",fig.height=",fig_height,", fig_width=",fig_width,", out.height='", fig_height*dpi, "px', out.width='", 1500, "px', echo=FALSE}",
-#  "\n(", 
-#    g_deparsed
-#    , ")()",
-#  "\n`","``
-#  ")
-#  
-#  cat(knitr::knit(text = knitr::knit_expand(text = sub_chunk), quiet = TRUE))
-#}
-#
-##if (file.exists("../results/statistics/busco_summary.txt"))
-#if (file.exists(busco_summary_file))
-#{
-#  data <- read.table(busco_summary_file, sep="\t", header=T)
-#  data <- data[ order(row.names(data)), ]
-#  # clean up name
-#  spnames <- c()
-#  #for (element in strsplit(data$species, "/")) {
-#  #spnames <- c(spnames, element[5])
-#  #}
-#  #data$species <- spnames
-#  data$total <- NULL
-#  data$complete <- NULL
-#  nrows <- nrow(data)
-#  mdata <- reshape2::melt(data, id.vars="species")
-#  colnames(mdata) <- c("species", "BUSCO category", "no. of genes")
-#  p2 <- ggplot(mdata, aes_string(fill="`BUSCO category`", x="`no. of genes`", y="`species`")) +geom_bar(position="stack", stat="identity")+theme(axis.ticks.x = element_blank(),axis.ticks.y = element_blank(), panel.grid=element_blank(), panel.background = element_blank(), axis.text.x = element_text(size = base_size *0.8, hjust = 1,vjust=0.5, colour = "grey50"),axis.text.y=element_blank())+scale_fill_manual(values=c("#6198B8", "#E37332", "#C6E88B", "#BCB2CF"))#+ggtitle(paste("Overview of BUSCO results (total genes=", 
-#
-#modifier <- 0.5
-#print(nrows)
-#print(modifier)
-#myheight=(nrows/modifier)*(1/30)
-#print(myheight)
-#if (busco_bench_df != "not_found") {
-#  pp <- subplot(ggplotly(p, height=myheight), ggplotly(p2, height=myheight))
-#  subchunkify(pp, height=myheight, fig_width=10)	
-#  #subplot(ggplotly(p), ggplotly(p2))
-#  #p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.8, hjust = 0, vjust=1, colour = "grey50"))
-#} else {
-#  p2 <- p2 + theme(axis.text.y=element_text(size = base_size *0.5, hjust = 1, vjust=0.5, colour = "grey50"))
-#  #aa <- ggplotly(p2, height=modifier*nrows )
-#  subchunkify(p2, fig_height=myheight, fig_width=10)
-#  #print(aa$height)
-#  #print(aa$width)
-#}
-#  
-#  #data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
-#} else {
-#  cat("no information on BUSCO runs found. Did you run phylociraptor orthology?")
-#}
-#
 
 ```
 
@@ -330,9 +309,9 @@ if (file.exists(busco_overview_image)) {
 
 ```
 
-### Alignments {.tabset .tabset-fade .tabset-pills}
+# Alignments {.tabset .tabset-fade .tabset-pills}
 
-#### full
+## full alignments
 
 **Location of alignment files:** 
 ```
@@ -362,7 +341,8 @@ if (length(dirs) != 0) {
 }
 ```
 
-```{r stats_alignments2, echo=FALSE, results="asis"} 
+
+```{r stats_alignments2, echo=F, results="asis"} 
 if (length(dirs)==0) {
 
 cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
@@ -389,7 +369,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
 		cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
-		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
+		#data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
 		if (i ==1) {
 			data <- data[,c(1,4:8)]
 		} else{
@@ -402,27 +382,60 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	}
 	
 	data_combined <- do.call(cbind, dat)
-	rownames(data_combined) <- data_combined$alignment
-	data_combined$alignment <- NULL
+	#rownames(data_combined) <- data_combined$alignment
+	#data_combined$alignment <- NULL
 	
 	get_headers <- function(dirs) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (dir in dirs) {
-		n <- tail(str_split(dir, "-")[[1]], n=1)
-		values <- c(values, 5)
-		names <- c(names, n)
-	
-	}
-	names(values) <- names
-	return(values)
+		names <- c()
+		for (dir in dirs) {
+			n <- tail(str_split(dir, "-")[[1]], n=1)
+			names <- c(names, n)
+		}
+		return(names)
 	}
 	
 	cat("<br><br><b>Overview of individual full alignments:</b>\n")
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+#	sketch = htmltools::withTags(table(
+#  	class = 'display',
+#  	thead(
+#    		tr(
+#			th(colspan = 1, ""),
+#      			th(colspan = 5, style = "border-right: solid 2px;", 'mafft'),
+#      			th(colspan = 5, style = "border-right: solid 2px;", 'clustalo'),
+#      			th(colspan = 5, 'muscle')
+#    		),
+#    		tr(
+#			th(colspan = 1, " "),
+#      			lapply(rep(c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'), 3), th)
+#    		)
+#  		)		
+#	))
+
+	generate_table_html <- function(alitrim, coldata) {
 	
+		htmltable <- 
+		"
+		<table class='display'><thead><tr><th colspan='1'></th>
+		"
+		#first get colnames of aligners and trimmers:
+		for (al in alitrim) {
+			htmltable <- paste0(htmltable, "<th colspan='5' style='border-right: solid 2px;'>", al, "</th>")
+		}
+		# fill till we HTML till we get to next level colnames:
+		htmltable <- paste0(htmltable,"</tr><tr><th colspan='1'> </th>")
+		for (i in 1:length(alitrim)-1) {
+			for (col in coldata) {
+				htmltable <- paste0(htmltable, "<th>", col,"</th>")
+			}
+		}
+		# add missing html at the end of table:
+		htmltable <- paste0(htmltable,"</tr></thead></table>")
+		return(htmltable)
+	}
+
+	sketch <- generate_table_html(get_headers(dirs),c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'))
+
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Full alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
 }
 
 #if (length(dirs) > 0) {
@@ -444,7 +457,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
   #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
-#### trimmed
+## trimmed alignments
 
 **Location of trimmed alignment files:** 
 ```
@@ -479,7 +492,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
 		cat(paste0("<br><b>Number of trimmed alignments for ", strsplit(dir,split="trim-")[[1]][2],": </b>", nrow(data), "\n"))
-		data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < parsimony_cutoff, "red", ""))
+	        #data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < parsimony_cutoff, "red", ""))
 		data <- data[,c(1,4:8)]
 		data <- as.data.frame(data)
 		dat[[i]] <- data 
@@ -506,38 +519,24 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	#print(data_combined %>% kbl())	
 	
 	get_headers_trimmer <- function(dirs) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (dir in dirs) {
-		vec <- str_split(dir, "-")[[1]]
-		n <- vec[length(vec)-1]
+		names <- c()
+		for (dir in dirs) {
+			vec <- str_split(dir, "-")[[1]]
+			aligner <- vec[length(vec)-1]	
+			trimmer <- tail(str_split(dir, "-")[[1]], n=1)
+			names <- c(names, paste0(aligner,"-",trimmer))
 		
-		values <- c(values, 5)
-		names <- c(names, n)
-	
-	}
-	names(values) <- names
-	return(values)
+		}
+		return(names)
 	}
 		
-	get_headers_aligner <- function(dirs) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (dir in dirs) {
-		n <- tail(str_split(dir, "-")[[1]], n=1)
-		values <- c(values, 5)
-		names <- c(names, n)
-	
-	}
-	names(values) <- names
-	return(values)
-	}
 	cat("<br><br><b>Overview of individual trimmed alignments:</b>\n")
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+
+	sketch <- generate_table_html(get_headers_trimmer(dirs),c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'))
+
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Trimmed alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+	
+        #data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
 
@@ -558,7 +557,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 ```
 
 
-#### filtered
+## filtered alignments
 
 **Location of filtered alignment files:** 
 ```
@@ -610,51 +609,33 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 
 	#data_combined <- merge(dat[[1]], dat[[2]], all=T, by="alignment")
 	data_combined <- do.call(multi_merge, list(dat))
-	data_combined[is.na(data_combined)] = ""
+	data_combined[is.na(data_combined)] <- NA
 
 	#rownames(data_combined) <- data_combined$alignment
 	#data_combined$alignment <- NULL
+	
 	#print(data_combined %>% kbl())	
 	
-	get_headers_trimmer <- function(dirs) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (dir in dirs) {
-		vec <- str_split(dir, "-")[[1]]
-		n <- vec[length(vec)-1]
-		
-		values <- c(values, 5)
-		names <- c(names, n)
-	
-	}
-	names(values) <- names
-	return(values)
-	}
-		
-	get_headers_aligner <- function(dirs) {
-	
-	values <- c(1)
-	names <- c(" ")
-	
-	for (dir in dirs) {
-		n <- tail(str_split(dir, "-")[[1]], n=1)
-		values <- c(values, 5)
-		names <- c(names, n)
-	
-	}
-	names(values) <- names
-	return(values)
-	}
 	cat("<br><br><b>Overview of individual filtered alignments:</b>\n")
+	sketch <- generate_table_html(get_headers_trimmer(dirs),c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'))
+
+	render <- JS(
+  	"function(data, type, row) {",
+  	"  if(type === 'sort' && data === null) {",
+  	"    return 999999;",
+  	"  }",
+  	"  return data;",
+  	"}"
+	)
+
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(columnDefs = list(list(targets=1, render=render)),dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Filtered alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
 	
-	data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	#data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
 }
 ```
 
-### Modeltesting
+# Modeltesting
 
 **Location of modeltesting files:** 
 ```
@@ -728,14 +709,15 @@ if (length(files) > 0) {
 	}
 	data_combined <- do.call(multi_merge, list(dat))
 	colnames(data_combined) <- names
-	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	#data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Best substitution models overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
 }
 ```
 
 
 
 
-### Genetrees
+# Genetrees
 
 **Location of gene trees:** 
 ```
@@ -809,7 +791,8 @@ if (length(files) > 0) {
 		
 	}
 	options(knitr.kable.NA = '') # do not display NA values
-	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+	#data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
+        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Gene tree mean bootstrap overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
 
 }
 if (p != "") {
@@ -838,7 +821,9 @@ function copytree(id) {
 }
 ```
 
-### MLtree
+# Maximum-likelihood trees
+
+**Random seed:** `r config_data$seed`
 
 **Location of phylogenetic results:** 
 ```
@@ -873,7 +858,7 @@ if (length(files) > 0) {
 
 	}
 	cat("<br><b>Overview of concatenated Maximum-likelihood phylogenies:</b>\n")
-	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = T) #%>% scroll_box(width = "100%", height = "600px") 
 }
 ```
 
@@ -896,7 +881,7 @@ function copyspeciestree(id) {
 }
 ```
 
-### Speciestree
+# Speciestree
 
 **Location of phylogenetic results:** 
 ```
@@ -930,12 +915,12 @@ if (length(files) > 0) {
 
 	}
 	cat("<br><b>Overview of species-tree phylogenies:</b>\n")
-	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
+	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = T)# %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
 
 
-### Log
+# Log
 
 ```{r, echo=FALSE}
 if (file.exists(runlog_file))
