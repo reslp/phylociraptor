@@ -39,11 +39,12 @@ alignment:
     mafft_parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
     clustalo_parameters: 
     muscle_parameters:
-# possible trimming options: trimal, aliscore
+# possible trimming options: trimal, aliscore, bmge
 trimming: 
     method: ["trimal", "aliscore"] 
     trimal_parameters: "-gappyout"
     aliscore_parameters: 
+    bmge_parameters:
 modeltest:
     threads: 16
 

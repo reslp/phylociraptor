@@ -39,11 +39,12 @@ alignment:
     clustalo_parameters:
     muscle_parameters:
 
-# possible trimming options: trimal, aliscore
+# possible trimming options: trimal, aliscore, bmge
 trimming: 
     method: ["trimal", "aliscore"] 
     trimal_parameters: "-gappyout"
     aliscore_parameters:
+    bmge_parameters:
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
