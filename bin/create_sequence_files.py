@@ -16,7 +16,7 @@ if sys.version_info[0] < 3:
 pars = argparse.ArgumentParser(prog="create_sequence_files.py", description = """This script will create fasta files for all the buscos from all species with >% of buscos present""", epilog = """written by Philipp Resl""")
 pars.add_argument('--busco_table', dest="busco_table", required=True, help="Path to BUSCO table.")
 pars.add_argument('--busco_results', dest="busco_results", required=True, help="Results directory containing all BUSCO runs.")
-pars.add_argument('--cutoff', dest="cutoff", required=True, help="Percent cutoff % for BUSCO presence. Species below this threshold will be excluded.")
+pars.add_argument('--cutoff', dest="cutoff", default=0, required=True, help="Percent cutoff %% for BUSCO presence. Species below this threshold will be excluded.")
 pars.add_argument('--outdir', dest="outdir", required=True, help="Path to output directory.")
 pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number of species which have to be present to keep the sequences.")
 pars.add_argument('--type' , dest="type", required=True, help="Type of sequences (aa or nu).")
