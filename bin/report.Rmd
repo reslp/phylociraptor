@@ -421,7 +421,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 		for (al in alitrim) {
 			htmltable <- paste0(htmltable, "<th colspan='5' style='border-right: solid 2px;'>", al, "</th>")
 		}
-		# fill till we HTML till we get to next level colnames:
+		# fill HTML till we get to next level colnames:
 		htmltable <- paste0(htmltable,"</tr><tr><th colspan='1'> </th>")
 		for (i in 1:length(alitrim)-1) {
 			for (col in coldata) {
@@ -435,7 +435,7 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 
 	sketch <- generate_table_html(get_headers(dirs),c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'))
 
-        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Full alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Full alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(6,11), `border-right` = "solid 2px")
 }
 
 #if (length(dirs) > 0) {
@@ -534,7 +534,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 
 	sketch <- generate_table_html(get_headers_trimmer(dirs),c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'))
 
-        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Trimmed alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Trimmed alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(6,11), `border-right` = "solid 2px")
 	
         #data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
@@ -628,7 +628,7 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
   	"}"
 	)
 
-        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(columnDefs = list(list(targets=1, render=render)),dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Filtered alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+        datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(columnDefs = list(list(targets=1, render=render)),dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Filtered alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(6,11), `border-right` = "solid 2px")
 	
 	#data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
 	
@@ -710,7 +710,7 @@ if (length(files) > 0) {
 	data_combined <- do.call(multi_merge, list(dat))
 	colnames(data_combined) <- names
 	#data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
-        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Best substitution models overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Best substitution models overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1)))
 }
 ```
 
@@ -781,7 +781,8 @@ if (length(files) > 0) {
 		p <- add_trace(p, x = colnames(plot_data)[j], y=plot_data[,j], name=colnames(plot_data)[j],pointpos=0, hoverinfo="text", hovertext=ngenes, points="all", jitter=0)
 	}			
 	#p <- p %>% layout(hovermode = "y unified") #unfortunately this does not work together with custom text.
-	print(htmltools::tagList(list(ggplotly(p)))) # this works only when the plot is being shown outside the if statement below! weird!!
+	#print(htmltools::tagList(list(ggplotly(p)))) # this works only when the plot is being shown outside the if statement below! weird!!
+	p <- htmltools::tagList(list(ggplotly(p))) # this works only when the plot is being shown outside the if statement below! weird!!
 	colnames(data_combined) <- c("gene", titles)		
 	cat("<br><b>Overview of mean bootstrap values per gene-tree: </b><br>\n")
 	for (j in 1:length(colnames(plot_data)))
@@ -792,7 +793,7 @@ if (length(files) > 0) {
 	}
 	options(knitr.kable.NA = '') # do not display NA values
 	#data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
-        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Gene tree mean bootstrap overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
+        datatable(data_combined,  escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Gene tree mean bootstrap overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1)))
 
 }
 if (p != "") {
