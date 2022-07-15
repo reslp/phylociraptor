@@ -664,7 +664,7 @@ elif args.command=="report":
 			cmd += [report_args.config_file]
 	else:
 		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
-		cmd = ["singularity", "exec", "docker://reslp/rmarkdown:4.0.3_DT", "Rscript", "-e", rcommand]
+		cmd = ["singularity", "exec", "-B", os.getcwd(),  "docker://reslp/rmarkdown:4.0.3_DT", "Rscript", "-e", rcommand]
 		if report_args.config_file:
 			cmd += [report_args.config_file]
 	#proc = subprocess.run(cmd)
@@ -918,9 +918,9 @@ elif args.command == "util":
 		if gl_args.help: 
 			print(help_message(util_lineage_help))
 			sys.exit(0)
-		if not gl_args.outfile:
-			print(now(), "You need to specify an output file with -o/--outfile")
-			sys.exit(1)
+		if not gl_args.outfile or not gl_args.genomefile:
+			print(help_message(util_lineage_help))
+			sys.exit(0)
 		if not os.path.isfile(gl_args.genomefile):
 			print(now(), "Genome file not found:",gl_args.genomefile)
 			sys.exit(1)
@@ -946,9 +946,11 @@ elif args.command == "util":
 			sys.exit(0)
 		if not qs_args.outfile:
 			print(now(),"You need to specify an output file with -o/--outfile")
+			print(help_message(util_estimate_conflict_help))
 			sys.exit(1)
 		if not qs_args.intrees:
-			print(now(),"No input trees specified")
+			print(now(),"No input trees specified with -i/--intrees")
+			print(help_message(util_estimate_conflict_help))
 			sys.exit(1)
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
@@ -977,7 +979,7 @@ elif args.command == "util":
 			print(line, end="\r")
 	if which_util == "plot-tree":
 		qs_parser = UtilParser(add_help=False)
-		qs_parser.add_argument("-i","--intrees", action="store", default="all")
+		qs_parser.add_argument("-i","--intrees", action="store")
 		qs_parser.add_argument("-o", "--outprefix", action="store", default="tree-plot") 
 		qs_parser.add_argument("-g", "--outgroup", action="store", default="none")
 		qs_parser.add_argument("-l", "--lineagefile", action="store", default="none")
@@ -989,7 +991,8 @@ elif args.command == "util":
 			print(help_message(util_plot_tree_help))
 			sys.exit(0)
 		if not qs_args.intrees:
-			print(now(),"No input trees specified")
+			print(now(),"No input trees specified with -i/--intrees")
+			print(help_message(util_plot_tree_help))
 			sys.exit(1)
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
@@ -999,7 +1002,6 @@ elif args.command == "util":
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
 			all_trees = qs_args.intrees	
-		
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
 		cmd += ["plot", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
 
@@ -1023,6 +1025,7 @@ elif args.command == "util":
 			sys.exit(0)
 		if not qs_args.intrees:
 			print(now(),"No input trees specified")
+			print(help_message(util_plot_conflict_help))
 			sys.exit(1)
 		elif len(qs_args.intrees.split(",")) != 2:
 			print(now(), "Need exactly two trees for comparison, seperated by a comma (,).")
@@ -1052,18 +1055,26 @@ elif args.command == "util":
 		qs_parser.add_argument("-n", "--ndistances", action="store", default="all")
 		qs_parser.add_argument("-s", "--seed", action="store", default="random")
 		qs_args = qs_parser.parse_args(args.arguments) 
-		print(qs_args)
 		if qs_args.help: 
 			print(help_message(util_plot_similarity_help))
 			sys.exit(0)
 		if not qs_args.simmatrix:
-			print(now(), "You have to the similarity matrix file created with phylociraptor util estimate-conflict")
+			print(now(), "You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
+			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
+	if which_util == "reduce-ortho":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-n","--ngenes", action="store", default=None)
+		qs_parser.add_argument("-g", "--genes", action="store", default="none")
+		qs_parser.add_argument("--quiet", action="store_true", default=False)
+		qs_parser.add_argument("-s", "--seed", action="store", default="random")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")

@@ -218,6 +218,8 @@ Argumemts:
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
 	plot-similarity		plot heatmap of quartet similarity.
+	reduce-ortho		reduces the number of orthologs used for inference.
+				Can be run after phylociraptor setup is finished.
 	-h, --help              Display help.
 
 """
@@ -268,7 +270,8 @@ phylociraptor util plot-tree - Plot one or more phylogenomic trees.
 Usage: phylociraptor util plot-tree <arguments>
 
 Required Arguments:
-	-i, --intrees		Relative paths to input trees in results folder, separated by commas. (Default: all)
+	-i, --intrees		Relative paths to input trees in results folder, separated by commas.
+				Use 'all' to plot all available trees.
 	
 Optional Arguments:
 	-o, --outprefix		Output file name prefix.
@@ -330,3 +333,28 @@ Optional Arguments:
 	--quiet			Suppress on-screen output.
 
 """
+
+util_reduce_ortho_help = """
+phylociraptor util reduce-ortho - Reduces ortholog set to a given number of genes.
+
+Usage: phylociraptor util reduce-ortho <arguments>
+
+Required Arguments:
+	-n, --ngenes		Number of genes. (Default: none)
+	-g, --genes		Names of genes seperated by comma. (Default: none)
+	
+Optional Arguments:
+	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
+				When this file is provided, a tip2tip distance analysis will be performed.
+				The results will be plotted as PCA and provided as CSV file.
+				(Default: none)
+	-s, --seed		Random seed for reproducibility. (Default: random)
+	-n, --ndistances	Number of tip2tip distances to be calculated. (Default: all)
+				Only meaningful when combined with -r/--treelist
+	-t, --threads		Number of threads for tip2tip distance analysis. (Default: 1)
+				Only meaningful when combined with -r/--treelist
+	--quiet			Suppress on-screen output.
+
+"""
+
+
