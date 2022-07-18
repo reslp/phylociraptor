@@ -351,18 +351,15 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	read_my_csv <-function(dat) {
 		return(read.csv(dat,header=T,sep="\t"))
 	}
-	cat("<br><b>Used aligner(s) and settings:</b>")
-	#pars_sites <- tail(strsplit(data_combined_overview[1,1], " ")[[1]], 1)
-	#pars_sites <- strtoi(pars_sites)
-	first_aligner <- paste(head(strsplit(data_combined_overview[1,1], " ")[[1]], length(strsplit(data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
-	first_aligner <- gsub("None", "", first_aligner)
-	cat(paste0("<br><b>1. </b>", first_aligner,"<br>"))	
-	if (length(data_combined_overview[1,]) == 2) {
-		second_aligner <- paste(head(strsplit(data_combined_overview[1,2], " ")[[1]], length(strsplit(data_combined_overview[1,2], " ")[[1]])-1), collapse= " ")
-		second_aligner <- gsub("None", "", second_aligner)
-		cat(paste0("<b>2. </b>", second_aligner,"<br>"))	
-	}
-	cat(paste0("<b>Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
+	cat("<br><b>Used aligner(s) and settings:</b><br>")
+  	for (nalan in 1:length(data_combined_overview[1,])) {
+  		aligner_info <- paste(head(strsplit(data_combined_overview[1,nalan], " ")[[1]], length(strsplit(data_combined_overview[1,nalan], " ")[[1]])-1), collapse= " ")
+  		aligner_info <- gsub("None", "", aligner_info)
+  		#outstring <- c(outstring, aligner_info)
+		#outstring <- c(outstring, "   \n")
+		cat(paste0("<b>", as.character(nalan), ". </b>", aligner_info, "<br>"))
+  	}
+	cat(paste0("<br><b>Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
 	dat <- list()
 	i <- 1
 	for (dir in dirs) {

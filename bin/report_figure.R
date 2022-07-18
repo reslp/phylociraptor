@@ -562,14 +562,12 @@ genetree_plot <- annotate_figure(genetree_plot, top="genetrees")
 trimmers_outstring <- (if (length(trimmer_names) > 1) {paste(unique(trimmer_names), collapse=", ")} else {unique(trimmer_names)})
 
 get_aligner_settings_string <- function(){
-  first_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
-  first_aligner <- gsub("None", "", first_aligner)
-  outstring <- c(paste0("   ", first_aligner, "\n"))
-  if (length(alignment_data_combined_overview[1,]) == 2) {
-    second_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,2], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,2], " ")[[1]])-1), collapse= " ")
-    second_aligner <- gsub("None", "", second_aligner)
-    #cat(paste0("<b>2. </b>", second_aligner,"<br>"))
-    outstring <- c(outstring, paste0("   ", second_aligner, "\n"))
+  outstring <- c()
+  for (nalan in 1:length(alignment_data_combined_overview[1,])) {
+  	aligner_info <- paste(head(strsplit(alignment_data_combined_overview[1,nalan], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,nalan], " ")[[1]])-1), collapse= " ")
+  	aligner_info <- gsub("None", "", aligner_info)
+  	outstring <- c(outstring, paste0(as.character(nalan),". ", aligner_info))
+	outstring <- c(outstring, "   \n")
   }
   return(paste(outstring, collapse=""))
 }
@@ -607,8 +605,8 @@ additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0, y = 7.5, label="orthology:", hjust=0, size=4, fontface="bold.italic")+
   annotate("text", x = 0.2, y = 6.7, label = orthology_text, hjust = 0, size=3)+
   annotate("text", x = 0, y = 5, label="alignments:", hjust=0, size=4, fontface="bold.italic")+
-  annotate("text", x = 0.2, y = 3.1, label = align_text, hjust = 0, size=3)+
-  annotate("text", x = 0.2, y = 0.8, label = reprod_text, hjust = 0, size=3, fontface="bold")+
+  annotate("text", x = 0.2, y = 2.8, label = align_text, hjust = 0, size=3)+
+  annotate("text", x = 0.2, y = 0.3, label = reprod_text, hjust = 0, size=3, fontface="bold")+
   coord_cartesian(ylim = c(0, 10), xlim=c(0,10), clip = "off") #+ theme(text = element_text(size = 5)) 
 additional_info <- annotate_figure(additional_info, top="overview")
 additional_info
