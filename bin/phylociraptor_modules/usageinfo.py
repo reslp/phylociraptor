@@ -334,26 +334,17 @@ Optional Arguments:
 
 """
 
-util_reduce_ortho_help = """
-phylociraptor util reduce-ortho - Reduces ortholog set to a given number of genes.
+util_modify_busco_help = """
+phylociraptor util modify-busco - Modifies BUSCO set to only use specified genes.
 
-Usage: phylociraptor util reduce-ortho <arguments>
+Usage: phylociraptor util modify-busco <arguments>
 
 Required Arguments:
 	-n, --ngenes		Number of genes. (Default: none)
 	-g, --genes		Names of genes seperated by comma. (Default: none)
 	
 Optional Arguments:
-	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
-				When this file is provided, a tip2tip distance analysis will be performed.
-				The results will be plotted as PCA and provided as CSV file.
-				(Default: none)
 	-s, --seed		Random seed for reproducibility. (Default: random)
-	-n, --ndistances	Number of tip2tip distances to be calculated. (Default: all)
-				Only meaningful when combined with -r/--treelist
-	-t, --threads		Number of threads for tip2tip distance analysis. (Default: 1)
-				Only meaningful when combined with -r/--treelist
-	--quiet			Suppress on-screen output.
 
 """
 

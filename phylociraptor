@@ -991,7 +991,7 @@ elif args.command == "util":
 			print(help_message(util_plot_tree_help))
 			sys.exit(0)
 		if not qs_args.intrees:
-			print(now(),"No input trees specified with -i/--intrees")
+			print(now(),"Hint: No input trees specified with -i/--intrees")
 			print(help_message(util_plot_tree_help))
 			sys.exit(1)
 		elif qs_args.intrees == "all":
@@ -1024,19 +1024,19 @@ elif args.command == "util":
 			print(help_message(util_plot_conflict_help))
 			sys.exit(0)
 		if not qs_args.intrees:
-			print(now(),"No input trees specified")
+			print(now(),"Hint: No input trees specified")
 			print(help_message(util_plot_conflict_help))
 			sys.exit(1)
 		elif len(qs_args.intrees.split(",")) != 2:
-			print(now(), "Need exactly two trees for comparison, seperated by a comma (,).")
+			print(now(), "Hint: Need exactly two trees for comparison, seperated by a comma (,).")
 			sys.exit(1)
 		else:
 			all_trees = qs_args.intrees	
 		if not qs_args.quartetfile:
-			print(now(), "You need to provide a quartet conflict file.")
+			print(now(), "Hint: You need to provide a quartet conflict file.")
 			sys.exit(1)
 		if not qs_args.treelist:
-			print(now(), "You need to provide the treelist file.")
+			print(now(), "Hint: You need to provide the treelist file.")
 			sys.exit(1)
 		
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
@@ -1059,7 +1059,7 @@ elif args.command == "util":
 			print(help_message(util_plot_similarity_help))
 			sys.exit(0)
 		if not qs_args.simmatrix:
-			print(now(), "You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
+			print(now(), "Hint: You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
@@ -1067,14 +1067,37 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
-	if which_util == "reduce-ortho":
+	if which_util == "modify-busco":
 		qs_parser = UtilParser(add_help=False)
 		qs_parser.add_argument("-n","--ngenes", action="store", default=None)
 		qs_parser.add_argument("-g", "--genes", action="store", default="none")
+		qs_parser.add_argument("-b", "--buscoset", action="store", default=None)
 		qs_parser.add_argument("--quiet", action="store_true", default=False)
 		qs_parser.add_argument("-s", "--seed", action="store", default="random")
 		qs_args = qs_parser.parse_args(args.arguments) 
-		
+		if qs_args.help:
+			print(help_message(util_modify_busco_help))
+			sys.exit(0)
+		if not qs_args.ngenes and qs_args.genes == "none":
+			print("Hint: You have to specify -n or -g to use this function.")
+			print(help_message(util_modify_busco_help))
+			sys.exit(1)
+		if qs_args.ngenes and qs_args.genes != "none":
+			print("Hint: You have to specify either -n or -g. Not both.")
+			sys.exit(1)
+		if not qs_args.buscoset:
+			print("Hint: A BUSCO set name needs to be specified.")
+			sys.exit(1)
+		if qs_args.ngenes:
+			first_arg = "ngenes="+qs_args.ngenes
+		if qs_args.genes and qs_args.genes != "none":
+			first_arg = "genes="+qs_args.genes
+		cmd = ["bash", "bin/modify-busco.sh", first_arg, qs_args.buscoset, qs_args.seed]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet):
+			print(line, end="\r")
+			
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
