@@ -218,7 +218,7 @@ Argumemts:
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
 	plot-similarity		plot heatmap of quartet similarity.
-	reduce-ortho		reduces the number of orthologs used for inference.
+	modify-busco		modify the used BUSCO set.
 				Can be run after phylociraptor setup is finished.
 	-h, --help              Display help.
 
