@@ -97,4 +97,25 @@ The first command will only create a heatmap of overall similarity of quartets i
 
 The second command will create the heatmap but will also compute tip2tip distances for 100 pairs of tips using eight threads and a random seed 123. These tip2tip distance matrices will be plotted as a PCA.
 
+-------------------------
+Modify the used BUSCO set
+-------------------------
+
+It is possible to reduce the downloaded BUSCO set to only a specified number of genes using ``phylociraptor util modify-busco``. This could be helpful if you would like to make quick tests with only a smaller set of genes before running a full analysis.
+
+.. warning::
+
+	For this to work you need to first run ``phylociraptor setup`` so that the specified BUSCO set is available in ``results/orthology/busco/busco_set``.
+
+
+.. code-block:: bash
+
+	$ ./phylociraptor --debug util modify-busco -g EOG092C3MKB,EOG092C59RA,EOG092C5GXJ -b fungi_odb9
+	$ ./phylociraptor --debug util modify-busco -n 20 -b arthropoda_odb9 -s 42
+
+The first command will reduce the the ``fungi_odb9`` set to the three specified genes ``EOG092C3MKB,EOG092C59RA,EOG092C5GXJ``.
+The second command reduces the the ``arthropoda_odb9`` set to ``20`` random genes using the random seed ``42`` for reproducibility.
+
+Phylociraptor will keep a backup of the original unmodified BUSCO set in ``results/orthology/busco/busco_set/<SETNAME>_backup``.
+
 
