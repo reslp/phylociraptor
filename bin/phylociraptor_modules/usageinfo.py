@@ -218,6 +218,8 @@ Argumemts:
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
 	plot-similarity		plot heatmap of quartet similarity.
+	reduce-ortho		reduces the number of orthologs used for inference.
+				Can be run after phylociraptor setup is finished.
 	-h, --help              Display help.
 
 """
@@ -268,7 +270,8 @@ phylociraptor util plot-tree - Plot one or more phylogenomic trees.
 Usage: phylociraptor util plot-tree <arguments>
 
 Required Arguments:
-	-i, --intrees		Relative paths to input trees in results folder, separated by commas. (Default: all)
+	-i, --intrees		Relative paths to input trees in results folder, separated by commas.
+				Use 'all' to plot all available trees.
 	
 Optional Arguments:
 	-o, --outprefix		Output file name prefix.
@@ -330,3 +333,19 @@ Optional Arguments:
 	--quiet			Suppress on-screen output.
 
 """
+
+util_modify_busco_help = """
+phylociraptor util modify-busco - Modifies BUSCO set to only use specified genes.
+
+Usage: phylociraptor util modify-busco <arguments>
+
+Required Arguments:
+	-n, --ngenes		Number of genes. (Default: none)
+	-g, --genes		Names of genes seperated by comma. (Default: none)
+	
+Optional Arguments:
+	-s, --seed		Random seed for reproducibility. (Default: random)
+
+"""
+
+

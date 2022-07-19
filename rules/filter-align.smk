@@ -27,6 +27,24 @@ batches = determine_concurrency_limit()
 aligners = get_aligners()		
 trimmers = get_trimmers()		
 
+rule bmge:
+		input:
+			checkpoint = "results/checkpoints/modes/align.done",
+			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
+		output:
+			trimmed_alignment = "results/alignments/trimmed/{aligner}-bmge/{busco}_aligned_trimmed.fas",
+		benchmark:
+			"results/statistics/benchmarks/align/{aligner}_bmge_{busco}.txt"
+		params:
+			trimmer = config["trimming"]["bmge_parameters"],
+			type = config["filtering"]["seq_type"] 
+		singularity:
+			containers["bmge"]	
+		shell:
+			"""
+			bmge -i {input.alignment} -t $(if [[ "{params.type}" == "aa" ]]; then echo "AA"; else echo "NT"; fi) -of {output.trimmed_alignment}
+			"""
+
 rule trimal:
 		input:
 			checkpoint = "results/checkpoints/modes/align.done",

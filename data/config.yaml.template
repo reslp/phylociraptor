@@ -32,7 +32,7 @@ filtering:
     min_parsimony_sites: 200
     bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
-# settings related to alignment and trimming
+# settings related to alignment and trimming. Possible aligners: mafft, clustalo, muscle
 alignment:
     method: ["mafft", "clustalo"]
     threads: 8
@@ -40,11 +40,12 @@ alignment:
     clustalo_parameters: 
     muscle_parameters: 
 
-# possible trimming options: trimal, aliscore
+# possible trimming options: trimal, aliscore, bmge
 trimming: 
     method: ["trimal", "aliscore"] 
     trimal_parameters: "-gappyout"
     aliscore_parameters:
+    bmge_parameters:
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
