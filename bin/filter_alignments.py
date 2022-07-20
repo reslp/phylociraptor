@@ -2,6 +2,7 @@
 # written by Philipp Resl
 
 import os
+from os.path import relpath
 import sys
 import argparse
 from Bio import SeqIO
@@ -43,8 +44,9 @@ for al in algn_list:
 		print(os.path.basename(al), "\tTOO_FEW_SEQUENCES")
 		continue
 	if len(names_list) == len(set(names_list)):
-		print("Create symlink: ", args.outdir+"/"+al.split("/")[-1], file=sys.stderr)
-		os.symlink(al, args.outdir+"/"+al.split("/")[-1])
+		origin="/".join(relpath(al, args.outdir+"/"+al.split("/")[-1]).split("/")[1:])
+		print("Create symlink: ", args.outdir+"/"+al.split("/")[-1], " -> ", origin, file=sys.stderr)
+		os.symlink(origin, args.outdir+"/"+al.split("/")[-1])
 		print(os.path.basename(al), "\tPASS")
 	else:
 		print("Warning: File %s contains duplicated sequence IDs!" % al, file=sys.stderr)
