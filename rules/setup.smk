@@ -186,12 +186,12 @@ rule rename_assemblies:
 				continue
 			else
 				link="{params.wd}/results/downloaded_genomes/"$sp"_genomic_genbank.fna.gz"
-				echo $link
 				if [[ ! -f "$link" ]]; then
 					echo "$sp" >> {output.statistics} 
 					continue
 				else
-					ln -s $link {params.wd}/results/assemblies/"$sp".fasta.gz
+					echo "Symbolic link (downloads): $link"
+					ln -rs $link {params.wd}/results/assemblies/"$sp".fasta.gz
 				fi
 			fi
 		done	
@@ -201,8 +201,21 @@ rule rename_assemblies:
 				echo "${{sparr[0]}}" >> {output.statistics_local}
 				continue
 			else
-				echo "${{sparr[0]}}" >> {output.statistics_local}
-				ln -s {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
+				if [[ -f "${{sparr[1]}}" ]]
+				then
+					echo "${{sparr[0]}}" >> {output.statistics_local}
+					if [[ $(./bin/check_if_inside.sh ${{sparr[1]}}) -eq 0 ]]
+					then
+						echo "Symbolic link (user provided): ${{sparr[1]}}"
+						ln -rs {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
+					else
+						echo "Copying: $(realpath ${{sparr[1]}})"
+						cp $(realpath "${{sparr[1]}}") results/assemblies/"${{sparr[0]}}".fasta
+					fi
+				else
+					echo -e "{params.wd}/${{sparr[1]}} doesn't seem to exist - please check the path"
+					exit
+				fi
 			fi
 		done
 		if [[ ! -f {output.statistics} ]]; then touch {output.statistics}; fi
