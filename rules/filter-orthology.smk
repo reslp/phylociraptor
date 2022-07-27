@@ -45,7 +45,7 @@ if config["exclude_orthology"]:
 			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
 			# remove files in case there are already some:
 			rm -f {output.sequence_dir}/*
-			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} --exclude {input.exclude} &> {log}
+			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} --fix_for_alicut --exclude {input.exclude} &> {log}
 			touch {output.checkpoint}   
 			"""
 else:
@@ -73,7 +73,7 @@ else:
 			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
 			# remove files in case there are already some:
 			rm -f {output.sequence_dir}/*
-			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} &> {log}
+			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} --fix_for_alicut &> {log}
 			touch {output.checkpoint}   
 			"""
 	
