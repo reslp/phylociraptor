@@ -55,6 +55,10 @@ clustalo:
    job-name: clo
    time: "02:00:00"
    mem: 10G
+muscle:
+   job-name: mus
+   time: "02:00:00"
+   mem: 10G
 aggregate_alignments:
    job-name: aggalgn
    mem: 4G
@@ -76,6 +80,10 @@ aliscore:
    job-name: aliscore
    mem: 20G
    time: "24:00:00"
+bmge:
+   job-name: bmge
+   mem: 10G
+   time: "02:00:00"
 get_trimmed_statistics:
    job-name: gettristat
 filter_alignments:

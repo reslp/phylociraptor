@@ -50,6 +50,9 @@ mafft:
 clustalo:
    N: clo
    h_vmem: 10G
+muscle:
+   N: mus
+   h_vmem: 10G
 aggregate_alignments:
    N: aggalgn
    h_vmem: 10G
@@ -64,6 +67,9 @@ trimal:
    h_vmem: 10G
 aliscore:
    N: aliscore
+   h_vmem: 10G
+bmge:
+   N: bmge
    h_vmem: 10G
 get_trimmed_statistics:
    N: gettristat
