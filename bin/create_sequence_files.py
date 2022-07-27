@@ -20,6 +20,7 @@ pars.add_argument('--cutoff', dest="cutoff", default=0, required=True, help="Per
 pars.add_argument('--outdir', dest="outdir", required=True, help="Path to output directory.")
 pars.add_argument('--minsp', dest="minsp", required=True, help="Minimum number of species which have to be present to keep the sequences.")
 pars.add_argument('--type' , dest="type", required=True, help="Type of sequences (aa or nu).")
+pars.add_argument('--exclude', dest="exclude", help="Path to file containing a list of samples to be excluded")
 pars.add_argument('--genome_statistics' , dest="genome_stats", required=True, help="Path to genome statistics output file.")
 pars.add_argument('--gene_statistics' , dest="gene_stats", required=True, help="Path to gene statistics output file.")
 pars.add_argument('--batchID' , dest="batchid", default=1, type=int, help="Batch ID (start for subsampling)")
@@ -44,6 +45,13 @@ print("type: ", args.type)
 print("outdir: ", args.outdir)
 print("batchID: %i / %i" %(args.batchid, args.nbatches))
 
+exclude_list = []
+if args.exclude:
+	print("exclude: %s" %args.exclude)
+	excludefile = open(args.exclude)
+	for l in excludefile:
+		exclude_list.append(l.strip())
+
 species_list = busco_overview.species.tolist()
 print("Original number of species:", len(species_list))
 #print(species_list)
@@ -56,11 +64,15 @@ for sp in species_list:
 		out = sp + "\tFAILED" + "\t" + str(busco_overview.loc[sp, "percent_complete"]) + "\t" + str(float(args.cutoff))
 		print(out, file=genome_file)
 		busco_overview = busco_overview.drop([sp])
+	elif sp in exclude_list:
+		out = sp + "\tEXCLUDED" + "\t" + str(busco_overview.loc[sp, "percent_complete"]) + "\t" + str(float(args.cutoff))
+		print(out, file=genome_file)
+		busco_overview = busco_overview.drop([sp])
 	else:
 		out = sp + "\tOK" + "\t" + str(busco_overview.loc[sp, "percent_complete"]) + "\t" + str(float(args.cutoff)) 
 		print(out, file=genome_file)
 species_list =  list(busco_overview.index)
-print("Species remaining after applying cutoff:", len(species_list))
+print("Species remaining after applying cutoff(s):", len(species_list))
 genome_file.close()
 
 #now loop through each busco and extract sequence for each species

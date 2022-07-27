@@ -19,33 +19,64 @@ def determine_concurrency_limit():
 
 batches = determine_concurrency_limit()
 
-rule create_sequence_files:
-	input:
-		table = "results/orthology/busco/busco_table.txt"
-	output:
-		sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["concurrency"])),
-		checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["concurrency"])+".done",
-		genome_statistics = "results/statistics/orthology_filtering/orthology_filtering_genomes_statistics_{batch}-"+str(config["concurrency"])+".txt",
-		gene_statistics = "results/statistics/orthology_filtering/orthology_filtering_gene_statistics_{batch}-"+str(config["concurrency"])+".txt"
-	benchmark:
-		"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["concurrency"])+".txt"
-	params:
-		cutoff=config["filtering"]["cutoff"],
-		minsp=config["filtering"]["minsp"],
-		busco_dir = "results/orthology/busco/busco_runs",
-		seqtype = config["filtering"]["seq_type"],
-		nbatches = config["concurrency"],
-	singularity:
-		containers["biopython"]
-	log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
-	shell:
-		""" 
-		if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
-		# remove files in case there are already some:
-		rm -f {output.sequence_dir}/*
-		python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} &> {log}
-		touch {output.checkpoint}   
-		"""
+if config["exclude_orthology"]:
+	rule create_sequence_files:
+		input:
+			table = "results/orthology/busco/busco_table.txt",
+			exclude = config["exclude_orthology"]
+		output:
+			sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["concurrency"])),
+			checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["concurrency"])+".done",
+			genome_statistics = "results/statistics/orthology_filtering/orthology_filtering_genomes_statistics_{batch}-"+str(config["concurrency"])+".txt",
+			gene_statistics = "results/statistics/orthology_filtering/orthology_filtering_gene_statistics_{batch}-"+str(config["concurrency"])+".txt"
+		benchmark:
+			"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["concurrency"])+".txt"
+		params:
+			cutoff=config["filtering"]["cutoff"],
+			minsp=config["filtering"]["minsp"],
+			busco_dir = "results/orthology/busco/busco_runs",
+			seqtype = config["filtering"]["seq_type"],
+			nbatches = config["concurrency"],
+		singularity:
+			containers["biopython"]
+		log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
+		shell:
+			""" 
+			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
+			# remove files in case there are already some:
+			rm -f {output.sequence_dir}/*
+			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} --exclude {input.exclude} &> {log}
+			touch {output.checkpoint}   
+			"""
+else:
+	rule create_sequence_files:
+		input:
+			table = "results/orthology/busco/busco_table.txt",
+		output:
+			sequence_dir=directory("results/orthology/busco/busco_sequences/{batch}-"+str(config["concurrency"])),
+			checkpoint = "results/checkpoints/create_sequence_files_{batch}-"+str(config["concurrency"])+".done",
+			genome_statistics = "results/statistics/orthology_filtering/orthology_filtering_genomes_statistics_{batch}-"+str(config["concurrency"])+".txt",
+			gene_statistics = "results/statistics/orthology_filtering/orthology_filtering_gene_statistics_{batch}-"+str(config["concurrency"])+".txt"
+		benchmark:
+			"results/statistics/benchmarks/create_seq_files/create_sequence_files_{batch}-"+str(config["concurrency"])+".txt"
+		params:
+			cutoff=config["filtering"]["cutoff"],
+			minsp=config["filtering"]["minsp"],
+			busco_dir = "results/orthology/busco/busco_runs",
+			seqtype = config["filtering"]["seq_type"],
+			nbatches = config["concurrency"],
+		singularity:
+			containers["biopython"]
+		log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
+		shell:
+			""" 
+			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
+			# remove files in case there are already some:
+			rm -f {output.sequence_dir}/*
+			python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} &> {log}
+			touch {output.checkpoint}   
+			"""
+	
 
 rule remove_duplicated_sequence_files:
 	input:
