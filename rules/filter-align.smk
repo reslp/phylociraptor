@@ -81,7 +81,7 @@ rule aliscore:
 			mkdir -p results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
 			cd results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
 			ln -s -f  {params.wd}/{input.alignment} {params.busco}_aligned.fas 
-			Aliscore.pl {params.trimmer} -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
+			Aliscore.pl $(if [[ "{params.trimmer}" != "None" ]]; then echo "{params.trimmer}"; fi) -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
 			
 			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
 				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt

@@ -41,7 +41,7 @@ def get_busco_mode(wildcards):
 			else:		
 				return mode 
 	else:
-		print("phylocirpator: INFO: mode column not found, will use globally set option from config file.")		
+		print("phylocirpator: INFO: mode column not found, will use globally set option from config file for", sp)		
 		return config["busco"]["mode"]
 	
 

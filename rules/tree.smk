@@ -64,7 +64,7 @@ rule raxmlng:
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
 			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}
-			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng -threads {threads} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
+			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{threads}} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
 			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
