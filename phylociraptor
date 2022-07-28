@@ -8,6 +8,7 @@ import time
 import subprocess
 import argparse
 import glob
+import logging
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
@@ -149,13 +150,17 @@ def execute_command(cmd, verbose):
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	print(now(), "INFO: If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
+	print(now(), "Please be patient as singularity containers are downloaded. This can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
 	char = ""
 	nline = 0
 	curr_task = 0
+	if not os.path.isdir("log/phylociraptor"):
+		os.mkdir("log/phylociraptor")
+	logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S"), level=logging.DEBUG,format="%(message)s")	
+	logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 	if "-n" in cmd:
 		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
@@ -179,6 +184,7 @@ def execute_command(cmd, verbose):
 	elif "--cluster" in cmd:
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
+			logging.debug(line.strip())
 			if verbose:
 				yield line
 			else:
@@ -202,6 +208,7 @@ def execute_command(cmd, verbose):
 	else:
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
+			logging.debug(line.strip())
 			if verbose:
 				yield line
 			else:
