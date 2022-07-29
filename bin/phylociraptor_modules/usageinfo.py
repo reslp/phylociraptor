@@ -340,8 +340,11 @@ phylociraptor util modify-busco - Modifies BUSCO set to only use specified genes
 Usage: phylociraptor util modify-busco <arguments>
 
 Required Arguments:
+	-b, --buscoset		Name of used BUSCO set. (Default: none)
 	-n, --ngenes		Number of genes. (Default: none)
+	OR
 	-g, --genes		Names of genes seperated by comma. (Default: none)
+	
 	
 Optional Arguments:
 	-s, --seed		Random seed for reproducibility. (Default: random)
