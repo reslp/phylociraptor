@@ -159,8 +159,6 @@ def execute_command(cmd, verbose):
 	curr_task = 0
 	if not os.path.isdir("log/phylociraptor"):
 		os.mkdir("log/phylociraptor")
-	logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S"), level=logging.DEBUG,format="%(message)s")	
-	logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 	if "-n" in cmd:
 		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
@@ -182,6 +180,8 @@ def execute_command(cmd, verbose):
 					jobcounts = False
 				line=""
 	elif "--cluster" in cmd:
+		logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+		logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
@@ -206,6 +206,8 @@ def execute_command(cmd, verbose):
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
 	else:
+		logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+		logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
@@ -750,8 +752,7 @@ elif args.command == "check":
 				nassemblies = 0
 				for assembly in os.listdir("results/assemblies"):
 					assembly = os.path.splitext(assembly)[0]
-					if ".fna" in assembly:
-						assembly = assembly.split(".fna")[0]
+					assembly = assembly.split(".")[0]
 					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
 						missing += assembly +","
 					nassemblies += 1

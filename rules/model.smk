@@ -83,11 +83,13 @@ rule iqtree_mt:
 		seed = config["seed"]
 	singularity:
 		containers["iqtree"]	
+	log:
+		"log/modeltest/iqtree/iqtree_mt-{aligner}-{alitrim}-{busco}.txt"
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
 		if [[ ! -d "results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}" ]]; then mkdir -p results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}; fi
-		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params}
+		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
 		touch {output.checkpoint}
 		"""
 
@@ -103,6 +105,8 @@ rule aggregate_best_models:
 	params:
 		wd = os.getcwd(),
 		genes = return_genes
+	log:
+		"log/modeltest/aggregate_best_models-{aligner}-{alitrim}.txt"
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
@@ -128,7 +132,7 @@ rule aggregate_best_models:
 #			meanbootstrap=$(echo "($bootstrapsum)/$totalbootstraps" | bc)
 			meanbootstrap=$(( bootstrapsum / totalbootstraps ))
 			echo -e "$gene\t{wildcards.aligner}\t{wildcards.alitrim}\t$bootstrapsum\t$totalbootstraps\t$meanbootstrap" | tee -a {output.genetree_filter_stats}
-		done
+		done 2>&1 | tee {log}
 		touch {output.checkpoint}
 
 		"""
@@ -142,5 +146,5 @@ rule modeltest:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part modeltest (model) done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor modeltest done." >> results/statistics/runlog.txt
 		"""

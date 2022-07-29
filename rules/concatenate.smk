@@ -31,6 +31,8 @@ rule concatenate:
 		genes = get_input_genes
 	singularity:
 		containers["concatnew"]	
+	log:
+		"log/mltree/concatenate-{aligner}-{alitrim}-{bootstrap}.txt"
 	shell:
 		"""
 		echo "$(date) - concatenate {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff {wildcards.bootstrap} before creating concatenated alignment" >> results/statistics/runlog.txt
@@ -40,7 +42,7 @@ rule concatenate:
 			cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn
 		done
 		# Now run concat:
-		concat.py -d results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn --runmode concat -o results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim} --biopython --statistics
+		concat.py -d results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn --runmode concat -o results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim} --biopython --statistics 2>&1 | tee {log}
 		
 		# Now convert alignment to phylip:
 		python -c "from Bio import AlignIO; alignment = AlignIO.read(open('{output.alignment}'), 'fasta'); print(' '+str(len(alignment))+' '+str(alignment.get_alignment_length())); print(''.join([str(seq.id)+'   '+str(seq.seq)+'\\n' for seq in alignment]));" > {output.phylip_alignment}

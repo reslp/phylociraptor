@@ -38,11 +38,13 @@ rule bmge:
 		params:
 			trimmer = config["trimming"]["bmge_parameters"],
 			type = config["filtering"]["seq_type"] 
+		log:
+			"log/filter-align/bmge/bmge_{aligner}_{busco}.txt"
 		singularity:
 			containers["bmge"]	
 		shell:
 			"""
-			bmge -i {input.alignment} -t $(if [[ "{params.type}" == "aa" ]]; then echo "AA"; else echo "NT"; fi) -of {output.trimmed_alignment}
+			bmge -i {input.alignment} -t $(if [[ "{params.type}" == "aa" ]]; then echo "AA"; else echo "NT"; fi) -of {output.trimmed_alignment} 2>&1 | tee {log}
 			"""
 
 rule trimal:
@@ -55,11 +57,13 @@ rule trimal:
 			"results/statistics/benchmarks/align/{aligner}_trimal_{busco}.txt"
 		params:
 			trimmer = config["trimming"]["trimal_parameters"]
+		log:
+			"log/filter-align/trimal/trimal_{aligner}_{busco}.txt"
 		singularity:
 			containers["trimal"]	
 		shell:
 			"""
-			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment}
+			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment} 2>&1 | tee {log}
 			"""
 rule aliscore:
 		input:
@@ -73,6 +77,8 @@ rule aliscore:
 			trimmer = config["trimming"]["aliscore_parameters"],
 			busco = "{busco}",
 			wd = os.getcwd()
+		log:
+			"log/filter-align/aliscore/aliscore_alicut_{aligner}_{busco}.txt"
 		singularity:
 			containers["aliscore"]	
 		shell:
@@ -81,13 +87,16 @@ rule aliscore:
 			mkdir -p results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
 			cd results/alignments/trimmed/{wildcards.aligner}-aliscore/{params.busco}
 			ln -s -f  {params.wd}/{input.alignment} {params.busco}_aligned.fas 
-			Aliscore.pl $(if [[ "{params.trimmer}" != "None" ]]; then echo "{params.trimmer}"; fi) -i {params.busco}_aligned.fas &> aliscore_{params.busco}.log || true
 			
+			echo "ALISCORE output:\n" > {params.wd}/{log}	
+			Aliscore.pl $(if [[ "{params.trimmer}" != "None" ]]; then echo "{params.trimmer}"; fi) -i {params.busco}_aligned.fas 2>&1 | tee {params.wd}/{log} aliscore_{params.busco}.log || true
+			
+			echo "\n\n ALICUT output:\n" >> {params.wd}/{log}	
 			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
 				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 				if [[ $(cat {params.busco}_aligned.fas_List_random.txt | head -n 1 | grep '[0-9]' -c) != 0 ]]; then
 					echo "$(date) - The aliscore output appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
-					ALICUT.pl -s &> alicut_{params.busco}.log
+					ALICUT.pl -s 2>&1 | tee -a {params.wd}/{log}
 				fi
 			fi
 			
@@ -240,6 +249,6 @@ rule filter_align:
 			out=$out"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}"
 			echo $out | sed 's/__/\t/g' >> results/statistics/trim-filter-overview.txt
 		done  
-		echo "$(date) - Pipeline part filter_align done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor filter-align done." >> results/statistics/runlog.txt
 		touch {output.checkpoint}
 		"""	

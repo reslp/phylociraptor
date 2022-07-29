@@ -89,7 +89,7 @@ if config["busco"]["version"] == "3.0.2":
 		benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
 		threads: int(config["busco"]["threads"])
 		shadow: "shallow"
-		log: "log/{species}_busco.log"
+		log: "log/orthology/{species}_busco.log"
 		params:
 			wd = os.getcwd(),
 			sp = config["busco"]["augustus_species"],
@@ -175,7 +175,7 @@ if config["busco"]["version"] == "5.2.1":
 		benchmark: "results/statistics/benchmarks/busco/run_busco_{species}.txt"
 		threads: int(config["busco"]["threads"])
 		shadow: "shallow"
-		log: "log/{species}_busco.log"
+		log: "log/orthology/{species}_busco.log"
 		params:
 			wd = os.getcwd(),
 			sp = config["busco"]["augustus_species"],
@@ -291,5 +291,5 @@ rule orthology:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 1 (orthology) done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor orthology done." >> results/statistics/runlog.txt
 		"""
