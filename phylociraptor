@@ -36,8 +36,8 @@ def help_message(mes):
 
 def determine_submission_mode(flag):
 	cmd = []
-	if "serial" in flag:
-		return ["--cores" + flag.replace("serial","")]
+	if "serial" or "local" in flag:
+		return ["--cores" + flag.replace("serial","").replace("local", "")]
 	elif "sge" in flag: # for SGE the dependencies need to be under quotes, because there are () characters in the dependency string.
 		return ["--cluster", "bin/immediate-submit/immediate_submit.py '{dependencies}' %s" % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 	else:
@@ -54,7 +54,7 @@ def get_flags(flags):
 	cmd = []
 	if debug:
 		print(now(), "DEBUG: flags: ", flags)
-	if flags["cluster_config"] == None and not "serial" in flags["cluster"]: #in case no cluster config file was specified, get default value
+	if flags["cluster_config"] == None and not "serial" in flags["cluster"] and not "local" in flags["cluster"]: #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
 		flags["cluster_config"] = ccf
 		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
@@ -283,7 +283,7 @@ class PhyloParser(argparse.ArgumentParser):
 		super().__init__(**kwargs)
 		self.add_argument("-f", "--force", action="store_true" )
 		self.add_argument("-F", "--FORCE", action="store_true" )
-		self.add_argument("-t", "--cluster",  action="store", default="serial")
+		self.add_argument("-t", "--cluster",  action="store", default="local")
 		self.add_argument("-c", "--cluster-config", action="store")
 		self.add_argument("--dry", action="store_true")
 		self.add_argument("-h", "--help", action="store_true")

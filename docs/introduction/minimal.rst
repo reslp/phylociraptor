@@ -33,9 +33,9 @@ At first it is necessary to download the genomes which should be analyzed. You c
 
 .. code-block:: bash
 
-        $ ./phylociraptor setup --verbose -t serial=1
+        $ ./phylociraptor setup --verbose -t local=1
 
-This command runs in serial mode (without job submission to an HPC job scheduling system) and should take about 5 minutes to complete.
+This command runs in local mode (without job submission to an HPC job scheduling system) and should take about 5 minutes to complete.
 
 
 .. note::
@@ -58,12 +58,12 @@ To infer single-copy orthologs in the six provided genomes run this command:
 
 .. code-block:: bash
         
-        $ ./phylociraptor orthology --verbose -t serial=4
+        $ ./phylociraptor orthology --verbose -t local=4
 
 
 .. note::
         
-        We will run this command using four threads as indicated with :bash:`serial=4`.
+        We will run this command using four threads as indicated with :bash:`local=4`. It is also possible to ommit the the number of threads and use just ``local``. In this case phylociraptor will use as many threads as available.
 
 This should take about 5 minutes to complete. Results of this step can be found in :bash:`results/orthology`.
 
@@ -76,7 +76,7 @@ This step is used to filter orthology results based on how many orthologs where 
 
 .. code-block:: bash
         
-        $ ./phylociraptor filter-orthology --verbose -t serial=1
+        $ ./phylociraptor filter-orthology --verbose -t local=1
 
 
 .. note::
@@ -94,7 +94,7 @@ In this step we will create alignments of the single-copy orthologs recovered in
 
 .. code-block:: bash
 
-        $ ./phylociraptor align --verbose -t serial=1
+        $ ./phylociraptor align --verbose -t local=1
 
 This step should take about three minutes to complete. Results will be in :bash:`results/alignments`.
 
@@ -108,7 +108,7 @@ Now the produced alignments will be trimmed using Aliscore/Alicut annd trimAl to
  
 .. code-block:: bash
 
-        $ ./phylociraptor filter-align --verbose -t serial=1
+        $ ./phylociraptor filter-align --verbose -t local=1
 
 Results of this step will be in :bash:`results/alignments`. It will take about four minutes for this step to complete.
 
@@ -122,7 +122,7 @@ Using filtered alignments we will now infer the best substitution model for each
 
 .. code-block:: bash
 
-        $ ./phylociraptor modeltest --verbose -t serial=4
+        $ ./phylociraptor modeltest --verbose -t local=4
 
 This step should finish in about five minutes and results will be located in :bash:`results/modeltest`
 
@@ -135,7 +135,7 @@ Now it is time to calculate full (concatenated) Maximum-Likelihood trees. We wil
 
 .. code-block:: bash
 
-        $ ./phylociraptor mltree --verbose -t serial=4
+        $ ./phylociraptor mltree --verbose -t local=4
 
 This step takes about 30 minutes to complete. Results are in :bash:`results/phylogeny-50 results/phylogeny-60 results/phylogeny-70`.
 
@@ -149,7 +149,7 @@ Finally we will calculate species trees for every aligner and trimmer combinatio
 
 .. code-block:: bash
 
-        $ ./phylociraptor speciestree --verbose -t serial=1
+        $ ./phylociraptor speciestree --verbose -t local=1
 
 This takes about a minute to complete. Results are in :bash:`results/phylogeny-50 results/phylogeny-60 results/phylogeny-70`.
 

@@ -56,7 +56,7 @@ Examples:
 """
 standard_arguments= """
 Argumemts:
-	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, serial.
+	-t, --cluster		Specify cluster type. Options: slurm, sge, torque, local. Default: local (no job submission)
 	-c, --cluster-config	Specify Cluster config file path. Default: data/cluster-config-CLUSTERTYPE.yaml.template
 	-f, --force		Soft force runmode which has already been run.
 	-F, --FORCE		Hard force runmode recreating all output.
