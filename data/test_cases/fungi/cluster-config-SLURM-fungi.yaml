@@ -6,8 +6,8 @@ __default__:
    mem: 4G
    partition: mem_0096 
    qos: mem_0096
-   output: $(pwd)/log/slurm-%j.out
-   error: $(pwd)/log/slurm-%j.err
+   output: $(pwd)/log/cluster-logs/slurm-%j.out
+   error: $(pwd)/log/cluster-logs/slurm-%j.err
 #### setup ####
 download_genome_overview:
    job-name: dloverview
