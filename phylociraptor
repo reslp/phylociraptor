@@ -36,8 +36,10 @@ def help_message(mes):
 
 def determine_submission_mode(flag):
 	cmd = []
-	if "serial" or "local" in flag:
-		return ["--cores" + flag.replace("serial","").replace("local", "")]
+	if "serial" in flag:
+		return ["--cores" + flag.replace("serial","")]
+	elif "local" in flag:
+		return ["--cores" + flag.replace("local", "")]
 	elif "sge" in flag: # for SGE the dependencies need to be under quotes, because there are () characters in the dependency string.
 		return ["--cluster", "bin/immediate-submit/immediate_submit.py '{dependencies}' %s" % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 	else:
@@ -150,7 +152,6 @@ def execute_command(cmd, verbose):
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	print(now(), "Please be patient as singularity containers are downloaded. This can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
@@ -186,6 +187,9 @@ def execute_command(cmd, verbose):
 			nline += 1
 			logging.debug(line.strip())
 			if verbose:
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				yield line
 			else:
 				result = line
@@ -195,6 +199,9 @@ def execute_command(cmd, verbose):
 					yield result
 				if result.startswith("Job counts"):
 					jobcounts = True	
+				if result.startswith("Pulling singularity"):
+					container = result.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
@@ -212,6 +219,9 @@ def execute_command(cmd, verbose):
 			nline += 1
 			logging.debug(line.strip())
 			if verbose:
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				yield line
 			else:
 				result = line
@@ -221,6 +231,9 @@ def execute_command(cmd, verbose):
 					yield now()+" There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
+				if result.startswith("Pulling singularity"):
+					container = result.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
