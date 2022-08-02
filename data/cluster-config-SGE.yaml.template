@@ -105,7 +105,7 @@ mltree:
    N: MLTREE
 ################
 #### speciestree ####
-astral_species_tree:
+astral:
    N: astral
    h_vmem: 48G
 aggregate_gene_trees:
