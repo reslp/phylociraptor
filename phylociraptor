@@ -8,6 +8,7 @@ import time
 import subprocess
 import argparse
 import glob
+import logging
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
@@ -37,6 +38,8 @@ def determine_submission_mode(flag):
 	cmd = []
 	if "serial" in flag:
 		return ["--cores" + flag.replace("serial","")]
+	elif "local" in flag:
+		return ["--cores" + flag.replace("local", "")]
 	elif "sge" in flag: # for SGE the dependencies need to be under quotes, because there are () characters in the dependency string.
 		return ["--cluster", "bin/immediate-submit/immediate_submit.py '{dependencies}' %s" % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 	else:
@@ -53,7 +56,7 @@ def get_flags(flags):
 	cmd = []
 	if debug:
 		print(now(), "DEBUG: flags: ", flags)
-	if flags["cluster_config"] == None and not "serial" in flags["cluster"]: #in case no cluster config file was specified, get default value
+	if flags["cluster_config"] == None and not "serial" in flags["cluster"] and not "local" in flags["cluster"]: #in case no cluster config file was specified, get default value
 		ccf = cluster_config_defaults[flags["cluster"]]
 		flags["cluster_config"] = ccf
 		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
@@ -144,18 +147,19 @@ def check_required_software():
 		sys.exit(1)
 	
 	
-def execute_command(cmd, verbose):
+def execute_command(cmd, verbose, isutil=False):
 	# this should also correctly parse and display:
 	# IncompleteFilesException
 	# when singularity command is not available
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	print(now(), "INFO: If you execute this command for the first time, singularity containers need to be downloaded which can take several minutes.")
 	line = ""
 	jobcounts = False
 	njobs = 0
 	char = ""
 	nline = 0
 	curr_task = 0
+	if not os.path.isdir("log/phylociraptor"):
+		os.mkdir("log/phylociraptor")
 	if "-n" in cmd:
 		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
@@ -177,9 +181,17 @@ def execute_command(cmd, verbose):
 					jobcounts = False
 				line=""
 	elif "--cluster" in cmd:
+		if not isutil:
+			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
+			logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
+			logging.debug(line.strip())
 			if verbose:
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				yield line
 			else:
 				result = line
@@ -189,6 +201,9 @@ def execute_command(cmd, verbose):
 					yield result
 				if result.startswith("Job counts"):
 					jobcounts = True	
+				if result.startswith("Pulling singularity"):
+					container = result.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
@@ -200,9 +215,17 @@ def execute_command(cmd, verbose):
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
 	else:
+		if not isutil:
+			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
+			logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
+			logging.debug(line.strip())
 			if verbose:
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				yield line
 			else:
 				result = line
@@ -212,6 +235,9 @@ def execute_command(cmd, verbose):
 					yield now()+" There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
+				if result.startswith("Pulling singularity"):
+					container = result.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
@@ -274,7 +300,7 @@ class PhyloParser(argparse.ArgumentParser):
 		super().__init__(**kwargs)
 		self.add_argument("-f", "--force", action="store_true" )
 		self.add_argument("-F", "--FORCE", action="store_true" )
-		self.add_argument("-t", "--cluster",  action="store", default="serial")
+		self.add_argument("-t", "--cluster",  action="store", default="local")
 		self.add_argument("-c", "--cluster-config", action="store")
 		self.add_argument("--dry", action="store_true")
 		self.add_argument("-h", "--help", action="store_true")
@@ -743,8 +769,7 @@ elif args.command == "check":
 				nassemblies = 0
 				for assembly in os.listdir("results/assemblies"):
 					assembly = os.path.splitext(assembly)[0]
-					if ".fna" in assembly:
-						assembly = assembly.split(".fna")[0]
+					assembly = assembly.split(".")[0]
 					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
 						missing += assembly +","
 					nassemblies += 1
@@ -1097,7 +1122,29 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
-			
+	if which_util == "manage-jobs":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-f","--logfile", action="store", default=None)
+		qs_parser.add_argument("-c", "--cancel", action="store_true", default=False)
+		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_modify_busco_help))
+			sys.exit(0)
+		if not qs_args.logfile:
+			list_of_files = glob.glob('log/phylociraptor/*')
+			lf = max(list_of_files, key=os.path.getctime)
+			print("No logfile specified. Will use the latest logfile:", lf)
+			qs_args.logfile = lf
+		cmd = ["python3", "bin/parse-log.py", "-f", qs_args.logfile, "-l"]
+		if qs_args.cancel:
+			cmd += ["--cancel"] 
+		if qs_args.verbose:
+			cmd += ["--verbose"]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet, True):
+			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")

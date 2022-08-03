@@ -73,7 +73,7 @@ rule download_genome_overview:
 		overview = "results/downloaded_genomes/assembly_summary_genbank.txt"
 	singularity: containers["biopython"]
 	log:
-		"log/download_genomes_overview.log"
+		"log/setup/download_genomes_overview.log"
 	threads: 2
 	params:
 		wd = os.getcwd(),
@@ -96,7 +96,7 @@ rule download_genomes:
 #		"results/statistics/benchmarks/setup/download_genomes.txt"
 	singularity: containers["biopython"]
 	log:
-		"log/download_genomes_{batch}-"+str(config["concurrency"])+".log"
+		"log/setup/download_genomes_{batch}-"+str(config["concurrency"])+".log"
 	params:
 		species = get_species_names,
 		wd = os.getcwd(),
@@ -233,7 +233,7 @@ rule download_busco_set:
 		set = config["busco"]["set"],
 		busco_version = config["busco"]["version"]
 	log:
-		"log/download_busco_set.log"
+		"log/setup/download_busco_set.log"
 	benchmark:
 		"results/statistics/benchmarks/setup/dowload_busco_set.txt"
 	shell:

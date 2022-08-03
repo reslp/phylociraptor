@@ -39,7 +39,7 @@ if config["exclude_orthology"]:
 			nbatches = config["concurrency"],
 		singularity:
 			containers["biopython"]
-		log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
+		log: "log/filter-orthology/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
 		shell:
 			""" 
 			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
@@ -67,7 +67,7 @@ else:
 			nbatches = config["concurrency"],
 		singularity:
 			containers["biopython"]
-		log: "log/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
+		log: "log/filter-orthology/exSeqfiles_{batch}-"+str(config["concurrency"])+".log"
 		shell:
 			""" 
 			if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
@@ -138,6 +138,6 @@ rule filter_orthology:
 		"results/checkpoints/modes/filter_orthology.done"
 	shell:
 		"""
-		echo "$(date) - Pipeline part filter-orthology done." >> results/statistics/runlog.txt
+		echo "$(date) - Phylociraptor filter-orthology done." >> results/statistics/runlog.txt
 		touch {output}
 		"""

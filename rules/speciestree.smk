@@ -112,9 +112,10 @@ rule astral:
 		seed=config["seed"]
 	singularity:
 		containers["astral"]	
+	log:	"log/speciestree/astral/astral-{aligner}-{alitrim}-{bootstrap}.txt"
 	shell:
 		"""
-		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree} $(if [[ "{params.seed}" != "None" ]]; then echo "-s {params.seed}"; fi)
+		java -jar /ASTRAL-5.7.1/Astral/astral.5.7.1.jar -i {input.trees} -o {output.species_tree} $(if [[ "{params.seed}" != "None" ]]; then echo "-s {params.seed}"; fi) 2>&1 | tee {log}
 		statistics_string="astral\t{wildcards.aligner}\t{wildcards.alitrim}\t{wildcards.bootstrap}\t$(cat {input.trees} | wc -l)\t$(cat {output.species_tree})"
 		echo -e $statistics_string > {params.wd}/{output.statistics}	
 		touch {output.checkpoint}
@@ -128,7 +129,7 @@ rule speciestree:
 	shell:
 		"""
 		
-		echo "$(date) - Speciestree reconstruction done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor speciestree reconstruction done." >> results/statistics/runlog.txt
 		touch {output}
 		"""
 

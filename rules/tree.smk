@@ -59,12 +59,14 @@ rule raxmlng:
 			wd = os.getcwd(),
 			additional_params = config["raxmlng"]["additional_params"],
 			seed = config["seed"]
+		log:
+			"log/mltree/raxml/raxml-{aligner}-{alitrim}-{bootstrap}.txt"
 		shell:
 			"""
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
 			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}
-			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{threads}} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params}
+			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{threads}} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params} 2>&1 | tee {params.wd}/{log}
 			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
@@ -128,10 +130,12 @@ rule iqtree:
 			genes = get_input_genes
 		threads:
 			config["iqtree"]["threads"]
+		log:
+			"log/mltree/iqtree/iqtree-{aligner}-{alitrim}-{bootstrap}.txt"
 		shell:
 			"""
 			cd results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim}/
-			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 
+			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {params.wd}/{log}
 			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}	
 			touch {params.wd}/{output.checkpoint}
@@ -200,5 +204,5 @@ rule mltree:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 3 (tree) done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor mltree (tree) done." >> results/statistics/runlog.txt
 		"""

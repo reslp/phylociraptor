@@ -35,7 +35,7 @@ rule clustalo:
 		benchmark:
 			"results/statistics/benchmarks/align/clustalo_align_{busco}.txt"
 		log:
-			"results/statistics/benchmarks/align/clustalo_align_{busco}.log.txt"
+			"log/align/clustalo/clustalo_align_{busco}.log.txt"
 		singularity:
 			containers["clustalo"]
 		threads:
@@ -56,7 +56,7 @@ rule mafft:
 		benchmark:
 			"results/statistics/benchmarks/align/mafft_align_{busco}.txt"
 		log:
-			"results/statistics/benchmarks/align/mafft_align_{busco}.log.txt"
+			"log/align/mafft/mafft_align_{busco}.log.txt"
 		singularity:
 			containers["mafft"]
 		threads:
@@ -76,7 +76,7 @@ rule muscle:
 		benchmark:
 			"results/statistics/benchmarks/align/muscle_align_{busco}.txt"
 		log:
-			"results/statistics/benchmarks/align/muscle_align_{busco}.log.txt"
+			"log/align/muscle/muscle_align_{busco}.log.txt"
 		singularity:
 			containers["muscle"]
 		threads:
@@ -111,13 +111,14 @@ rule get_alignment_statistics:
 		mafft_alignment_params = config["alignment"]["mafft_parameters"],
 		clustalo_alignment_params = config["alignment"]["clustalo_parameters"],
 		pars_sites = config["filtering"]["min_parsimony_sites"],
-		nbatches = config["concurrency"],
+		nbatches = config["concurrency"]
+	log:	"log/align/{aligner}_{batch}_get_aligment_statistics.txt"
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(ls -1 {params.wd}/results/orthology/busco/busco_runs/) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(ls -1 {params.wd}/results/orthology/busco/busco_runs/) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
 		mv results/statistics/statistics.txt {output.statistics_alignment}
 		# make this output tab delimited so it is easier to parse
 		ovstats="{params.alignment_method}"
@@ -140,5 +141,5 @@ rule align:
 	shell:
 		"""
 		touch {output}
-		echo "$(date) - Pipeline part 2 (align) done." >> results/statistics/runlog.txt
+		echo "$(date) - phylociraptor align done." >> results/statistics/runlog.txt
 		"""
