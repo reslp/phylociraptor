@@ -345,10 +345,21 @@ Required Arguments:
 	OR
 	-g, --genes		Names of genes seperated by comma. (Default: none)
 	
-	
 Optional Arguments:
 	-s, --seed		Random seed for reproducibility. (Default: random)
+	--quiet			Suppress on-screen output.
 
 """
 
+util_manage_jobs_help = """
+phylociraptor util manage-jobs - Lists (and cancels) submitted HPC jobs based on phylociraptor logfiles.
+
+Usage: phylociraptor util manage-jobs <arguments>
+	
+Optional Arguments:
+	-f, --logfile		Path to phylociraptor logfile. (Default: newest file in log/phylociraptor)
+	-c, --cancel		Whether to cancel found job IDs or not. (Default: false)
+	-v, --verbose		Display additional output. (Default: false)
+	--quiet			Suppress on-screen output.
+"""
 

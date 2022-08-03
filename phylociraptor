@@ -147,7 +147,7 @@ def check_required_software():
 		sys.exit(1)
 	
 	
-def execute_command(cmd, verbose):
+def execute_command(cmd, verbose, isutil=False):
 	# this should also correctly parse and display:
 	# IncompleteFilesException
 	# when singularity command is not available
@@ -181,8 +181,10 @@ def execute_command(cmd, verbose):
 					jobcounts = False
 				line=""
 	elif "--cluster" in cmd:
-		logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
-		logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
+		if not isutil:
+			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
+			logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
@@ -213,8 +215,10 @@ def execute_command(cmd, verbose):
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
 	else:
-		logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
-		logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
+		if not isutil:
+			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
+			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
+			logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
@@ -1118,7 +1122,29 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
-			
+	if which_util == "manage-jobs":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-f","--logfile", action="store", default=None)
+		qs_parser.add_argument("-c", "--cancel", action="store_true", default=False)
+		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_modify_busco_help))
+			sys.exit(0)
+		if not qs_args.logfile:
+			list_of_files = glob.glob('log/phylociraptor/*')
+			lf = max(list_of_files, key=os.path.getctime)
+			print("No logfile specified. Will use the latest logfile:", lf)
+			qs_args.logfile = lf
+		cmd = ["python3", "bin/parse-log.py", "-f", qs_args.logfile, "-l"]
+		if qs_args.cancel:
+			cmd += ["--cancel"] 
+		if qs_args.verbose:
+			cmd += ["--verbose"]
+		if debug:
+			print(cmd)
+		for line in execute_command(cmd, not qs_args.quiet, True):
+			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
