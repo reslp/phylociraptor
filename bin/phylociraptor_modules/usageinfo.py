@@ -220,6 +220,7 @@ Argumemts:
 	plot-similarity		plot heatmap of quartet similarity.
 	modify-busco		modify the used BUSCO set.
 				Can be run after phylociraptor setup is finished.
+	manage-jobs
 	-h, --help              Display help.
 
 """
