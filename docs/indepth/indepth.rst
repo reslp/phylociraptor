@@ -49,6 +49,10 @@ There are many additional approaches to infer orthology and in the future we pla
 
 For additional information on the inner workings of BUSCO please go `here <https://busco-archive.ezlab.org/>`_.
 
+.. hint::
+
+   Phylociraptor supports genome and transcriptome assmeblies as well as sets of protein sequences  as input.
+
 --------------------------------------
 filter-orthology Filter orthologs)
 --------------------------------------

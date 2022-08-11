@@ -62,7 +62,7 @@ Trimming:
 Tree inference:
 
 - iqtree 2.0.7 (http://www.iqtree.org/)
-- raxml-ng 1.0 (https://github.com/amkozlov/raxml-ng)
+- raxml-ng 1.1 (https://github.com/amkozlov/raxml-ng)
 - astral 5.7.1 (https://github.com/smirarab/ASTRAL)
 
 ## Getting phylociraptor
@@ -82,7 +82,7 @@ $ ./phylociraptor
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	  the rapid phylogenomic tree calculator, ver.0.9.7
+	  the rapid phylogenomic tree calculator, ver.0.9.9
 
 
 Usage: phylociraptor <command> <arguments>
@@ -152,26 +152,19 @@ The data.csv file should look something like this:
 
 ```
 $ cat data.csv
-species,Organism_Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
-"Ascobolus_immersus","Eukaryota;Fungi;Ascomycetes",59.5299,0,0,0,1,web
-"Ascodesmis_nigricans","Eukaryota;Fungi;Ascomycetes",27.3852,0,0,0,1,web
-"Cerataphis_brasiliensis_yeast-like_symbiont","Eukaryota;Fungi;Ascomycetes",25.4655,0,0,0,1,web
-"Choiromyces_venosus","Eukaryota;Fungi;Ascomycetes",126.035,0,0,0,1,web
-"Endocalyx_cinctus","Eukaryota;Fungi;Ascomycetes",44.7739,0,0,0,1,web
-"Margaritispora_aquatica","Eukaryota;Fungi;Ascomycetes",42.5173,0,0,0,1,web
-"Morchella_conica","Eukaryota;Fungi;Ascomycetes",52.4255,0,0,0,2,web
-"Neolecta_irregularis","Eukaryota;Fungi;Ascomycetes",14.1826,0,0,0,1,web
-"Nilaparvata_lugens_yeast-like_symbiont","Eukaryota;Fungi;Ascomycetes",26.8096,0,0,0,1,web
-"Pneumocystis_carinii","Eukaryota;Fungi;Ascomycetes",7.66146,0,0,0,1,web
-"Pneumocystis_jirovecii","Eukaryota;Fungi;Ascomycetes",8.39624,0,0,0,3,web
-"Protomyces_sp._C29","Eukaryota;Fungi;Ascomycetes",11.928,0,0,0,1,web
-"Sclerotium_cepivorum","Eukaryota;Fungi;Ascomycetes",56.335,0,0,0,1,web
-"Taxomyces_andreanae","Eukaryota;Fungi;Ascomycetes",43.1525,0,0,0,1,web
-"Terfezia_boudieri","Eukaryota;Fungi;Ascomycetes",63.2346,0,0,0,1,web
-"Amphirosellinia_nigrospora","Eukaryota;Fungi;Ascomycetes",48.1778,0,0,0,1,data/assemblies/assembly.fas
+species,web_local,mode
+Salpingoeca rosetta,web=GCA_000188695.1,
+Coccidioides posadasii,web,
+Sclerophora sanguinea,data/assemblies/Sclerophora_sanguinea_Sclsan1_AssemblyScaffolds_Repeatmasked.fasta,
+Capsaspora owczarzaki,web=GCA_000151315.2,
+Dictyostelium lacteum,web=GCA_001606155.1,
+Paraphelidium tribonemae,data/assemblies/EP00158_Paraphelidium_tribonemae.fasta,protein
+Synchytrium microbalum,web=GCA_006535985.1,
+Nuclearia sp,data/assemblies/Nuclearia_sp_trinity_cdhit-0.95.fasta,transcriptome
+Stereomyxa ramosa,data/assemblies/Stereomyxa_ramosa_trinity_cdhit-0.95.fasta,transcriptome
 ``` 
 
-The basis of this file can be a CSV file directly downloaded from the [NCBI Genome Browser](https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/). Just mind the changed header and additional column in the example above. The mandatory columns are the `species` and the `web_local` column. The first is the species name and the second specifies whether the genome is provided locally (in which case you should specify the path to the assembly) or not (in which case you should specify web). It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything.
+The basis of this file can be a CSV file directly downloaded from the [NCBI Genome Browser](https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/). Just mind the changed header and additional column in the example above. The mandatory columns are the `species` and the `web_local` column. The first is the species name and the second specifies whether the genome is provided locally (in which case you should specify the path to the assembly) or not (in which case you should specify web). It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything. It is also possible to use transcriptome assemblies or sets of proteins. Please refer to the documentation for more information.
 
 
 

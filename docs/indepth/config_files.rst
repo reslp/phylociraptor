@@ -14,9 +14,9 @@
 .. _NCBI Genome Browser: https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/
 .. _biomartr: https://github.com/ropensci/biomartr
  
-============================
-Configuring the config files
-============================
+================
+The config files
+================
 
 Phylociraptor uses two main config files for setting analysis options:
 
@@ -107,35 +107,51 @@ The samples CSV file
 This is the second most important file phylociraptor needs to run and probably the most important file for you. In this file you specify which samples should be analyzed and whether they should be downloaded automatically or if you provide them as local files. Here is an example for a sample file which is part of phylociraptor when you clone it from github.
 
 .. code-block:: bash
+   :linenos:
 
-   species,Organism_Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
-   "Ascobolus_immersus","Eukaryota;Fungi;Ascomycetes",59.5299,0,0,0,1,web
-   "Ascodesmis_nigricans","Eukaryota;Fungi;Ascomycetes",27.3852,0,0,0,1,web
-   "Cerataphis_brasiliensis_yeast-like_symbiont","Eukaryota;Fungi;Ascomycetes",25.4655,0,0,0,1,web
-   "Choiromyces_venosus","Eukaryota;Fungi;Ascomycetes",126.035,0,0,0,1,web
-   "Endocalyx_cinctus","Eukaryota;Fungi;Ascomycetes",44.7739,0,0,0,1,web
-   "Margaritispora_aquatica","Eukaryota;Fungi;Ascomycetes",42.5173,0,0,0,1,web
-   "Morchella_conica","Eukaryota;Fungi;Ascomycetes",52.4255,0,0,0,2,web
-   "Neolecta_irregularis","Eukaryota;Fungi;Ascomycetes",14.1826,0,0,0,1,web
-   "Nilaparvata_lugens_yeast-like_symbiont","Eukaryota;Fungi;Ascomycetes",26.8096,0,0,0,1,web
-   "Pneumocystis_carinii","Eukaryota;Fungi;Ascomycetes",7.66146,0,0,0,1,web
-   "Pneumocystis_jirovecii","Eukaryota;Fungi;Ascomycetes",8.39624,0,0,0,3,web
-   "Protomyces_sp._C29","Eukaryota;Fungi;Ascomycetes",11.928,0,0,0,1,web
-   "Sclerotium_cepivorum","Eukaryota;Fungi;Ascomycetes",56.335,0,0,0,1,web
-   "Taxomyces_andreanae","Eukaryota;Fungi;Ascomycetes",43.1525,0,0,0,1,web
-   "Terfezia_boudieri","Eukaryota;Fungi;Ascomycetes",63.2346,0,0,0,1,web
-   "Amphirosellinia_nigrospora","Eukaryota;Fungi;Ascomycetes",48.1778,0,0,0,1,web
+   species,web_local,mode
+   Salpingoeca rosetta,web=GCA_000188695.1,
+   Coccidioides posadasii,web,
+   Sclerophora sanguinea,data/assemblies/Sclerophora_sanguinea_Sclsan1_AssemblyScaffolds_Repeatmasked.fasta,
+   Capsaspora owczarzaki,web=GCA_000151315.2,
+   Dictyostelium lacteum,web=GCA_001606155.1,
+   Paraphelidium tribonemae,data/assemblies/EP00158_Paraphelidium_tribonemae.fasta,protein
+   Synchytrium microbalum,web=GCA_006535985.1,
+   Nuclearia sp,data/assemblies/Nuclearia_sp_trinity_cdhit-0.95.fasta,transcriptome
+   Stereomyxa ramosa,data/assemblies/Stereomyxa_ramosa_trinity_cdhit-0.95.fasta,transcriptome
 
+Let us look at this example in more detail as it contains many different input formats line by line.
 
-This file is very similar to the TSV file you can download from the `NCBI Genome Browser`_ . The reason for this is to make it easy to use files downloaded from the Genome Browser with phylociraptor. To make a TSV file you will to make only minimal changes:
+**Line 1** is the mandatory header line with the three mandatory columns seperated by comma (``,``).
 
-1. Make sure the header line is compatible with phylocirpator:
+**Line 2** specifies that a genome for the species ``Salpingoeca rosetta`` should be downloaded (indicated by ``web``). A specific assembly is specified which is ``GCA_000188695.1``. THlast column (``mode``) is empty which means that the default mode (which is ``genome``) should be applied during orthology search.
 
-This is how it should look like:
+**Line 3** specifies the taxon ``Coccidioides posadasii`` for which an assembly will be downloaded from NCBI. Phylocirpator will decide which assembly to download in case there are multiple options.
+
+**Line 4**:  for ``Sclerophora sanguinea`` we specify a locally provided genome assembly using a *relative* path.
+
+.. tip::
+   
+   Only relative paths are supported here. We recommend placing all files fo locally provided assemblies and protein set in ``data/assemblies`` to avoid problems.
+
+**Lines 5,6 and 8** are like **Line 2**. A specific genome assembly will be downloaded automatically.
+
+**Line 7** specifies a locally provided set of predicted proteins for ``Paraphelidium tribonemae``. We need to indicated that this is a protein set in the column ``mode``.
+
+**Line 9 and 10** specify locally provided transcriptome assemblies. We need to indicate that these are transcriptomes in the column ``mode``.
+
+Using files from NCBI Genome Browser
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
+The samples file is very similar to the TSV file you can download from the `NCBI Genome Browser`_ . This makes it easy to use files downloaded from the Genome Browser with phylociraptor. To make a TSV file you will to make only minimal changes:
+
+1. Make sure the header line is compatible with phylocirpator and that the mandatory columns (``species web_local mode``) are present.
+
+This is how it should look like, if you use the file from NCBI Genome Browser as basis:
 
 .. code-block:: bash
 
-	species,Organism_Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
+	species,Organism_Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local,mode
 
 2. Add information to the last column to let phylocirpator know if a genomes should be downloaded :bash:`web` or is provided locally :bash:`local`.
 
@@ -149,7 +165,7 @@ Now you can add your local files to the file at the end if you want. As said abo
 
 .. code-block:: bash
 
-	Gouania hofrichteri,,,,,,,data/assemblies/Gouania_hofrichteri_4616STDY8352653_CONSENSUS_filtered20.fasta
+	Gouania hofrichteri,,,,,,,data/assemblies/Gouania_hofrichteri_4616STDY8352653_CONSENSUS_filtered20.fasta,
 
 As you can see the last column contains the path to the assembly which should be used for this species. phylociraptor will realize that this is a locally provided file and not try to download it. This path has to be relative to the working directory of phylociraptor. To ensure that there are no problems with the paths to locally provided files it is a good idea to place the assemblies inside the :bash:`data/assemblies` directory.
 
