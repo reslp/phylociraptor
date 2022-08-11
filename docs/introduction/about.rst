@@ -44,16 +44,18 @@ dependencies:
 
 * mafft 7.464 - `https://mafft.cbrc.jp/alignment/software/ <https://mafft.cbrc.jp/alignment/software/>`_
 * clustalo 1.2.4 - `http://www.clustal.org/omega/ <http://www.clustal.org/omega/>`_
+* muscle 5.1 - `https://drive5.com/muscle5/ <https://drive5.com/muscle5/>`_
 
 **Trimming:**
 
 * trimal 1.4.1 - `http://trimal.cgenomics.org/ <http://trimal.cgenomics.org/>`_
 * Aliscore/Alicut 2.31 - `https://www.zfmk.de/en/research/research-centres-and-groups/aliscore <https://www.zfmk.de/en/research/research-centres-and-groups/aliscore>`_ - `https://github.com/PatrickKueck/AliCUT <https://github.com/PatrickKueck/AliCUT>`_
+* bmge 1.12 - `https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/ <https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/>`_
 
 **Tree inference:**
 
 * iqtree 2.0.7 - `http://www.iqtree.org/ <http://www.iqtree.org/>`_
-* raxml-ng 1.0 - `https://github.com/amkozlov/raxml-ng <https://github.com/amkozlov/raxml-ng>`_
+* raxml-ng 1.1 - `https://github.com/amkozlov/raxml-ng <https://github.com/amkozlov/raxml-ng>`_
 * astral 5.7.1 - `https://github.com/smirarab/ASTRAL <https://github.com/smirarab/ASTRAL>`_
 * quicktree 2.5 - `https://github.com/khowe/quicktree <https://github.com/khowe/quicktree>`_
 

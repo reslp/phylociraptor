@@ -28,7 +28,7 @@ Phylocirpator only has two requirements:
 
 * `snakemake`_ 6.0.2
 
-* `singularity`_ 3.4.1+ or `docker`_ 
+* `singularity <https://sylabs.io/>`_ 3.4.1+ or `docker`_ 
 
 All other software used is prepackaged in containers and no installation is needed.
 
