@@ -913,8 +913,38 @@ elif args.command == "check":
 						if check_args.verbose:
 							print("\t These gene trees are missing:")
 							print("\t", missing)
-						
+			if mode == "mltree":
+				phylolist = glob.glob("results/phylogeny-*")
+				if len(phylolist) == 0:
+					continue
+				for p in phylolist:
+					iqtree_combs = glob.glob(p+"/iqtree/*")
+					if check_args.verbose:
+						print("\tResults for bootstrap cut-off:",p.split("-")[-1])
+						if len(iqtree_combs) > 0:
+							nmltrees = 0
+							mltreemissing = []
+							for comb in iqtree_combs:
+								if os.path.isfile(comb+"/concat.contree"):
+									nmltrees += 1
+								else:
+									mltreemissing.append(comb.split("/")[-1])
+							print("\t\tIQTREE: Found", len(iqtree_combs), "aligner-trimmer combinations of which", nmltrees, "are finished.")
+							if len(mltreemissing) > 0:
+								print("\t\tMISSING:", ",".join(mltreemissing))	
 				
+						iqtree_combs = glob.glob(p+"/raxml/*")
+						if len(iqtree_combs) > 0:
+							nmltrees = 0
+							mltreemissing = []
+							for comb in iqtree_combs:
+								if os.path.isfile(comb+"/raxmlng.raxml.consensusTree"):
+									nmltrees += 1
+								else:
+									mltreemissing.append(comb.split("/")[-1])
+							print("\t\tRAXMLNG: Found", len(iqtree_combs), "aligner-trimmer combinations of which", nmltrees, "are finished.")
+							if len(mltreemissing) > 0:
+								print("\t\tMISSING:", ",".join(mltreemissing))	
 		elif failed == 2:	
 			print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
 		else:
