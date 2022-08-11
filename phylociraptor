@@ -249,7 +249,7 @@ def execute_command(cmd, verbose, isutil=False):
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				line=""
 
-def get_additional_snakemake_flags(flags, rerun):
+def get_additional_snakemake_flags(flags, rerun, unlock):
 	if flags:
 		flags= flags.strip() #need to remove trailing charcters such as spaces first otherwise the list will be messed up
 	if rerun: # add --rerun-incomplete in case it is set
@@ -257,6 +257,11 @@ def get_additional_snakemake_flags(flags, rerun):
 			flags += " --rerun-incomplete"
 		else:
 			flags += "--rerun-incomplete"
+	if unlock:
+		if flags:
+			flags += " --unlock"
+		else:
+			flags += "--unlock"
 	if flags:
 		print(now(), "INFO: Additional flags will be passed on to snakemake: ", flags)
 		return flags.split(" ")
@@ -308,6 +313,7 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--singularity", action="store",dest="si_args", default="")
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
+		self.add_argument("--unlock", action="store_true", dest="unlock", default=False)
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -350,7 +356,7 @@ if args.command == "setup":
 		cmd += ["busco={set: %s}" % setup_args.busco_set]
 		cmd += ["species='%s'" % setup_args.samples_file]
 	
-	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun)
+	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun, setup_args.unlock)
 	cmd += get_additional_singularity_flags(setup_args.si_args)
 
 	for line in execute_command(cmd, setup_args.verbose):
@@ -392,7 +398,7 @@ elif args.command=="orthology":
 		arg+="}"
 		cmd += [arg]
 	
-	cmd += get_additional_snakemake_flags(orthology_args.sm_args, orthology_args.rerun)
+	cmd += get_additional_snakemake_flags(orthology_args.sm_args, orthology_args.rerun, orthology_args.unlock)
 	cmd += get_additional_singularity_flags(orthology_args.si_args)
 
 	
@@ -450,7 +456,7 @@ elif args.command=="filter-orthology":
 		arg += "}"
 		cmd += [arg]
 	
-	cmd += get_additional_snakemake_flags(forthology_args.sm_args, forthology_args.rerun)
+	cmd += get_additional_snakemake_flags(forthology_args.sm_args, forthology_args.rerun, forthology_args.unlock)
 	cmd += get_additional_singularity_flags(forthology_args.si_args)
 	
 	for line in execute_command(cmd, forthology_args.verbose):
@@ -496,7 +502,7 @@ elif args.command=="align":
 		arg += " }"
 		cmd += [arg]	
 	
-	cmd += get_additional_snakemake_flags(align_args.sm_args, align_args.rerun)
+	cmd += get_additional_snakemake_flags(align_args.sm_args, align_args.rerun, align_args.unlock)
 	cmd += get_additional_singularity_flags(align_args.si_args)
 	
 	for line in execute_command(cmd, align_args.verbose):
@@ -539,7 +545,7 @@ elif args.command=="filter-align":
 		arg += "}"
 		cmd += [arg]
 
-	cmd += get_additional_snakemake_flags(falign_args.sm_args, falign_args.rerun)
+	cmd += get_additional_snakemake_flags(falign_args.sm_args, falign_args.rerun, falign_args.unlock)
 	cmd += get_additional_singularity_flags(falign_args.si_args)
 
 	for line in execute_command(cmd, falign_args.verbose):
@@ -567,7 +573,7 @@ elif args.command=="speciestree":
 	if sptree_args.config_file:
 		cmd += check_config_file(sptree_args.config_file)
 	
-	cmd += get_additional_snakemake_flags(sptree_args.sm_args, sptree_args.rerun)
+	cmd += get_additional_snakemake_flags(sptree_args.sm_args, sptree_args.rerun, sptree_args.unlock)
 	cmd += get_additional_singularity_flags(sptree_args.si_args)
 	
 	for line in execute_command(cmd, sptree_args.verbose):
@@ -595,7 +601,7 @@ elif args.command=="njtree":
 	if njtree_args.config_file:
 		cmd += check_config_file(njtree_args.config_file)
 	
-	cmd += get_additional_snakemake_flags(njtree_args.sm_args, njtree_args.rerun)
+	cmd += get_additional_snakemake_flags(njtree_args.sm_args, njtree_args.rerun, njtree_args.unlock)
 	cmd += get_additional_singularity_flags(njtree_args.si_args)
 	
 	for line in execute_command(cmd, njtree_args.verbose):
@@ -623,7 +629,7 @@ elif args.command=="mltree":
 	if tree_args.config_file:
 		cmd += check_config_file(tree_args.config_file)
 	
-	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun)
+	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun, tree_args.unlock)
 	cmd += get_additional_singularity_flags(tree_args.si_args)
 	
 	
@@ -652,7 +658,7 @@ elif args.command=="modeltest":
 	if model_args.config_file:
 		cmd += check_config_file(model_args.config_file)
 	
-	cmd += get_additional_snakemake_flags(model_args.sm_args, model_args.rerun)
+	cmd += get_additional_snakemake_flags(model_args.sm_args, model_args.rerun, model_args.unlock)
 	cmd += get_additional_singularity_flags(model_args.si_args)
 
 	for line in execute_command(cmd, model_args.verbose):
