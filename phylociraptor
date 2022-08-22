@@ -13,7 +13,6 @@ try:
 	import snakemake
 except ImportError:
 	print("Snakemake not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
-	sys.exit(1)
 
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
@@ -22,7 +21,7 @@ try:
 	if snakemake.__version__ != "6.0.2":
 		print("WARNING: You are using a different Snakemake version (", snakemake.__version, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
 except:
-	print("WARNING: Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommend to install snakemake v6.0.2.")
+	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommend to install snakemake v6.0.2.")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
