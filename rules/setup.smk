@@ -80,7 +80,7 @@ rule download_genome_overview:
 		email = config["email"]
 	shell:
 		"""
-		python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only &> {log}
+		python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only 2>&1 | tee {log}
 		"""
 
 rule download_genomes:
