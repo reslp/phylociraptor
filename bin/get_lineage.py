@@ -2,16 +2,16 @@
 import sys, time
 from Bio import Entrez
 import pandas as pd
-Entrez.email = "philipp.resl@uni-graz.at"
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
 	print("Not enough arguments!")
 	print("usage:")
-	print("get_lineage.py <download_statistics_file> <outputfile>")
+	print("get_lineage.py <download_statistics_file> <outputfile> <email>")
 	sys.exit(1)
 
 summary_file = open(sys.argv[1], "r")
 outfilename = sys.argv[2]
 
+Entrez.email = sys.argv[3]
 handle = Entrez.efetch(db="Taxonomy", id=310279, retmode="xml")
 records = Entrez.read(handle)
 #import code

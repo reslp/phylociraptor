@@ -984,6 +984,7 @@ elif args.command == "util":
 		gl_parser.add_argument("-g","--genomefile", action="store", default="results/statistics/downloaded_genomes_statistics.txt")
 		gl_parser.add_argument("-o", "--outfile", action="store") 
 		gl_parser.add_argument("--quiet", action="store_true", default=False) 
+		gl_parser.add_argument("--email", action="store", default="user@domain.com")
 		gl_args = gl_parser.parse_args(args.arguments) 
 		if gl_args.help: 
 			print(help_message(util_lineage_help))
@@ -994,7 +995,7 @@ elif args.command == "util":
 		if not os.path.isfile(gl_args.genomefile):
 			print(now(), "Genome file not found:",gl_args.genomefile)
 			sys.exit(1)
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.outfile]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.outfile, gl_args.email]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not gl_args.quiet):

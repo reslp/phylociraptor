@@ -237,6 +237,7 @@ Arguments:
 				Default: results/statistics/downloaded_genomes_statistics.txt	
 	-o, --outfile		Output file name.
 	--quiet			Suppress on-screen output.
+	--email			Your email address to identify yourself to the NCBI Entrez service.
 
 """
 
