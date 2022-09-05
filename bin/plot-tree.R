@@ -284,6 +284,32 @@ get_conflicts_and_support <- function(tree, conflict_quartets) {
   return(thickness)
 }
 
+reroot_my_tree <- function (tree, outgroup){
+	tryCatch(
+		{	
+			rootnode <- getMRCA(tree, outgroup)
+			tree <- root(tree, node=rootnode, resolve.root = TRUE)
+			return(tree)
+ 		},
+		error = function(e) {
+			cat("There was an error while rerooting the tree. Will plot the tree as is. Please check manually\n")
+			return(tree)
+		})
+}
+
+# this function adds the missing tips (the ones for which no lineage info was downloaded) to the plotting dataframe so the tips get colors
+add_missing_tips <- function(simpdf, tree) {
+      for (tip in tree$tip.label) {
+	if ( tip %in% simpdf$name) {
+		next
+	} else {
+		df <- data.frame("name"=tip, "lineage"="missing")
+		simpdf <- rbind(simpdf, df)
+		}
+      }
+      return(simpdf)
+}
+
 # generate some colors
 if (runmode == "plot") {
   if (level == "none") {
@@ -302,8 +328,7 @@ if (runmode == "plot") {
       #reroot tree
       tree <- read.tree(treename)
       if (outgroup != "none") { #reroot tree in case an outgroup was specified
-        rootnode <- getMRCA(tree, outgroup)
-        tree <- root(tree, node=rootnode, resolve.root = TRUE)
+        tree <- reroot_my_tree(tree,outgroup)
       }
       #plot(tree)
       ntips <- length(tree$tip.label)
@@ -359,9 +384,9 @@ if (runmode == "plot") {
         cols <- sample(color, length(na.omit(unique(lineages[,level]))), replace=T)
       } else {cols <- sample(color, length(na.omit(unique(lineages[,level]))))}
     }
-    
     names(cols) <- na.omit(unique(lineages[,level]))
-    
+    cols["missing"] <- "black"
+
     cat("The awesome code for plotting subtrees as triangles comes from here: https://jean.manguy.eu/post/subtrees-as-triangles-with-ggtree/\n")
     all_supports_list <- list()
     all_names <- c()
@@ -377,8 +402,7 @@ if (runmode == "plot") {
       #reroot tree
       tree <- read.tree(treename)
       if (outgroup != "none") { #reroot tree in case an outgroup was specified
-        rootnode <- getMRCA(tree, outgroup)
-        tree <- root(tree, node=rootnode, resolve.root = TRUE)
+        tree <- reroot_my_tree(tree,outgroup)
       }
       #plot(tree)
       ntips <- length(tree$tip.label)
@@ -430,7 +454,7 @@ if (runmode == "plot") {
       triangles_df <- tree %>%
         get_triangle_coordinates(nodes_to_collapse)
       
-      cat("    Plot collapsed tree...\n")
+      cat("    Plot right (collapsed) tree...\n")
       t1 <- ggtree::ggtree(collapsed_tree_df) +
         geom_polygon(
           data = triangles_df,
@@ -447,11 +471,14 @@ if (runmode == "plot") {
       #need to create a dataframe with just the right taxonomic level to be used for coloring the tree...
       simpdf <- lineages[c("name",level)]
       colnames(simpdf) <- c("name", "lineage")
-      
+      simpdf <- add_missing_tips(simpdf, tree)
 
-      cat("    Plot second tree without conflicts...\n")
-      t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=2, align=TRUE, geom="text") +scale_color_manual(values=cols) +theme(legend.position = c("none"))
-
+      cat("    Plot left (uncollapsed) tree...\n")
+      t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
+      #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
+      pdf(file="test.pdf", width=10, height=40)
+      print(t2)
+      dev.off()
       t2 <- t2 + coord_cartesian(clip = 'off')
       minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
       maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
@@ -511,10 +538,12 @@ if (runmode == "plot") {
   tree2 <- read.tree(treepath2)
   
   if (outgroup != "none") { #reroot tree in case an outgroup was specified
-    rootnode <- getMRCA(tree1, outgroup)
-    tree1 <- root(tree1, node=rootnode, resolve.root = TRUE)
-    rootnode <- getMRCA(tree2, outgroup)
-    tree2 <- root(tree2, node=rootnode, resolve.root = TRUE)
+    tree1 <- reroot_my_tree(tree1,outgroup)
+    tree2 <- reroot_my_tree(tree2,outgroup)  
+    #rootnode <- getMRCA(tree1, outgroup)
+    #tree1 <- root(tree1, node=rootnode, resolve.root = TRUE)
+    #rootnode <- getMRCA(tree2, outgroup)
+    #tree2 <- root(tree2, node=rootnode, resolve.root = TRUE)
   } else {cat("No outgroup was set. The plotted tree comparison may look weird.\n")}
   
   conflicts_t <- conflicts[paste0(treenames[1], "-", treenames[2]),]
@@ -535,11 +564,13 @@ if (runmode == "plot") {
     cat("Will add lineage information...\n")
     simpdf <- lineages[c("name",level)]
     colnames(simpdf) <- c("name", "lineage")
+    simpdf <- add_missing_tips(simpdf, tree2)  
+
     t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text")  +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
     minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
     maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
     t1 <- t1+xlim(minx, maxx+40) 
-    
+   
     t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text")+theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
     #reverse coordinates and create space for labels
     minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
