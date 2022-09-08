@@ -362,10 +362,6 @@ if (runmode == "plot") {
       #factor(lineages["order"][,1])
       
       # extract legend then remove it
-      
-      
-      
-      cat(paste0("    write PDF: ",prefix,"-",level,"-tree.pdf\n"))
       pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
       print(t2 + theme(legend.position="none"))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
       #plot.new()
@@ -373,7 +369,7 @@ if (runmode == "plot") {
       dev.off()
       if (single == TRUE) {break}
     }
-  } else {
+  } else { # plot tree when lineage information is available.
     cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
     # keep the older color code below for reference:
     #if (length(na.omit(lineages[,level])) <= 11) {
@@ -415,6 +411,8 @@ if (runmode == "plot") {
       node_names_support <- c()
       nodes_to_collapse <- c()
       node_supports <- c()
+      nodes_singletons <- c()
+      node_names_singletons <- c()
       for (name in unique(lineages[,level])) {
         which_tips <- lineages$name[lineages[level] == name][lineages$name[lineages[level] == name] %in% tree$tip.label]
         #print(which_tips)
@@ -439,7 +437,9 @@ if (runmode == "plot") {
             node_names_support <- c(node_names_support, name)
           }
         } else {
-          cat(paste0("    SINGLETON ", name, "\n"))
+	  nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
+	  node_names_singletons <- c(node_names_singletons, name)
+	  cat(paste0("    SINGLETON ", name, "\n"))
         }
       }
       
@@ -484,11 +484,12 @@ if (runmode == "plot") {
       minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
       maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
       t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
-      # now we create clade labels for the tree
-      clade_label_df <- as.data.frame(nodes_to_collapse)
+
+      # now we create clade labels for the tree; this now also includes singleton nodes
+      names(nodes_singletons) <- node_names_singletons
+      clade_label_df <- as.data.frame(c(nodes_to_collapse, nodes_singletons))
       clade_label_df$name <- rownames(clade_label_df)
       colnames(clade_label_df) <- c("node", "name")
-      
       t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
       
       # extract legend then remove it
