@@ -9,6 +9,7 @@ suppressMessages(library(cowplot))
 suppressMessages(library(ggplot2))
 suppressMessages(library(reshape2))
 suppressMessages(library(RColorBrewer))
+suppressMessages(library(colorspace))
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -43,10 +44,6 @@ if (runmode == "plot") {
 # reformat commandline argument:
 outgroup <- strsplit(outgroup,",")[[1]]
 treenames <- strsplit(treenames,",")[[1]]
-
-#print(outgroup)
-#print(treenames)
-#print(lineage_file)
 
 #set seed if specified
 if (seed != "random") {
@@ -187,11 +184,16 @@ is_node_supported <- function(support) {
   }
 }
 
-generate_color <- function(label) {
-  colors <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-  
+generate_colors <- function(ncols) {
+  color_palette <- qualitative_hcl(ncols, alpha=c(0.6,1), l=c(30,100), c=200) # the parameters used here have been working well in a number of scenarios
+  return(color_palette)
 }
-  
+ 
+get_pdf_height <- function(tree) {
+	size_per_tip = 0.2 # in inches
+	return(round(length(tree$tip.label) * size_per_tip, digits=0))
+}
+ 
 get_conflicts <- function(tree, conflict_quartets) {
   if (length(conflict_quartets) == 0) {cat("WARNING: NO CONFLICTS IN SELECTION!\n")}
   edge_thickness <- rep(1, length(tree$edge.length)+1)
@@ -310,7 +312,6 @@ add_missing_tips <- function(simpdf, tree) {
       return(simpdf)
 }
 
-# generate some colors
 if (runmode == "plot") {
   if (level == "none") {
     cat("Plotting tree(s) without lineage information.\n")
@@ -365,7 +366,7 @@ if (runmode == "plot") {
       
       
       cat(paste0("    write PDF: ",prefix,"-",level,"-tree.pdf\n"))
-      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=70)
+      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
       print(t2 + theme(legend.position="none"))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
       #plot.new()
       #print(legend)
@@ -373,17 +374,20 @@ if (runmode == "plot") {
       if (single == TRUE) {break}
     }
   } else {
-    if (length(na.omit(lineages[,level])) <= 11) {
+    cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
+    # keep the older color code below for reference:
+    #if (length(na.omit(lineages[,level])) <= 11) {
       # prettier colors when there are not too many different models
-      cols <- brewer.pal(length(na.omit(lineages[,level])), "BrBG")	
-    } else {
+      #cols <- brewer.pal(length(na.omit(lineages[,level])), "BrBG")	
+    #} else {
       # we need more colors
-      color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-      if (length(na.omit(unique(lineages[,level]))) > length(color)){
-        # if there are more taxa than available colors sample colors with replacement, this could result in some groups having the same color
-        cols <- sample(color, length(na.omit(unique(lineages[,level]))), replace=T)
-      } else {cols <- sample(color, length(na.omit(unique(lineages[,level]))))}
-    }
+
+      #color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+      #if (length(na.omit(unique(lineages[,level]))) > length(color)){
+      #  # if there are more taxa than available colors sample colors with replacement, this could result in some groups having the same color
+      #  cols <- sample(color, length(na.omit(unique(lineages[,level]))), replace=T)
+      #} else {cols <- sample(color, length(na.omit(unique(lineages[,level]))))}
+    #}
     names(cols) <- na.omit(unique(lineages[,level]))
     cols["missing"] <- "black"
 
@@ -476,9 +480,6 @@ if (runmode == "plot") {
       cat("    Plot left (uncollapsed) tree...\n")
       t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
       #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
-      pdf(file="test.pdf", width=10, height=40)
-      print(t2)
-      dev.off()
       t2 <- t2 + coord_cartesian(clip = 'off')
       minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
       maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
@@ -499,7 +500,7 @@ if (runmode == "plot") {
       "
 
       cat(paste0("    Write PDF...",prefix,"-",level,"-tree.pdf\n"))
-      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=70)
+      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
       print(t2 + t1 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
       dev.off()
       if (single == TRUE) {break}
