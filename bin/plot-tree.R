@@ -426,20 +426,20 @@ if (runmode == "plot") {
           
           # the next check is true if all tips have the same taxonomic level
           if (length(unique(tiptax)) == 1){
-            cat(paste0("    OK ", name, "\n"))
+            #cat(paste0("    OK ", name, "\n"))
             #implement check if all descendents have the same label
             nodes_to_collapse <- c(nodes_to_collapse, node) 
             node_supports <- c(node_supports, is_node_supported(as.double(tree$node.label[node-ntips])))
             node_names <- c(node_names, name)
             node_names_support <- c(node_names_support, name)
-          } else {cat(paste0("    PARAPHYLETIC ", name, "\n"))
+          } else {#cat(paste0("    PARAPHYLETIC ", name, "\n"))
             node_supports <-c(node_supports, "notmono")
             node_names_support <- c(node_names_support, name)
           }
         } else {
 	  nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
 	  node_names_singletons <- c(node_names_singletons, name)
-	  cat(paste0("    SINGLETON ", name, "\n"))
+	  #cat(paste0("    SINGLETON ", name, "\n"))
         }
       }
       
@@ -506,21 +506,22 @@ if (runmode == "plot") {
       dev.off()
       if (single == TRUE) {break}
     }
+    if (length(all_names) > 1) {  # only necessary if there is more than 1 tree
+      cat("Generating overview support plot now...\n")
+      support_df <- as.data.frame(do.call(cbind, all_supports_list))
+      colnames(support_df) <- all_names
+      support_df[all_names] <- lapply(support_df[all_names] , factor)
     
-    cat("Generating overview support plot now...\n")
-    support_df <- as.data.frame(do.call(cbind, all_supports_list))
-    support_df
-    colnames(support_df) <- all_names
-    support_df
-    support_df[all_names] <- lapply(support_df[all_names] , factor)
-    
-    support_cols <- c("#d53e4f", "#ffffbf","#3288bd")
-    names(support_cols) <- c("no", "notmono", "yes")
-    sdf <- melt(t(support_df))
-    colnames(sdf) <- c("tree", "group", "supported")
-    pdf(file=paste0("compare-", level, ".pdf"), width=10, height=10)
-    print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
-    dev.off()
+      support_cols <- c("#d53e4f", "#ffffbf","#3288bd")
+      names(support_cols) <- c("no", "notmono", "yes")
+      sdf <- melt(t(support_df))
+      colnames(sdf) <- c("tree", "group", "supported")
+      mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
+      print(mywidth)
+      pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
+        print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
+      dev.off()
+    }
   }
 }else if (runmode == "conflicts") {
   cat("Plotting conflicts...")
