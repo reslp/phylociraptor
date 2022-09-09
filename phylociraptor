@@ -14,6 +14,7 @@ try:
 except ImportError:
 	print("Snakemake not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
 
+
 if sys.version_info[0] < 3:
 	raise Exception("Must be using Python 3")
 	exit(1)
@@ -981,21 +982,32 @@ elif args.command == "util":
 	
 	if which_util == "get-lineage":
 		gl_parser = UtilParser(add_help=False)
-		gl_parser.add_argument("-g","--genomefile", action="store", default="results/statistics/downloaded_genomes_statistics.txt")
+		gl_parser.add_argument("-d","--datafile", action="store", default="data/data.csv")
 		gl_parser.add_argument("-o", "--outfile", action="store") 
 		gl_parser.add_argument("--quiet", action="store_true", default=False) 
-		gl_parser.add_argument("--email", action="store", default="user@domain.com")
+		gl_parser.add_argument("--force", action="store_true", default=False)
 		gl_args = gl_parser.parse_args(args.arguments) 
 		if gl_args.help: 
 			print(help_message(util_lineage_help))
 			sys.exit(0)
-		if not gl_args.outfile or not gl_args.genomefile:
+		if not gl_args.outfile or not gl_args.datafile:
 			print(help_message(util_lineage_help))
 			sys.exit(0)
-		if not os.path.isfile(gl_args.genomefile):
-			print(now(), "Genome file not found:",gl_args.genomefile)
+		if not os.path.isfile(gl_args.datafile):
+			print(now(), "Genome file not found:",gl_args.datafile)
 			sys.exit(1)
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/get_lineage.py", gl_args.genomefile,  gl_args.outfile, gl_args.email]
+		if os.path.exists("data/lineage_information/lineage_information.csv") and not gl_args.force:
+			print(now(), "The file: data/lineage_information/reformatted_lineage_information.csv already exists")
+			print(now(), " => SKIPPING DOWNLOAD. You may use --force to redownload")
+		else:
+			print(now(), "Will download lineage data:")
+			cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/taxonkit:0.12.0", "bash", "bin/get_lineage.sh", gl_args.datafile]
+			if debug:
+				print(cmd)
+			for line in execute_command(cmd, not gl_args.quiet):
+				print(line, end="\r")
+		print(now(), "Will now reformat lineage information for downstream applications like phylociraptor util plot-tree")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/reformat_lineage.py", "data/lineage_information/lineage_information.csv", gl_args.outfile]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not gl_args.quiet):

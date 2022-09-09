@@ -233,12 +233,11 @@ This is used in other phylociraptor utils to enhance functionality.
 Usage: phylociraptor util get-lineage <arguments>
 
 Arguments:
-	-g, --genomefile	Relative path to download_genomes_statistics.txt file
-				Default: results/statistics/downloaded_genomes_statistics.txt	
+	-d, --datafile		Relative path to data.csv file including all samples.
+				Default: data/data.csv.
 	-o, --outfile		Output file name.
-	--quiet			Suppress on-screen output.
-	--email			Your email address to identify yourself to the NCBI Entrez service.
-
+	--quiet			Suppress (most) on-screen output.
+	--force			Force redownload of NCBI Taxonomy files.
 """
 
 util_estimate_conflict_help = """
