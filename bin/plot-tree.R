@@ -568,13 +568,18 @@ if (runmode == "plot") {
     simpdf <- lineages[c("name",level)]
     colnames(simpdf) <- c("name", "lineage")
     simpdf <- add_missing_tips(simpdf, tree2)  
+	
+    # generate some colors for lineage info:
+    cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
+    names(cols) <- na.omit(unique(lineages[,level]))
+    cols["missing"] <- "black"
 
-    t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text")  +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+    t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
     minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
     maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
     t1 <- t1+xlim(minx, maxx+40) 
    
-    t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text")+theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+    t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
     #reverse coordinates and create space for labels
     minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
     maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
