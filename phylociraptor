@@ -12,17 +12,17 @@ import logging
 try:
 	import snakemake
 except ImportError:
-	print("Snakemake not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
+	print("Snakemake was not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
 
 
 if sys.version_info[0] < 3:
-	raise Exception("Must be using Python 3")
+	raise Exception("Phylocripator requires Python 3. Will exit.")
 	exit(1)
 try:
 	if snakemake.__version__ != "6.0.2":
-		print("WARNING: You are using a different Snakemake version (", snakemake.__version__, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
+		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
 except:
-	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommend to install snakemake v6.0.2.")
+	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2.")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
@@ -694,12 +694,6 @@ elif args.command=="report":
 		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
 		sys.exit(0)
 
-	# combine files to produce final statistics file, this is necessary due to the new concurrency setting. 
-	#for line in execute_command(cmd, report_args.verbose):
-        #        print(line, end="\r")
-	#if debug:
-	#	print(cmd)
-	# check for overrides of config file parameters	
 	if report_args.figure:
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", 'bin/report_figure.R']
 		if report_args.config_file:
@@ -965,12 +959,6 @@ elif args.command == "check":
 
 elif args.command == "util":
 	print(now(), "Welcome to phylociraptor util v%s" % version)
-	#util_parser = argparse.ArgumentParser(add_help=False)
-	#util_parser.add_argument("-h", "--help", action="store_true")
-	#util_parser.add_argument("command", action="store", nargs="?")
-	#util_parser.add_argument("--verbose", action="store_true", default=False)
-	#util_args = util_parser.parse_args(args.arguments)
-
 	if  len(args.arguments) == 0: 
 		print(help_message(util_help))
 		sys.exit(0)
@@ -1207,4 +1195,3 @@ else:
 	print("Runmode not recognized: %s" % args.command)
 	print("Please run phylociraptor -h to see avilable options")
 
-print(now(), "DONE")	
