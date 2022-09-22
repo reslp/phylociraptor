@@ -214,10 +214,11 @@ Usage: phylociraptor util <arguments>
 
 Argumemts:
 	get-lineage		retrieve full lineage information for all included samples.
-	estimate-conflict	estimate conflict between trees based on the occurence of quartets.
+	estimate-conflict	estimate conflict between trees based on the occurence of tip quartets.
 	plot-tree		plot one or more trees.
 	plot-conflict		plot conflicts between two trees based on quartet comparison.
-	plot-similarity		plot heatmap of quartet similarity.
+	plot-heatmap		plot tree similarity heatmap based on quartets of tips.
+	plot-pca		plot tree similarity PCA based on tip 2 tip distances.
 	modify-busco		modify the used BUSCO set.
 				Can be run after phylociraptor setup is finished.
 	manage-jobs		List and cancel jobs of past cluster submissions.
@@ -314,7 +315,7 @@ Optional Arguments:
 
 """
 util_plot_similarity_help = """
-phylociraptor util plot-similarity - Create similarity heatmap for trees and calculate tip2tip distances.
+phylociraptor util plot-similarity - Create similarity heatmap for trees based on quartet similarity.
 
 Usage: phylociraptor util plot-similarity <arguments>
 
@@ -323,14 +324,26 @@ Required Arguments:
 	
 Optional Arguments:
 	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
-				When this file is provided, a tip2tip distance analysis will be performed.
-				The results will be plotted as PCA and provided as CSV file.
+				When this file is provided, elements in heatmap will have 
+				more informative names. (Default: none)
+	--quiet			Suppress on-screen output.
+
+"""
+
+
+util_plot_pca_help = """
+phylociraptor util plot-pca - Calculate PCA of tip2tip distances between trees.
+
+Usage: phylociraptor util plot-pca <arguments>
+
+Required Arguments:
+	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
 				(Default: none)
+	
+Optional Arguments:
 	-s, --seed		Random seed for reproducibility. (Default: random)
 	-n, --ndistances	Number of tip2tip distances to be calculated. (Default: all)
-				Only meaningful when combined with -r/--treelist
 	-t, --threads		Number of threads for tip2tip distance analysis. (Default: 1)
-				Only meaningful when combined with -r/--treelist
 	--quiet			Suppress on-screen output.
 
 """
