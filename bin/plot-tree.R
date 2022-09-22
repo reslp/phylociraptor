@@ -415,9 +415,7 @@ if (runmode == "plot") {
       node_names_singletons <- c()
       for (name in unique(lineages[,level])) {
         which_tips <- lineages$name[lineages[level] == name][lineages$name[lineages[level] == name] %in% tree$tip.label]
-        #print(which_tips)
         node <- getMRCA(tree, c(which_tips))
-        #print(node)
         if (length(node) != 0)  {
           #check if this taxon level is monophyletic
           descendants <- tree$tip.label[getDescendants(tree=tree, node=node)]
@@ -436,11 +434,16 @@ if (runmode == "plot") {
             node_supports <-c(node_supports, "notmono")
             node_names_support <- c(node_names_support, name)
           }
-        } else {
+        } else if (length(node) == 1) {
 	  nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
 	  node_names_singletons <- c(node_names_singletons, name)
 	  #cat(paste0("    SINGLETON ", name, "\n"))
-        }
+        } else {
+		#debug code:
+		#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
+		next
+		}
+
       }
       
       #gather support values
@@ -452,6 +455,11 @@ if (runmode == "plot") {
       
       cat("    Collapse tree...\n")
       names(nodes_to_collapse) <- node_names
+
+      if ("missing" %in% names(nodes_to_collapse)) { # nodes whith missing taxonomy info do not need to be collapsed, even if the form a monophyletic group
+        nodes_to_collapse <- nodes_to_collapse[names(nodes_to_collapse) != "missing"]
+      }
+
       collapsed_tree_df <- tree %>%
         remove_collapsed_nodes(nodes = nodes_to_collapse)
       
