@@ -430,20 +430,24 @@ if (runmode == "plot") {
             node_supports <- c(node_supports, is_node_supported(as.double(tree$node.label[node-ntips])))
             node_names <- c(node_names, name)
             node_names_support <- c(node_names_support, name)
-          } else {#cat(paste0("    PARAPHYLETIC ", name, "\n"))
+          } else {
+		if (name != "missing") { # do not print this if taxononmy level is "missing"
+	    	cat(paste0("    ", name, " appear to be PARAPHYLETIC. Tips in the tree will be colored but group will not be collapsed or otherwise highlighted.\n"))
+	    }
             node_supports <-c(node_supports, "notmono")
             node_names_support <- c(node_names_support, name)
           }
-        } else if (length(node) == 1) {
-	  nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
-	  node_names_singletons <- c(node_names_singletons, name)
-	  #cat(paste0("    SINGLETON ", name, "\n"))
-        } else {
-		#debug code:
-		#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
-		next
-		}
-
+        } else if (length(node) == 0) {
+		if (length(which_tips) == 1) {
+	  		nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
+	  		node_names_singletons <- c(node_names_singletons, name)
+	  		#cat(paste0("    SINGLETON ", name, "\n"))
+		} else {
+			#debug code:
+			#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
+			next
+			}
+        } 
       }
       
       #gather support values
@@ -484,7 +488,6 @@ if (runmode == "plot") {
       simpdf <- lineages[c("name",level)]
       colnames(simpdf) <- c("name", "lineage")
       simpdf <- add_missing_tips(simpdf, tree)
-
       cat("    Plot left (uncollapsed) tree...\n")
       t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
       #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
@@ -508,7 +511,7 @@ if (runmode == "plot") {
       AABB
       "
 
-      cat(paste0("    Write PDF...",prefix,"-",level,"-tree.pdf\n"))
+      cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
       pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
       print(t2 + t1 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
       dev.off()
