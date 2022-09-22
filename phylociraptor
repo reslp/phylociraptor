@@ -20,7 +20,7 @@ if sys.version_info[0] < 3:
 	exit(1)
 try:
 	if snakemake.__version__ != "6.0.2":
-		print("WARNING: You are using a different Snakemake version (", snakemake.__version, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
+		print("WARNING: You are using a different Snakemake version (", snakemake.__version__, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
 except:
 	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommend to install snakemake v6.0.2.")
 
