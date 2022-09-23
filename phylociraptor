@@ -29,7 +29,7 @@ latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
 debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
-
+rphylocontainer="docker://reslp/rphylogenetics:4.0.3-strict-versions"
 
 def now():
 	return time.strftime("%Y-%m-%d %H:%M") + " -"
@@ -1076,7 +1076,7 @@ elif args.command == "util":
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
 			all_trees = qs_args.intrees	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
 		cmd += ["plot", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
 
 		if debug:
@@ -1113,7 +1113,7 @@ elif args.command == "util":
 			print(now(), "Hint: You need to provide the treelist file.")
 			sys.exit(1)
 		
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-tree.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
 		cmd += ["conflicts", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
 
 		if debug:
@@ -1133,7 +1133,7 @@ elif args.command == "util":
 			print(now(), "Hint: You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-similarity-matrix.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
@@ -1153,7 +1153,7 @@ elif args.command == "util":
 			print(now(), "You have to provide the treelist file created with phylociraptor util estimate-conflict with -r/--treelist")
 			print(help_message(util_plot_pca_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rphylogenetics:4.0.3", "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
