@@ -14,38 +14,24 @@ suppressMessages(library(colorspace))
 args <- commandArgs(trailingOnly=TRUE)
 
 # variables which need to be passed to the script from the command line
-runmode <- args[1] # different run modes should be: plot, conflicts and
-wd <- args[2]
+wd <- args[1]
 setwd(wd)
-if (runmode == "plot") {
-  cat("Will plot trees...\n")
-  seed <- args[3]
-  treenames <- args[4]
-  outgroup <- args[5]
-  lineage_file <- args[6]
-  level <- args[7]
-  outprefix <- args[8]
+cat("This script will plot trees...\n")
+seed <- args[2]
+treenames <- args[3]
+outgroup <- args[4]
+lineage_file <- args[5]
+level <- args[6]
+outprefix <- args[7]
   
-} else if (runmode == "conflicts") {
-  cat("Will plot conflicts...\n")
-  seed <- args[3]
-  treenames <- args[4]
-  outgroup <- args[5]
-  lineage_file <- args[6]
-  level <- args[7]
-  conflictfile <- args[8]
-  treelistfile <- args[9]
-} else {
-  cat("Runmode not recognized...\n")
-  quit(1)
-}
-
-
 # reformat commandline argument:
+cat(paste0("Used outgroups: ", outgroup, "\n"))
 outgroup <- strsplit(outgroup,",")[[1]]
+cat(paste0("Trees to plot: ", treenames, "\n")) 
 treenames <- strsplit(treenames,",")[[1]]
 
 #set seed if specified
+cat(paste0("Random seed: ", seed,"\n"))
 if (seed != "random") {
   set.seed(seed)
 }
@@ -53,44 +39,14 @@ if (seed != "random") {
 # load lineage information file and fill missing values
 if (lineage_file == "none") {
   cat("No lineage file specified. Will not plot lineage information.\n")
+  level <- "none"
 } else {
   lineages <- read.csv(lineage_file, header=T, sep="\t", na=c(""))
   lineages[is.na(lineages)] <- "missing"
 }
 
-
-#load and format quartet conflicts file:
-if (runmode == "conflicts") {
-  if (conflictfile != "none") {
-    conflicts <- read.csv(conflictfile, header=T, check.names=FALSE)
-    rownames(conflicts) <- conflicts$quartet
-    conflicts$quartet <- NULL
-    conflicts <- t(conflicts)
-    treelist <- read.csv(treelistfile, header=F, check.names=FALSE, sep="\t")
-    colnames(treelist) <- c("tree", "path")
-    #print(conflicts)
-  } else {
-    cat("Conflicts file not found. Will stop.\n")
-    quit(1)
-  }
-  
-}
-
-
-
-
-# select comparison for visualization: this is debug code!
-#conflicts_t <- t(conflicts[13,])
-#table(conflicts_t)
-#rownames(conflicts_t)
-#conflicts_t["Drosophila_azteca,Drosophila_rufa-Musca_domestica,Phortica_variegata",]
-#conflict_quartets <- conflicts_t
-#conflict_quartets <- names(conflicts_t[conflicts_t == 0,])
-
-
 bs_support <- 90
 pb_support <- 0.95
-
 
 # the code to draw triangles comes from here:
 # https://gist.github.com/jeanmanguy/fe6b1ee46476f29149455124e2a14529
@@ -312,314 +268,209 @@ add_missing_tips <- function(simpdf, tree) {
       return(simpdf)
 }
 
-if (runmode == "plot") {
-  if (level == "none") {
-    cat("Plotting tree(s) without lineage information.\n")
-    all_supports_list <- list()
-    all_names <- c()
-    single <- FALSE
-    for (ntree in 1:length(treenames)) {
-      #extract filename information:
-      treename <- treenames[ntree]
-      bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
-      algorithm <- strsplit(treename,"/")[[1]][3]
-      alitrim <- strsplit(treename,"/")[[1]][4]
-      prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-      
-      #reroot tree
-      tree <- read.tree(treename)
-      if (outgroup != "none") { #reroot tree in case an outgroup was specified
-        tree <- reroot_my_tree(tree,outgroup)
-      }
-      #plot(tree)
-      ntips <- length(tree$tip.label)
-      
-      
-      # this is where we decide how to plot (conflicts or not). Maybe this will be refactored later...
-      cat(paste0("Plot tree: ", prefix, "\n"))
-      if (runmode == "conflicts") {
-        cat("Extracting Conflicts:\n")
-        conflicts_info <- get_conflicts_and_support(tree, conflict_quartets)
-        
-        t2 <- ggtree(tree, branch.length='none', aes(size=conflicts_info$conflict)) +theme(legend.position = c("none")) +geom_tiplab()
-        
-      } else {
-        cat("    plotting without conflicts...\n")
-        t2 <- ggtree(tree, branch.length='none') + theme(legend.position = c("none")) +geom_tiplab()
-        
-      }
-      t2 <- t2 + coord_cartesian(clip = 'off')
-      minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
-      maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-      t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
-      # now we create clade labels for the tree
-      #clade_label_df <- as.data.frame(nodes_to_collapse)
-      #clade_label_df$name <- rownames(clade_label_df)
-      #colnames(clade_label_df) <- c("node", "name")
-      
-      #t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
-      #ggplot_build(t2)
-      #factor(lineages["order"][,1])
-      
-      # extract legend then remove it
-      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
-      print(t2 + theme(legend.position="none"))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
-      #plot.new()
-      #print(legend)
-      dev.off()
-      if (single == TRUE) {break}
+if (level == "none" || lineage_file == "none") {
+  cat("Plotting tree(s) without lineage information.\n")
+  all_supports_list <- list()
+  all_names <- c()
+  single <- FALSE
+  for (ntree in 1:length(treenames)) {
+    #extract filename information:
+    treename <- treenames[ntree]
+    bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
+    algorithm <- strsplit(treename,"/")[[1]][3]
+    alitrim <- strsplit(treename,"/")[[1]][4]
+    prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
+    
+    #reroot tree
+    tree <- read.tree(treename)
+    if (outgroup != "none") { #reroot tree in case an outgroup was specified
+      tree <- reroot_my_tree(tree,outgroup)
     }
-  } else { # plot tree when lineage information is available.
-    cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
-    # keep the older color code below for reference:
-    #if (length(na.omit(lineages[,level])) <= 11) {
-      # prettier colors when there are not too many different models
-      #cols <- brewer.pal(length(na.omit(lineages[,level])), "BrBG")	
-    #} else {
-      # we need more colors
+    #plot(tree)
+    ntips <- length(tree$tip.label)
+    
+    
+    # this is where we decide how to plot (conflicts or not). Maybe this will be refactored later...
+    cat(paste0("Plot tree: ", prefix, "\n"))
+    t2 <- ggtree(tree, branch.length='none') + theme(legend.position = c("none")) +geom_tiplab()
+    t2 <- t2 + coord_cartesian(clip = 'off')
+    minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
+    maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
+    t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
 
-      #color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-      #if (length(na.omit(unique(lineages[,level]))) > length(color)){
-      #  # if there are more taxa than available colors sample colors with replacement, this could result in some groups having the same color
-      #  cols <- sample(color, length(na.omit(unique(lineages[,level]))), replace=T)
-      #} else {cols <- sample(color, length(na.omit(unique(lineages[,level]))))}
-    #}
-    names(cols) <- na.omit(unique(lineages[,level]))
-    cols["missing"] <- "black"
+    # extract legend then remove it
+    cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
+    pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
+    print(t2 + theme(legend.position="none"))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    dev.off()
+    if (single == TRUE) {break}
+  }
+} else { # plot tree when lineage information is available.
+  cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
+  # keep the older color code below for reference:
+  #if (length(na.omit(lineages[,level])) <= 11) {
+    # prettier colors when there are not too many different models
+    #cols <- brewer.pal(length(na.omit(lineages[,level])), "BrBG")	
+  #} else {
+    # we need more colors
 
-    cat("The awesome code for plotting subtrees as triangles comes from here: https://jean.manguy.eu/post/subtrees-as-triangles-with-ggtree/\n")
-    all_supports_list <- list()
-    all_names <- c()
-    single <- FALSE
-    for (ntree in 1:length(treenames)) {
-      #extract filename information:
-      treename <- treenames[ntree]
-      bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
-      algorithm <- strsplit(treename,"/")[[1]][3]
-      alitrim <- strsplit(treename,"/")[[1]][4]
-      prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-      cat(paste0("Plot tree: ", prefix, "\n"))
-      #reroot tree
-      tree <- read.tree(treename)
-      if (outgroup != "none") { #reroot tree in case an outgroup was specified
-        tree <- reroot_my_tree(tree,outgroup)
-      }
-      #plot(tree)
-      ntips <- length(tree$tip.label)
-      
-      node_names <- c()
-      node_names_support <- c()
-      nodes_to_collapse <- c()
-      node_supports <- c()
-      nodes_singletons <- c()
-      node_names_singletons <- c()
-      for (name in unique(lineages[,level])) {
-        which_tips <- lineages$name[lineages[level] == name][lineages$name[lineages[level] == name] %in% tree$tip.label]
-        node <- getMRCA(tree, c(which_tips))
-        if (length(node) != 0)  {
-          #check if this taxon level is monophyletic
-          descendants <- tree$tip.label[getDescendants(tree=tree, node=node)]
-          descendants <- descendants[!is.na(descendants)]
-          tiptax <- lineages[level][,1][lineages$name %in% descendants]
-          
-          # the next check is true if all tips have the same taxonomic level
-          if (length(unique(tiptax)) == 1){
-            #cat(paste0("    OK ", name, "\n"))
-            #implement check if all descendents have the same label
-            nodes_to_collapse <- c(nodes_to_collapse, node) 
-            node_supports <- c(node_supports, is_node_supported(as.double(tree$node.label[node-ntips])))
-            node_names <- c(node_names, name)
-            node_names_support <- c(node_names_support, name)
-          } else {
-		if (name != "missing") { # do not print this if taxononmy level is "missing"
-	    	cat(paste0("    ", name, " appear to be PARAPHYLETIC. Tips in the tree will be colored but group will not be collapsed or otherwise highlighted.\n"))
-	    }
-            node_supports <-c(node_supports, "notmono")
-            node_names_support <- c(node_names_support, name)
+    #color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+    #if (length(na.omit(unique(lineages[,level]))) > length(color)){
+    #  # if there are more taxa than available colors sample colors with replacement, this could result in some groups having the same color
+    #  cols <- sample(color, length(na.omit(unique(lineages[,level]))), replace=T)
+    #} else {cols <- sample(color, length(na.omit(unique(lineages[,level]))))}
+  #}
+  names(cols) <- na.omit(unique(lineages[,level]))
+  cols["missing"] <- "black"
+
+  cat("The awesome code for plotting subtrees as triangles comes from here: https://jean.manguy.eu/post/subtrees-as-triangles-with-ggtree/\n")
+  all_supports_list <- list()
+  all_names <- c()
+  single <- FALSE
+  for (ntree in 1:length(treenames)) {
+    #extract filename information:
+    treename <- treenames[ntree]
+    bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
+    algorithm <- strsplit(treename,"/")[[1]][3]
+    alitrim <- strsplit(treename,"/")[[1]][4]
+    prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
+    cat(paste0("Plot tree: ", prefix, "\n"))
+    #reroot tree
+    tree <- read.tree(treename)
+    if (outgroup != "none") { #reroot tree in case an outgroup was specified
+      tree <- reroot_my_tree(tree,outgroup)
+    }
+    #plot(tree)
+    ntips <- length(tree$tip.label)
+    
+    node_names <- c()
+    node_names_support <- c()
+    nodes_to_collapse <- c()
+    node_supports <- c()
+    nodes_singletons <- c()
+    node_names_singletons <- c()
+    for (name in unique(lineages[,level])) {
+      which_tips <- lineages$name[lineages[level] == name][lineages$name[lineages[level] == name] %in% tree$tip.label]
+      node <- getMRCA(tree, c(which_tips))
+      if (length(node) != 0)  {
+        #check if this taxon level is monophyletic
+        descendants <- tree$tip.label[getDescendants(tree=tree, node=node)]
+        descendants <- descendants[!is.na(descendants)]
+        tiptax <- lineages[level][,1][lineages$name %in% descendants]
+        
+        # the next check is true if all tips have the same taxonomic level
+        if (length(unique(tiptax)) == 1){
+          #cat(paste0("    OK ", name, "\n"))
+          #implement check if all descendents have the same label
+          nodes_to_collapse <- c(nodes_to_collapse, node) 
+          node_supports <- c(node_supports, is_node_supported(as.double(tree$node.label[node-ntips])))
+          node_names <- c(node_names, name)
+          node_names_support <- c(node_names_support, name)
+        } else {
+      	if (name != "missing") { # do not print this if taxononmy level is "missing"
+          	cat(paste0("    ", name, " appear to be PARAPHYLETIC. Tips in the tree will be colored but group will not be collapsed or otherwise highlighted.\n"))
           }
-        } else if (length(node) == 0) {
-		if (length(which_tips) == 1) {
-	  		nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
-	  		node_names_singletons <- c(node_names_singletons, name)
-	  		#cat(paste0("    SINGLETON ", name, "\n"))
-		} else {
-			#debug code:
-			#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
-			next
-			}
-        } 
-      }
-      
-      #gather support values
-      cat("    Gather support values...\n")
-      names(node_supports) <- node_names
-      node_supports <- node_supports[!is.na(names(node_supports))] # get rid of missing values from NAs when taxon level is missing
-      all_supports_list[[ntree]] <- node_supports
-      all_names <- c(all_names, prefix)
-      
-      cat("    Collapse tree...\n")
-      names(nodes_to_collapse) <- node_names
-
-      if ("missing" %in% names(nodes_to_collapse)) { # nodes whith missing taxonomy info do not need to be collapsed, even if the form a monophyletic group
-        nodes_to_collapse <- nodes_to_collapse[names(nodes_to_collapse) != "missing"]
-      }
-
-      collapsed_tree_df <- tree %>%
-        remove_collapsed_nodes(nodes = nodes_to_collapse)
-      
-      triangles_df <- tree %>%
-        get_triangle_coordinates(nodes_to_collapse)
-      
-      cat("    Plot right (collapsed) tree...\n")
-      t1 <- ggtree::ggtree(collapsed_tree_df) +
-        geom_polygon(
-          data = triangles_df,
-          mapping = aes(group = node_collapsed, fill = node_collapsed),
-          color = "#333333"
-        ) +
-        #scale_fill_brewer(palette = "Set1") +
-        scale_fill_manual(values = cols) +
-        theme(
-          strip.background = element_blank()
-        )
-      t1 <- t1 + scale_x_reverse()
-      
-      #need to create a dataframe with just the right taxonomic level to be used for coloring the tree...
-      simpdf <- lineages[c("name",level)]
-      colnames(simpdf) <- c("name", "lineage")
-      simpdf <- add_missing_tips(simpdf, tree)
-      cat("    Plot left (uncollapsed) tree...\n")
-      t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
-      #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
-      t2 <- t2 + coord_cartesian(clip = 'off')
-      minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
-      maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-      t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
-
-      # now we create clade labels for the tree; this now also includes singleton nodes
-      names(nodes_singletons) <- node_names_singletons
-      clade_label_df <- as.data.frame(c(nodes_to_collapse, nodes_singletons))
-      clade_label_df$name <- rownames(clade_label_df)
-      colnames(clade_label_df) <- c("node", "name")
-      t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
-      
-      # extract legend then remove it
-      legend <- get_legend(t1)
-      t1 <- t1 + theme(legend.position="none")
-    
-      layout <- "
-      AABB
-      "
-
-      cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
-      pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
-      print(t2 + t1 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
-      dev.off()
-      if (single == TRUE) {break}
+          node_supports <-c(node_supports, "notmono")
+          node_names_support <- c(node_names_support, name)
+        }
+      } else if (length(node) == 0) {
+      	if (length(which_tips) == 1) {
+        		nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
+        		node_names_singletons <- c(node_names_singletons, name)
+        		#cat(paste0("    SINGLETON ", name, "\n"))
+      	} else {
+      		#debug code:
+      		#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
+      		next
+      		}
+      } 
     }
-    if (length(all_names) > 1) {  # only necessary if there is more than 1 tree
-      cat("Generating overview support plot now...\n")
-      support_df <- as.data.frame(do.call(cbind, all_supports_list))
-      colnames(support_df) <- all_names
-      support_df[all_names] <- lapply(support_df[all_names] , factor)
     
-      support_cols <- c("#d53e4f", "#ffffbf","#3288bd")
-      names(support_cols) <- c("no", "notmono", "yes")
-      sdf <- melt(t(support_df))
-      colnames(sdf) <- c("tree", "group", "supported")
-      mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
-      print(mywidth)
-      pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
-        print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
-      dev.off()
+    #gather support values
+    cat("    Gather support values...\n")
+    names(node_supports) <- node_names
+    node_supports <- node_supports[!is.na(names(node_supports))] # get rid of missing values from NAs when taxon level is missing
+    all_supports_list[[ntree]] <- node_supports
+    all_names <- c(all_names, prefix)
+    
+    cat("    Collapse tree...\n")
+    names(nodes_to_collapse) <- node_names
+
+    if ("missing" %in% names(nodes_to_collapse)) { # nodes whith missing taxonomy info do not need to be collapsed, even if the form a monophyletic group
+      nodes_to_collapse <- nodes_to_collapse[names(nodes_to_collapse) != "missing"]
     }
-  }
-}else if (runmode == "conflicts") {
-  cat("Plotting conflicts...")
-  treepath1 <- treelist$path[treelist["tree"] == treenames[1]]
-  bs_cutoff <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
-  algorithm <- strsplit(treepath1,"/")[[1]][3]
-  alitrim <- strsplit(treepath1,"/")[[1]][4]
-  prefix1 <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-  
-  treepath2 <- treelist$path[treelist["tree"] == treenames[2]]
-  bs_cutoff <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
-  algorithm <- strsplit(treepath2,"/")[[1]][3]
-  alitrim <- strsplit(treepath2,"/")[[1]][4]
-  prefix2 <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-  
-  tree1 <- read.tree(treepath1)
-  tree2 <- read.tree(treepath2)
-  
-  if (outgroup != "none") { #reroot tree in case an outgroup was specified
-    tree1 <- reroot_my_tree(tree1,outgroup)
-    tree2 <- reroot_my_tree(tree2,outgroup)  
-    #rootnode <- getMRCA(tree1, outgroup)
-    #tree1 <- root(tree1, node=rootnode, resolve.root = TRUE)
-    #rootnode <- getMRCA(tree2, outgroup)
-    #tree2 <- root(tree2, node=rootnode, resolve.root = TRUE)
-  } else {cat("No outgroup was set. The plotted tree comparison may look weird.\n")}
-  
-  conflicts_t <- conflicts[paste0(treenames[1], "-", treenames[2]),]
-  if (length(names(conflicts_t[conflicts_t == 0])) == 0) {
-    print("No conflicts found. Nothing to plot.")
-    quit()
-  }
 
-  cat(paste0("Plot will be based on ", as.character(length(names(conflicts_t[conflicts_t == 0]))), " conflicting quartets.\n"))
- 
-  cat("Extracting Conflicts for first tree:\n")
-  conflicts_info1 <- get_conflicts_and_support(tree1, conflicts_t[conflicts_t == 0])
-  cat("Extracting Conflicts for second tree:\n")
-  conflicts_info2 <- get_conflicts_and_support(tree2, conflicts_t[conflicts_t == 0])
-
-  cat("Plot conflitcs between trees...\n")
-  if (lineage_file != "none") {
-    cat("Will add lineage information...\n")
+    collapsed_tree_df <- tree %>%
+      remove_collapsed_nodes(nodes = nodes_to_collapse)
+    
+    triangles_df <- tree %>%
+      get_triangle_coordinates(nodes_to_collapse)
+    
+    cat("    Plot right (collapsed) tree...\n")
+    t1 <- ggtree::ggtree(collapsed_tree_df) +
+      geom_polygon(
+        data = triangles_df,
+        mapping = aes(group = node_collapsed, fill = node_collapsed),
+        color = "#333333"
+      ) +
+      #scale_fill_brewer(palette = "Set1") +
+      scale_fill_manual(values = cols) +
+      theme(
+        strip.background = element_blank()
+      )
+    t1 <- t1 + scale_x_reverse()
+    
+    #need to create a dataframe with just the right taxonomic level to be used for coloring the tree...
     simpdf <- lineages[c("name",level)]
     colnames(simpdf) <- c("name", "lineage")
-    simpdf <- add_missing_tips(simpdf, tree2)  
-	
-    # generate some colors for lineage info:
-    cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
-    names(cols) <- na.omit(unique(lineages[,level]))
-    cols["missing"] <- "black"
+    simpdf <- add_missing_tips(simpdf, tree)
+    cat("    Plot left (uncollapsed) tree...\n")
+    t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
+    #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
+    t2 <- t2 + coord_cartesian(clip = 'off')
+    minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
+    maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
+    t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
 
-    t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
-    minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
-    maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
-    t1 <- t1+xlim(minx, maxx+40) 
-   
-    t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
-    #reverse coordinates and create space for labels
-    minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
-    maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-    t2 <- t2+xlim(maxx+40, minx) 
-  } else {
-    cat("Plotting without lineage information...\n")
-    t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
-    minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
-    maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
-    t1 <- t1+xlim(minx, maxx+40) +geom_tiplab(size=4, hjust=0)
+    # now we create clade labels for the tree; this now also includes singleton nodes
+    names(nodes_singletons) <- node_names_singletons
+    clade_label_df <- as.data.frame(c(nodes_to_collapse, nodes_singletons))
+    clade_label_df$name <- rownames(clade_label_df)
+    colnames(clade_label_df) <- c("node", "name")
+    t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
     
-    t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
-    #reverse coordinates and create space for labels
-    minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
-    maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-    t2 <- t2+xlim(maxx+40, minx) +geom_tiplab(size=4, offset=-40)
-    
+    # extract legend then remove it
+    legend <- get_legend(t1)
+    t1 <- t1 + theme(legend.position="none")
+  
+    layout <- "
+    AABB
+    "
+
+    cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
+    pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
+    print(t2 + t1 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    dev.off()
+    if (single == TRUE) {break}
   }
-  layout <- "
-  AABB
-  "
-  pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2], ".pdf"), width=10, height=70)
-    print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
-  dev.off()
+# this last parts creates an overview plot indicating (un)supported groups based on the specified lineage level.
+  if (length(all_names) > 1) {  # only necessary if there is more than 1 tree
+    cat("Generating overview support plot now...\n")
+    support_df <- as.data.frame(do.call(cbind, all_supports_list))
+    colnames(support_df) <- all_names
+    support_df[all_names] <- lapply(support_df[all_names] , factor)
   
-
+    support_cols <- c("#d53e4f", "#ffffbf","#3288bd")
+    names(support_cols) <- c("no", "notmono", "yes")
+    sdf <- melt(t(support_df))
+    colnames(sdf) <- c("tree", "group", "supported")
+    mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
+    pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
+      print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
+    dev.off()
+    cat(paste0("Overview support plot saved to: compare-", level, ".pdf\n")) 
+  }
 }
-  
-
 
 
 

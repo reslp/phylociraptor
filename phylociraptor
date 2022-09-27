@@ -1077,7 +1077,7 @@ elif args.command == "util":
 		else:
 			all_trees = qs_args.intrees	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
-		cmd += ["plot", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
+		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
 
 		if debug:
 			print(cmd)
@@ -1113,8 +1113,8 @@ elif args.command == "util":
 			print(now(), "Hint: You need to provide the treelist file.")
 			sys.exit(1)
 		
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
-		cmd += ["conflicts", os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-conflict.R"]
+		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
 
 		if debug:
 			print(cmd)
