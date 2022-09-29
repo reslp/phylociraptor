@@ -307,14 +307,14 @@ if (lineage_file != "none") {
 } else {
   cat("Plotting without lineage information...\n")
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
-  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="navy", high="orangered")
+  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red")
   minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
   t1 <- t1 + new_scale("color")
   t1 <- t1+xlim(minx, maxx+40) +geom_tiplab(size=4, hjust=0)
   
   cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
-  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="navy", high="orangered")
+  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red")
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
