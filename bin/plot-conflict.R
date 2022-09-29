@@ -32,6 +32,13 @@ outgroups <- outgroup #for information on PDF
 outgroup <- strsplit(outgroup,",")[[1]]
 treenames <- strsplit(treenames,",")[[1]]
 
+# some treename checks to avoid problem when first tree has larger number than second tree:
+if (strtoi(strsplit(treenames[1], "T")[[1]][2]) > strtoi(strsplit(treenames[2], "T")[[1]][2])){
+   tn2 <- treenames[2]
+   treenames[2] <- treenames[1]
+   treenames[1] <- tn2
+}
+
 #set seed if specified
 if (seed != "random") {
   set.seed(seed)
@@ -254,7 +261,7 @@ if (outgroup != "none") { #reroot tree in case an outgroup was specified
 
 conflicts_t <- conflicts[paste0(treenames[1], "-", treenames[2]),]
 if (length(names(conflicts_t[conflicts_t == 0])) == 0) {
-  print("No conflicts found. Nothing to plot.")
+  cat("No conflicts found. Nothing to plot.\n")
   quit()
 }
 
@@ -307,14 +314,14 @@ if (lineage_file != "none") {
 } else {
   cat("Plotting without lineage information...\n")
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
-  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red")
+  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red") + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
   minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
   t1 <- t1 + new_scale("color")
   t1 <- t1+xlim(minx, maxx+40) +geom_tiplab(size=4, hjust=0)
   
   cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
-  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red")
+  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red") + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
