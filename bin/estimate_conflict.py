@@ -161,18 +161,21 @@ if __name__ == '__main__':
 	all_tips = [tip for tree in tl for tip in list(tree.rx2("tip.label"))]
 	print("Total number of taxa in all trees:", len(set(all_tips)))
 	if args.selecttaxa:
-		if not args.lineagefile:
-			print("Taxon selection requires a lineage file")
-			sys.exit(0)
+		if args.selecttaxa.startswith("tips"):
+			taxon_list = args.selecttaxa.split("=")[1].split(",")
 		else:
-			if os.path.exists(args.lineagefile):
-				lineage_df = pd.read_csv(args.lineagefile, sep="\t")
-				rank, taxa = args.selecttaxa.split("=")
-				selected_tips = lineage_df.loc[lineage_df[rank].isin(taxa.split(",")), 'name'].to_list()
-				taxon_list = [tip for tip in selected_tips if all_tips.count(tip)]
-			else:
-				print("Lineage file does not exist")
+			if not args.lineagefile:
+				print("Taxon selection requires a lineage file, except when tips= is used.")
 				sys.exit(0)
+			else:
+				if os.path.exists(args.lineagefile):
+					lineage_df = pd.read_csv(args.lineagefile, sep="\t")
+					rank, taxa = args.selecttaxa.split("=")
+					selected_tips = lineage_df.loc[lineage_df[rank].isin(taxa.split(",")), 'name'].to_list()
+					taxon_list = [tip for tip in selected_tips if all_tips.count(tip)]
+				else:
+					print("Lineage file does not exist")
+					sys.exit(0)
 	else:
 		taxon_list = [taxon for taxon in set(all_tips)]
 	

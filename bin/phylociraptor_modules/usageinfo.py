@@ -256,10 +256,11 @@ Required Arguments:
 Optional Arguments:
 	-s, --seed		Random seed number for reproducibility. (Default: random)
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
-				Mandatory when using-a/--selecttaxa.
+				Mandatory when using-a/--selecttaxa with a specific taxonomic level.
 	-a, --selecttaxa	Sample quartets only from tips belonging to specific taxa.
 				Requires output from phylociraptor util get-lineage.
 					Examples: --selecttaxa order=Diperta,Hymenoptera
+						  -a tips=Catenaria_anguillulae,Nosema_ceranae,Paraphelidium_tribonemae,Edhazardia_aedis,...
 	-t, --threads		Number of threads. (Default: 1)
 	
 	--quiet			Suppress on-screen output.

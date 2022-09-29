@@ -1038,6 +1038,8 @@ elif args.command == "util":
 
 		if qs_args.lineagefile and qs_args.selecttaxa:
 			cmd += ["-l", qs_args.lineagefile, "--selecttaxa", qs_args.selecttaxa]
+		elif not qs_args.lineagefile and qs_args.selecttaxa.startswith("tips"):
+			cmd += ["--selecttaxa", qs_args.selecttaxa]
 		if qs_args.nquartets:
 			cmd += ["-q", qs_args.nquartets]
 		elif qs_args.stopby:
