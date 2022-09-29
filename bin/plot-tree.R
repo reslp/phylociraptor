@@ -23,9 +23,11 @@ outgroup <- args[4]
 lineage_file <- args[5]
 level <- args[6]
 outprefix <- args[7]
+single <- args[8]
   
 # reformat commandline argument:
 cat(paste0("Used outgroups: ", outgroup, "\n"))
+outgroups <- outgroup # for plot annotation
 outgroup <- strsplit(outgroup,",")[[1]]
 cat(paste0("Trees to plot: ", treenames, "\n")) 
 treenames <- strsplit(treenames,",")[[1]]
@@ -34,6 +36,10 @@ treenames <- strsplit(treenames,",")[[1]]
 cat(paste0("Random seed: ", seed,"\n"))
 if (seed != "random") {
   set.seed(seed)
+}
+
+if (single == "yes") {
+  cat("Will only plot one tree instead of two.\nWARNING: With this option plots are hard to standardize, so the quality could be suboptimal.\n")
 }
 
 # load lineage information file and fill missing values
@@ -272,7 +278,7 @@ if (level == "none" || lineage_file == "none") {
   cat("Plotting tree(s) without lineage information.\n")
   all_supports_list <- list()
   all_names <- c()
-  single <- FALSE
+  singlet <- FALSE
   for (ntree in 1:length(treenames)) {
     #extract filename information:
     treename <- treenames[ntree]
@@ -292,18 +298,18 @@ if (level == "none" || lineage_file == "none") {
     
     # this is where we decide how to plot (conflicts or not). Maybe this will be refactored later...
     cat(paste0("Plot tree: ", prefix, "\n"))
-    t2 <- ggtree(tree, branch.length='none') + theme(legend.position = c("none")) +geom_tiplab()
+    t2 <- ggtree(tree) + theme(legend.position = c("none")) +geom_tiplab()
     t2 <- t2 + coord_cartesian(clip = 'off')
     minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
     maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-    t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
+    t2 <- t2+xlim(minx, maxx+2) # to create space for the labels
 
     # extract legend then remove it
     cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
     pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
-    print(t2 + theme(legend.position="none"))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    print(t2 + theme(legend.position="none") +  plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
     dev.off()
-    if (single == TRUE) {break}
+    if (singlet == TRUE) {break}
   }
 } else { # plot tree when lineage information is available.
   cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
@@ -326,7 +332,7 @@ if (level == "none" || lineage_file == "none") {
   cat("The awesome code for plotting subtrees as triangles comes from here: https://jean.manguy.eu/post/subtrees-as-triangles-with-ggtree/\n")
   all_supports_list <- list()
   all_names <- c()
-  single <- FALSE
+  singlet <- FALSE
   for (ntree in 1:length(treenames)) {
     #extract filename information:
     treename <- treenames[ntree]
@@ -425,20 +431,30 @@ if (level == "none" || lineage_file == "none") {
     colnames(simpdf) <- c("name", "lineage")
     simpdf <- add_missing_tips(simpdf, tree)
     cat("    Plot left (uncollapsed) tree...\n")
-    t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
+    if (single == "yes") {
+        t2 <- ggtree(tree) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
+    } else {
+        t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") +scale_color_manual(values = cols) +theme(legend.position = c("none"))
+    } 
     #t2 <- ggtree(tree, branch.length='none') %<+% simpdf + geom_tiplab(aes(color = factor(lineage)), size=2, align=TRUE, geom="text") + theme(legend.position = c("none"))
     t2 <- t2 + coord_cartesian(clip = 'off')
     minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
     maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-    t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
-
+    if (single == "yes") {
+       	t2 <- t2+xlim(minx, maxx+2) # to create space for the labels
+    } else {
+       	t2 <- t2+xlim(minx, maxx+40) # to create space for the labels
+    }
     # now we create clade labels for the tree; this now also includes singleton nodes
     names(nodes_singletons) <- node_names_singletons
     clade_label_df <- as.data.frame(c(nodes_to_collapse, nodes_singletons))
     clade_label_df$name <- rownames(clade_label_df)
     colnames(clade_label_df) <- c("node", "name")
-    t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
-    
+    if (single == "yes") {
+       t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=1, offset.text=0.1)
+    } else {
+       t2 <- t2 + geom_cladelab(data = clade_label_df, mapping = aes(node = node, label = name, color = name), fontsize = 2, offset=27, offset.text=0.3)
+    }
     # extract legend then remove it
     legend <- get_legend(t1)
     t1 <- t1 + theme(legend.position="none")
@@ -449,7 +465,11 @@ if (level == "none" || lineage_file == "none") {
 
     cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
     pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
-    print(t2 + t1 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    if (single == "yes") {
+        print(t2 + theme(legend.position="none") + plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    } else {
+        print(t2 + t1 + theme(legend.position="none") +  plot_annotation(tag_levels = 'A', title = prefix, caption=paste0("A) Topology without branch lengths. B) Topology with branch lengths and collapsed taxonomic groups. Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))) + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    } 
     dev.off()
     if (single == TRUE) {break}
   }

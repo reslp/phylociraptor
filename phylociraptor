@@ -1062,6 +1062,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-e", "--level", action="store", default="none")
 		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
 		qs_parser.add_argument("--quiet", action="store_true", default=False) 
+		qs_parser.add_argument("--single", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help: 
 			print(help_message(util_plot_tree_help))
@@ -1078,8 +1079,13 @@ elif args.command == "util":
 			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
 		else:
 			all_trees = qs_args.intrees	
+		if qs_args.single:
+			single = "yes"
+		else:
+			single = "no"
+
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
-		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix]
+		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix, single]
 
 		if debug:
 			print(cmd)

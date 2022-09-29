@@ -284,6 +284,8 @@ Optional Arguments:
 	-g, --outgroup		Comma seperated list of tips which should be used as Outgroup.
 				Trees will be rerooted accordingly.
 				(Default: none)
+	--single		Will only plot a single (uncollapsed) tree. This is experimental.
+				(Default: false)
 	--quiet			Suppress on-screen output.
 
 """
