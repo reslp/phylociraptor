@@ -10,7 +10,7 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(reshape2))
 suppressMessages(library(RColorBrewer))
 suppressMessages(library(colorspace))
-
+suppressMessages(library(ggnewscale))
 args <- commandArgs(trailingOnly=TRUE)
 
 # variables which need to be passed to the script from the command line
@@ -28,6 +28,7 @@ conflictfile <- args[7]
 treelistfile <- args[8]
 
 # reformat commandline argument:
+outgroups <- outgroup #for information on PDF
 outgroup <- strsplit(outgroup,",")[[1]]
 treenames <- strsplit(treenames,",")[[1]]
 
@@ -44,7 +45,7 @@ if (conflictfile != "none") {
   conflicts$quartet <- NULL
   conflicts <- t(conflicts)
   cat("DONE\n")
-  cat(paste0("Loading treelist file:", treelistfile, "..."))
+  cat(paste0("Loading treelist file: ", treelistfile, "..."))
   treelist <- read.csv(treelistfile, header=F, check.names=FALSE, sep="\t")
   colnames(treelist) <- c("tree", "path")
   cat("DONE\n")
@@ -94,12 +95,12 @@ get_conflicts_and_support <- function(tree, conflict_quartets) {
   edge_thickness <- rep(1, length(tree$edge.length)+1)
   i <- 1
   for (quat in names(conflict_quartets)) {
-    if (quat == "") {next} # not sure why this happens, but apparently it does sometimes
+    if (quat == "") {next} # not sure why this happens, but apparently it sometimes does
     if (length(strsplit(quat, ",")[[1]]) < 3) {
       cat(paste0("Not a proper Quartet. Will skip: ", quat, "\n"))
       next
       }
-    cat(paste0("\rQuartet ", i, "/", length(names(conflict_quartets)), ": ", quat))
+    cat(paste0("\rConflict quartet ", i, "/", length(names(conflict_quartets)), ": ", quat))
     left <- strsplit(quat, "-")[[1]][1]
     right <- strsplit(quat, "-")[[1]][2]
     left1 <- strsplit(left, ",")[[1]][1]
@@ -136,9 +137,89 @@ get_conflicts_and_support <- function(tree, conflict_quartets) {
   }
   thickness <- data.frame(edge=1:length(edge_thickness), conflict=edge_thickness)
   thickness$logthick <- log(thickness$conflict+1)
+  thickness$scaledconflict <- scale_numbers(thickness$conflict)
   return(thickness)
 }
 
+scale_numbers <- function(range) {
+ minr <- min(range)
+ maxr <- max(range)
+ normalized_range <- c()
+ for (value in range) {
+   normalized_value <- (10-1)*((value-minr)/(maxr-minr))+1
+   normalized_range <- c(normalized_range, normalized_value)
+ }
+ return(normalized_range)
+}
+
+get_node_names_for_bars <- function(tree) {
+    node_names <- c()
+    node_names_support <- c()
+    nodes_to_collapse <- c()
+    node_supports <- c()
+    nodes_singletons <- c()
+    node_names_singletons <- c()
+    ntips <- length(tree$tip.label)
+    for (name in unique(lineages[,level])) {
+      which_tips <- lineages$name[lineages[level] == name][lineages$name[lineages[level] == name] %in% tree$tip.label]
+      node <- getMRCA(tree, c(which_tips))
+      if (length(node) != 0)  {
+        #check if this taxon level is monophyletic
+        descendants <- tree$tip.label[getDescendants(tree=tree, node=node)]
+        descendants <- descendants[!is.na(descendants)]
+        tiptax <- lineages[level][,1][lineages$name %in% descendants]
+        
+        # the next check is true if all tips have the same taxonomic level
+        if (length(unique(tiptax)) == 1){
+          #cat(paste0("    OK ", name, "\n"))
+          #implement check if all descendents have the same label
+          nodes_to_collapse <- c(nodes_to_collapse, node) 
+          node_supports <- c(node_supports, is_node_supported(as.double(tree$node.label[node-ntips])))
+          node_names <- c(node_names, name)
+          node_names_support <- c(node_names_support, name)
+        } else {
+      	if (name != "missing") { # do not print this if taxononmy level is "missing"
+          	cat(paste0("    ", name, " appear to be PARAPHYLETIC. Tips in the tree will be colored but group will not be collapsed or otherwise highlighted.\n"))
+          }
+          node_supports <-c(node_supports, "notmono")
+          node_names_support <- c(node_names_support, name)
+        }
+      } else if (length(node) == 0) {
+      	if (length(which_tips) == 1) {
+        		nodes_singletons <- c(nodes_singletons, match(which_tips, tree$tip.label))
+        		node_names_singletons <- c(node_names_singletons, name)
+        		#cat(paste0("    SINGLETON ", name, "\n"))
+      	} else {
+      		#debug code:
+      		#cat(paste0("  ", name, " is present in lineage file but not in the tree.\n"))
+      		next
+      		}
+      } 
+    }
+
+    names(nodes_to_collapse) <- node_names
+    names(nodes_singletons) <- node_names_singletons
+    clade_label_df <- as.data.frame(c(nodes_to_collapse, nodes_singletons))
+    clade_label_df$name <- rownames(clade_label_df)
+    colnames(clade_label_df) <- c("node", "name")
+    return(clade_label_df)
+}
+
+is_node_supported <- function(support) {
+  bs_support <- 90
+  pb_support <- 0.95
+  if (length(support) == 0) {return("no")}
+  if (support <= 1) { #we are dealing with posterior probabilities
+    if (support <= pb_support){
+      return("no") # no support
+    } else {return("yes")}
+  } else { # we are dealing with bootstrap values
+    if (support <= bs_support){
+      return("no") #no support
+    } else {return("yes")}
+    
+  }
+}
 
 generate_colors <- function(ncols) {
   color_palette <- qualitative_hcl(ncols, alpha=c(0.6,1), l=c(30,100), c=200) # the parameters used here have been working well in a number of scenarios
@@ -150,18 +231,18 @@ get_pdf_height <- function(tree) {
 	return(round(length(tree$tip.label) * size_per_tip, digits=0))
 }
 
-cat("\nPlotting conflicts...")
+cat("Plotting conflicts...\n")
 treepath1 <- treelist$path[treelist["tree"] == treenames[1]]
-bs_cutoff <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
-algorithm <- strsplit(treepath1,"/")[[1]][3]
-alitrim <- strsplit(treepath1,"/")[[1]][4]
-prefix1 <- paste( algorithm, alitrim, bs_cutoff, sep="-")
+bs_cutoff1 <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
+algorithm1 <- strsplit(treepath1,"/")[[1]][3]
+alitrim1 <- strsplit(treepath1,"/")[[1]][4]
+prefix1 <- paste( algorithm1, alitrim1, bs_cutoff1, sep="-")
 
 treepath2 <- treelist$path[treelist["tree"] == treenames[2]]
-bs_cutoff <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
-algorithm <- strsplit(treepath2,"/")[[1]][3]
-alitrim <- strsplit(treepath2,"/")[[1]][4]
-prefix2 <- paste( algorithm, alitrim, bs_cutoff, sep="-")
+bs_cutoff2 <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
+algorithm2 <- strsplit(treepath2,"/")[[1]][3]
+alitrim2 <- strsplit(treepath2,"/")[[1]][4]
+prefix2 <- paste( algorithm2, alitrim2, bs_cutoff2, sep="-")
 
 tree1 <- read.tree(treepath1)
 tree2 <- read.tree(treepath2)
@@ -179,12 +260,12 @@ if (length(names(conflicts_t[conflicts_t == 0])) == 0) {
 
 cat(paste0("Plot will be based on ", as.character(length(names(conflicts_t[conflicts_t == 0]))), " conflicting quartets.\n"))
 
-cat("Extracting conflicts for first tree:\n")
+cat("\nExtracting conflicts for first tree:")
 conflicts_info1 <- get_conflicts_and_support(tree1, conflicts_t[conflicts_t == 0])
-cat("\nExtracting conflicts for second tree:\n")
+cat("\n\nExtracting conflicts for second tree:")
 conflicts_info2 <- get_conflicts_and_support(tree2, conflicts_t[conflicts_t == 0])
 
-cat("\nPlot conflitcs between trees...\n")
+cat("\n\nPreparing tree plots...\n")
 if (lineage_file != "none") {
   cat("Will add lineage information...\n")
   simpdf <- lineages[c("name",level)]
@@ -195,37 +276,61 @@ if (lineage_file != "none") {
   cols <- generate_colors(length(na.omit(unique(lineages[,level]))))
   names(cols) <- na.omit(unique(lineages[,level]))
   cols["missing"] <- "black"
-
-  t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+  #cols <- cols[names(cols) != "missing"]
+  t1_clade_df <- get_node_names_for_bars(tree1)
+  # sort colors so they match in the plot:
+  cols2 <- c()
+  for (n in t1_clade_df$name) {
+     cols2 <- c(cols2, cols[n])
+  }
+  t1_clade_df$cols <- cols2
+  # first tree:
+  cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
+  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$scaledconflict), size=1) + scale_color_continuous(low="black", high="red")
+  t1 <- t1 + geom_cladelab(data=t1_clade_df, node=t1_clade_df$node, label=t1_clade_df$name, textcolor=t1_clade_df$cols, barcolor=t1_clade_df$cols, fontsize = 2, offset=70, offset.text=0.3)
+  t1 <- t1 + new_scale("color")
+  t1 <- t1 %<+% simpdf + geom_tiplab(aes(color=factor(lineage)), size=4, hjust=0, geom="text") +scale_color_manual(values=cols) 
   minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
   t1 <- t1+xlim(minx, maxx+40) 
- 
-  t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+  t1 <- t1 + theme(legend.position="none") + ggtitle(prefix1) + theme(plot.title = element_text(hjust=0.5))
+  
+  # second tree:
+  cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
+  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$scaledconflict), size=1) +scale_color_continuous(low="black", high="red") 
+  t2 <- t2 + new_scale("color") 
+  t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-  t2 <- t2+xlim(maxx+40, minx) 
+  t2 <- t2+xlim(maxx+40, minx+20) 
 } else {
   cat("Plotting without lineage information...\n")
-  t1 <- ggtree(tree1, branch.length='none', aes(size=conflicts_info1$conflict)) +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+  cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
+  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="navy", high="orangered")
   minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
+  t1 <- t1 + new_scale("color")
   t1 <- t1+xlim(minx, maxx+40) +geom_tiplab(size=4, hjust=0)
   
-  t2 <- ggtree(tree2, branch.length='none', aes(size=conflicts_info2$conflict)) +theme(legend.position = c("none")) + scale_size_continuous(range = c(0.2, 5))
+  cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
+  t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="navy", high="orangered")
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
+  t2 <- t2 + new_scale("color")
   t2 <- t2+xlim(maxx+40, minx) +geom_tiplab(size=4, offset=-40)
   
 }
 layout <- "
 AABB
 "
-cat(paste0("Output PDF: conflicts-", treenames[1], "-", treenames[2], "-", as.character(length(names(conflicts_t[conflicts_t == 0]))), "-quartets.pdf\n")) 
-pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", as.character(length(names(conflicts_t[conflicts_t == 0]))), "-quartets.pdf"), width=10, height=get_pdf_height(tree1))
-  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+# get some numbers for plot title:
+nconflicts <- as.character(length(names(conflicts_t[conflicts_t == 0])))
+nquartets <- as.character(length(names(conflicts_t)))
+cat(paste0("Output PDF: conflicts-", treenames[1], "-", treenames[2], "-", nconflicts, "-quartets.pdf\n")) 
+pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", nconflicts, "-quartets.pdf"), width=10, height=get_pdf_height(tree1))
+  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], "(",prefix1,"), ", treenames[2], "(", prefix2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
 garbage <- dev.off()
   
 
