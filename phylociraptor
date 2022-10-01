@@ -942,7 +942,7 @@ elif args.command == "check":
 							nmltrees = 0
 							mltreemissing = []
 							for comb in iqtree_combs:
-								if os.path.isfile(comb+"/raxmlng.raxml.consensusTree"):
+								if os.path.isfile(comb+"/raxmlng.raxml.support"):
 									nmltrees += 1
 								else:
 									mltreemissing.append(comb.split("/")[-1])
