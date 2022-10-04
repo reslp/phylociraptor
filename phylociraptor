@@ -175,7 +175,13 @@ def execute_command(cmd, verbose, isutil=False):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			if verbose:
-				yield line
+				if debug:
+					yield line
+				else:
+					if line.startswith("rule") and not debug:
+						yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+					if line.lstrip().startswith("wildcards:"):
+						yield "\tParameters: %s\n" % line.split(":")[1]
 			else:
 				result = line
 				if check_for_errors(result):
@@ -199,10 +205,18 @@ def execute_command(cmd, verbose, isutil=False):
 			nline += 1
 			logging.debug(line.strip())
 			if verbose:
-				if line.startswith("Pulling singularity"):
-					container = line.rstrip().split(" ")[-1].strip(".")
-					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-				yield line
+				if debug:
+					yield line
+				else:
+					if line.startswith("Pulling singularity"):
+						container = line.rstrip().split(" ")[-1].strip(".")
+						yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
+					if line.startswith("rule") and not debug:
+						yield now() + " Will submit task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+					if line.lstrip().startswith("wildcards:") and not debug:
+						yield "\tParameters:" + line.split(":")[1]
+					if line.startswith("sbatch") or line.startswith("qsub"):
+						yield "\t%s\n" % line
 			else:
 				result = line
 				if check_for_errors(result):
@@ -233,10 +247,16 @@ def execute_command(cmd, verbose, isutil=False):
 			nline += 1
 			logging.debug(line.strip())
 			if verbose:
-				if line.startswith("Pulling singularity"):
-					container = line.rstrip().split(" ")[-1].strip(".")
-					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-				yield line
+				if debug:
+					yield line
+				else:
+					if line.startswith("Pulling singularity"):
+						container = line.rstrip().split(" ")[-1].strip(".")
+						yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
+					if line.startswith("rule") and not debug:
+						yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+					if line.lstrip().startswith("wildcards:"):
+						yield "\tParameters: %s\n" % line.split(":")[1]
 			else:
 				result = line
 				if check_for_errors(result):
@@ -272,6 +292,11 @@ def get_additional_snakemake_flags(flags, rerun, unlock):
 			flags += " --unlock"
 		else:
 			flags += "--unlock"
+	if debug:
+		if flags:
+			flags += " -p"
+		else:
+			flags += "-p"
 	if flags:
 		print(now(), "INFO: Additional flags will be passed on to snakemake: ", flags)
 		return flags.split(" ")
