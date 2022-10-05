@@ -765,6 +765,7 @@ elif args.command == "check":
 	check_parser = argparse.ArgumentParser(add_help=False)
 	check_parser.add_argument("-h", "--help", action="store_true")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
+	check_parser.add_argument("--debug", action="store_true", dest="debug", default=False)
 	check_args = check_parser.parse_args(args.arguments)
 	debug = check_debug(check_args.debug) #check if debug is enabled
 	
