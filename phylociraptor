@@ -1190,7 +1190,7 @@ elif args.command == "util":
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1269,5 +1269,5 @@ elif args.command == "util":
 			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
-	print("Please run phylociraptor -h to see avilable options")
+	print("Please run phylociraptor -h to see avilable options.")
 
