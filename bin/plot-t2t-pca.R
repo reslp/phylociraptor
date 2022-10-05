@@ -174,14 +174,14 @@ for (x in strsplit(newtreenames, "-")){
   
 }
 plotdf$treebuilder <- treebuilders
-plotdf$bscutoff <- bootstrapcutoffs
-plotdf$alitrim <- alitrim
+plotdf$bootstrap_cutoff <- bootstrapcutoffs
+plotdf$aligner_trimmer <- alitrim
 
-p <- ggplot(data = plotdf, aes(x=PC1, y=PC2, label=treenames, color=alitrim, shape=treebuilder, size=bscutoff)) + geom_point() +xlab(paste0("PC1 (", PC1Variance, "%)")) +ylab(paste0("PC2 (", PC2Variance,"%)")) +ggtitle(paste0("Similarity of trees based on tip to tip distance matrices.\nBased on ", ndistances, " distances between tips."))+ scale_shape_manual(values = c(15, 16, 17, 18))+ scale_color_brewer(palette="Set1")
+p <- ggplot(data = plotdf, aes(x=PC1, y=PC2, label=treenames, color=aligner_trimmer, shape=treebuilder, size=bootstrap_cutoff)) + geom_point() +xlab(paste0("PC1 (", PC1Variance, "%)")) +ylab(paste0("PC2 (", PC2Variance,"%)")) +ggtitle(paste0("Similarity of trees based on tip to tip distance matrices.\nBased on ", ndistances, " distances between tips."))+ scale_shape_manual(values = c(15, 16, 17, 18))+ scale_color_brewer(palette="Set1")
 
 pdf(file=paste0("tip2tip-PCA-",ndistances,".pdf"))
 print(p)
-dev.off()
+garbage <- dev.off()
 write.csv(file=paste0("pairwise-tip2tip-distance-matrix-",length(trees),"-trees.csv"), complete_df, sep=",", quote=FALSE)
 cat("PCA plotting is done.\n")
 cat('Output: tip2tip-PCA-*.pdf - PCA of tip to tip distances in trees. * will be the number of distances specified with --ndistances\n')

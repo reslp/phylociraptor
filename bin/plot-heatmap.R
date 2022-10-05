@@ -42,7 +42,7 @@ if (treelistfile == "none") {
   p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("% similarity of pairs of trees based on the\noccurence of ", nrow(data), " quartets of tips in each tree"), angle_col=0)
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))
   print(p)
-  dev.off()
+  garbage <- dev.off()
 } else {
   cat("Using detailed tree name information for plotting.\n")
   treelist <- read.csv(treelistfile, sep="\t", header=F)
@@ -59,7 +59,7 @@ if (treelistfile == "none") {
   p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("% similarity of pairs of trees based on the\noccurence of ", nrow(data), " quartets of tips in each tree"))
   pdf(file=paste0("quartet-similarity-heatmap-",nrow(data),"-trees.pdf"), width=pwidth, height=pheight)
   print(p)
-  dev.off()
+  garbage <- dev.off()
   
 }
 

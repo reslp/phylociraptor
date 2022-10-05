@@ -308,7 +308,7 @@ if (level == "none" || lineage_file == "none") {
     cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
     pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
     print(t2 + theme(legend.position="none") +  plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
-    dev.off()
+    garbage <- dev.off()
     if (singlet == TRUE) {break}
   }
 } else { # plot tree when lineage information is available.
@@ -470,7 +470,7 @@ if (level == "none" || lineage_file == "none") {
     } else {
         print(t2 + t1 + theme(legend.position="none") +  plot_annotation(tag_levels = 'A', title = prefix, caption=paste0("A) Topology without branch lengths. B) Topology with branch lengths and collapsed taxonomic groups. Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))) + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
     } 
-    dev.off()
+    garbage <- dev.off()
     if (single == TRUE) {break}
   }
 # this last parts creates an overview plot indicating (un)supported groups based on the specified lineage level.
@@ -487,7 +487,7 @@ if (level == "none" || lineage_file == "none") {
     mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
     pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
       print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
-    dev.off()
+    garbage <- dev.off()
     cat(paste0("Overview support plot saved to: compare-", level, ".pdf\n")) 
   }
 }
