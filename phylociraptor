@@ -98,7 +98,7 @@ def check_required_files(runmode):
 	for f in outfile_dict[runmode]:
 		if not os.path.isfile(f):
 			if debug:
-				print(now(),"DEBUG, check_required_files: File not found:", f)
+				print(now(),"DEBUG: check_required_files: File not found:", f)
 			return f
 	return
 
@@ -106,7 +106,7 @@ def check_directories(mode):
 	for directory in outdir_dict[mode]:
 		if not os.path.isdir(directory):
 			if debug:
-				print(now(), "DEBUG, check_directories: Directory not found:", directory)
+				print(now(), "DEBUG: check_directories: Directory not found:", directory)
 			return directory
 	return
 
@@ -114,7 +114,7 @@ def check_hasrun(mode):
 	f = checkpoint_file_dict[mode]
 	if not os.path.isfile(f):
 		if debug:
-			print(now(), "DEBUG, check_hasrun: Not found:", f)
+			print(now(), "DEBUG: check_hasrun: Not found:", f)
 		return f
 	else:
 		return
@@ -128,15 +128,15 @@ def check_config_file(f):
 
 def check_for_errors(result):
 	if result.startswith("WorkflowError"):
-		return now()+" ERROR: phylociraptor encountered an error. You may try to run with --verbose to diagnose what has gone wrong.\n"
+		return now()+" ERROR: phylociraptor encountered an error. Use --debug and --verbose to diagnose.\n"
 	if result.startswith("The singularity command"):
 		return result
 	if result.startswith("Error") or result.startswith("error"):
-		return now()+" ERROR: There was an error. Maybe run with --verbose to diagnose. The error occurred here: %s " % result	
+		return now()+" ERROR: There was an error. Use --debug and --verbose to diagnose. The error occurred here: %s " % result	
 	if result.startswith("Directory cannot be locked."):
 		return now()+" ERROR: "+result	
 	if result.startswith("IncompleteFilesException"):
-		return now()+" ERROR: There seems to be a problem with incomplete output files from a previous run.\nYou can run --verbose to see which files are incomplete and how to resolve the problem.\n"
+		return now()+" ERROR: There seems to be a problem with incomplete output files from a previous run. You can use --rerun-incomplete to force a rerun of incomplete tasks.\n"
 	if result.startswith("KeyError"):
 		return now()+" ERROR: "+result
 	return ""
@@ -174,9 +174,11 @@ def execute_command(cmd, verbose, isutil=False):
 		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
-			if verbose:
-				if debug:
-					yield line
+			if debug:
+				yield line
+			elif verbose:
+				if check_for_errors(line):
+					yield check_for_errors(line)
 				else:
 					if line.startswith("rule") and not debug:
 						yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
@@ -192,7 +194,7 @@ def execute_command(cmd, verbose, isutil=False):
 					jobcounts = True
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of tasks to run/submit: %s\n" % result.split("\t")[1].strip() 
+						yield now()+" Total number of tasks for this step: %s\n" % result.split("\t")[1].strip() 
 				elif jobcounts and result == "":
 					jobcounts = False
 				line=""
@@ -204,9 +206,11 @@ def execute_command(cmd, verbose, isutil=False):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
-			if verbose:
-				if debug:
-					yield line
+			if debug:
+				yield line
+			elif verbose:
+				if check_for_errors(line):
+					yield check_for_errors(line)
 				else:
 					if line.startswith("Pulling singularity"):
 						container = line.rstrip().split(" ")[-1].strip(".")
@@ -246,17 +250,16 @@ def execute_command(cmd, verbose, isutil=False):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
-			if verbose:
-				if debug:
-					yield line
-				else:
-					if line.startswith("Pulling singularity"):
-						container = line.rstrip().split(" ")[-1].strip(".")
-						yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-					if line.startswith("rule") and not debug:
-						yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
-					if line.lstrip().startswith("wildcards:"):
-						yield "\tParameters: %s\n" % line.split(":")[1]
+			if debug:
+				yield line
+			elif verbose:
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
+				if line.startswith("rule") and not debug:
+					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+				if line.lstrip().startswith("wildcards:"):
+					yield "\tParameters: %s\n" % line.split(":")[1]
 			else:
 				result = line
 				if check_for_errors(result):
@@ -298,20 +301,21 @@ def get_additional_snakemake_flags(flags, rerun, unlock):
 		else:
 			flags += "-p"
 	if flags:
-		print(now(), "INFO: Additional flags will be passed on to snakemake: ", flags)
+		if debug:
+			print(now(), "DEBUG: Additional flags will be passed on to snakemake: ", flags)
 		return flags.split(" ")
 	else:
 		return []
 
 def get_additional_singularity_flags(flags):
 	if flags:
-		print(now(), "INFO: Additional flags will be passed on to singularity: ", flags)
+		if debug:
+			print(now(), "DEBUG: Additional flags will be passed on to singularity: ", flags)
 		return ["--singularity-args"]+[singularity_bindpoints +" " + flags]
 	else:
 		return ["--singularity-args"]+ [singularity_bindpoints]
 	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
-pars.add_argument('--debug', action='store_true', dest="debug", required=False)
 pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
 pars.add_argument('command', action='store', nargs="?")
 pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
@@ -326,9 +330,6 @@ if args.version == True:
 	print("Git commit:", commit)
 	sys.exit(0)
 
-if args.debug == True:
-	print(now(), "DEBUG: Addditional debugging output enabled.")
-	debug=True
 
 if not args.command:
 	print(default_help)
@@ -349,12 +350,21 @@ class PhyloParser(argparse.ArgumentParser):
 		self.add_argument("--snakemake", action="store",dest="sm_args", default="")
 		self.add_argument("--rerun-incomplete", action="store_true", dest="rerun", default=False)
 		self.add_argument("--unlock", action="store_true", dest="unlock", default=False)
+		self.add_argument('--debug', action='store_true', dest="debug", required=False)
+
+def check_debug(debug):
+	if debug:
+		#print(now(), "DEBUG: Addditional debugging output enabled.")
+		return True
+	else:
+		return False
 
 class UtilParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 		self.add_argument("-h", "--help", action="store_true")
 		self.add_argument("--verbose", action="store_true", default=False)	
+		self.add_argument('--debug', action='store_true', dest="debug", required=False)
 	
 
 if args.command == "setup":
@@ -366,6 +376,7 @@ if args.command == "setup":
 	setup_parser.add_argument("--add_genomes", action="store_true",default=False, dest="add_genomes")
 
 	setup_args = setup_parser.parse_args(args.arguments)
+	debug = check_debug(setup_args.debug) #check if debug is enabled
 	if setup_args.help or len(sys.argv) <= 2:
 		print(help_message(setup_help))
 		sys.exit(0)
@@ -407,6 +418,7 @@ elif args.command=="orthology":
 	orthology_parser.add_argument("--augustus_species", action="store")
 	orthology_parser.add_argument("--additional_params", action="store")
 	orthology_args = orthology_parser.parse_args(args.arguments)
+	debug = check_debug(orthology_args.debug) #check if debug is enabled
 	if orthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(orthology_help))
 		sys.exit(0)
@@ -451,6 +463,7 @@ elif args.command=="filter-orthology":
 	forthology_parser.add_argument("--seqtype", action="store")
 	
 	forthology_args = forthology_parser.parse_args(args.arguments)	
+	debug = check_debug(forthology_args.debug) #check if debug is enabled
 	if forthology_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(forthology_help))
 		sys.exit(0)
@@ -506,6 +519,7 @@ elif args.command=="align":
 	align_parser.add_argument("--threads", action="store")
 	align_parser.add_argument("--parameters", action="store")
 	align_args = align_parser.parse_args(args.arguments)	
+	debug = check_debug(align_args.debug) #check if debug is enabled
 	if align_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(align_help))
 		sys.exit(0)
@@ -553,6 +567,7 @@ elif args.command=="filter-align":
 	falign_parser.add_argument("--min_parsimony_sites", action="store")
 	
 	falign_args = falign_parser.parse_args(args.arguments)	
+	debug = check_debug(falign_args.debug) #check if debug is enabled
 	if falign_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(falign_help))
 		sys.exit(0)
@@ -592,6 +607,7 @@ elif args.command=="speciestree":
 	sptree_parser = PhyloParser(add_help=False)
 	sptree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	sptree_args = sptree_parser.parse_args(args.arguments)	
+	debug = check_debug(sptree_args.debug) #check if debug is enabled
 	if sptree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(sptree_help))
 		sys.exit(0)
@@ -620,6 +636,8 @@ elif args.command=="njtree":
 	njtree_parser = PhyloParser(add_help=False)
 	njtree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	njtree_args = njtree_parser.parse_args(args.arguments)	
+	debug = check_debug(njtree_args.debug) #check if debug is enabled
+
 	if njtree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(njtree_help))
 		sys.exit(0)
@@ -648,6 +666,7 @@ elif args.command=="mltree":
 	tree_parser = PhyloParser(add_help=False)
 	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	tree_args = tree_parser.parse_args(args.arguments)	
+	debug = check_debug(tree_args.debug) #check if debug is enabled
 	if tree_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(tree_help))
 		sys.exit(0)
@@ -677,6 +696,7 @@ elif args.command=="modeltest":
 	model_parser = PhyloParser(add_help=False)
 	model_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	model_args = model_parser.parse_args(args.arguments)	
+	debug = check_debug(model_args.debug) #check if debug is enabled
 	if model_args.help or len(sys.argv) <= 2: # help is specified
 		print(help_message(model_help))
 		sys.exit(0)
@@ -708,6 +728,7 @@ elif args.command=="report":
 	report_parser.add_argument("--figure", action="store_true", default=False)
 	report_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	report_args = report_parser.parse_args(args.arguments)
+	debug = check_debug(report_args.debug) #check if debug is enabled
 	print(now(), "Will create a phylociraptor report...")
 	
 	if report_args.help: # help is specified
@@ -745,6 +766,7 @@ elif args.command == "check":
 	check_parser.add_argument("-h", "--help", action="store_true")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
 	check_args = check_parser.parse_args(args.arguments)
+	debug = check_debug(check_args.debug) #check if debug is enabled
 	
 	if check_args.help: 
 		print(help_message(check_help))
@@ -992,7 +1014,7 @@ elif args.command == "util":
 		sys.exit(0)
 	else:
 		which_util = args.arguments.pop(0)
-	
+	debug = check_debug(True) #for util debugging output is enabled by default
 	if which_util == "get-lineage":
 		gl_parser = UtilParser(add_help=False)
 		gl_parser.add_argument("-d","--datafile", action="store", default="data/data.csv")
@@ -1024,7 +1046,7 @@ elif args.command == "util":
 			print(line, end="\r")
 		print(now(), "Will now reformat lineage information for downstream applications like phylociraptor util plot-tree")
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/reformat_lineage.py", "data/lineage_information/lineage_information.csv", gl_args.outfile]
-		if debug:
+		if debug and gl_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not gl_args.quiet):
 			print(line, end="\r")
@@ -1074,7 +1096,7 @@ elif args.command == "util":
 			sys.exit(1)
 			
 
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1112,7 +1134,7 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix, single]
 
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1149,7 +1171,7 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-conflict.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
 
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1187,7 +1209,7 @@ elif args.command == "util":
 			print(help_message(util_plot_pca_help))
 			sys.exit(1)	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1217,7 +1239,7 @@ elif args.command == "util":
 		if qs_args.genes and qs_args.genes != "none":
 			first_arg = "genes="+qs_args.genes
 		cmd = ["bash", "bin/modify-busco.sh", first_arg, qs_args.buscoset, qs_args.seed]
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet):
 			print(line, end="\r")
@@ -1240,7 +1262,7 @@ elif args.command == "util":
 			cmd += ["--cancel"] 
 		if qs_args.verbose:
 			cmd += ["--verbose"]
-		if debug:
+		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, True):
 			print(line, end="\r")

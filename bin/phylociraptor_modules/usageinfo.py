@@ -63,6 +63,7 @@ Argumemts:
 	
 	--dry			Make a dry run.
 	--verbose		Display more output.
+	--debug			Display even more output. (Used mainly for debugging)
 	-h, --help		Display help.
 """
 
