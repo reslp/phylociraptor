@@ -25,7 +25,7 @@ pars.add_argument('--genome_statistics' , dest="genome_stats", required=True, he
 pars.add_argument('--gene_statistics' , dest="gene_stats", required=True, help="Path to gene statistics output file.")
 pars.add_argument('--batchID' , dest="batchid", default=1, type=int, help="Batch ID (start for subsampling)")
 pars.add_argument('--nbatches', dest="nbatches", default=1, type=int, help="Total number of batches (step size for subsampling)")
-pars.add_argument('--fix_for_alicut', dest="fixaa", default=False, action='store_true', help="if this is specified certain rare aa codes (J|Z) will be replaced with 'X' and stop codons (*) removed")
+pars.add_argument('--fix_aa_codes', dest="fixaa", default=False, action='store_true', help="if this is specified certain rare aa codes (U|J|Z) will be replaced with 'X' and stop codons (*) removed")
 
 args=pars.parse_args()
 
@@ -119,7 +119,7 @@ for i in range(len(buscos)):
 		if args.fixaa:
 			if 'J' in outstring or 'Z' in outstring or '*' in outstring:
 				print("replacing stuff:\n", outstring)
-				outstring = "\n".join([l.replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
+				outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
 
 		print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 		outfile = open(args.outdir+"/"+busco+"_all.fas", "w")
