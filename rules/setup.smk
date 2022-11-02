@@ -227,11 +227,11 @@ rule rename_assemblies:
 
 rule download_busco_set:
 	output:
-		busco_set = directory("results/orthology/busco/busco_set/"+config["busco"]["set"]),
+		busco_set = directory("results/orthology/busco/busco_set/"+config["orthology"]["busco_options"]["set"]),
 		checkpoint = "results/checkpoints/download_busco_set.done"
 	params:
-		set = config["busco"]["set"],
-		busco_version = config["busco"]["version"]
+		set = config["orthology"]["busco_options"]["set"],
+		busco_version = config["orthology"]["busco_options"]["version"]
 	log:
 		"log/setup/download_busco_set.log"
 	benchmark:
@@ -270,7 +270,6 @@ rule setup:
 		"results/checkpoints/download_busco_set.done",
 		"results/checkpoints/rename_assemblies.done",
 		"results/statistics/downloaded_genomes_statistics.txt"
-		#expand("results/assemblies/{species}.fna", species=samples)
 	output:
 		"results/checkpoints/modes/phylogenomics_setup.done"
 
