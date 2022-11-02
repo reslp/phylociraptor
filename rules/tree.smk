@@ -46,8 +46,6 @@ rule raxmlng:
 			partitions = rules.partition_alignment.output.partitions
 		output:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.done",
-			alignment = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}/concat.fas",
-			partitions = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}/partitions.txt",
 			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.txt"
@@ -63,11 +61,11 @@ rule raxmlng:
 			"log/mltree/raxml/raxml-{aligner}-{alitrim}-{bootstrap}.txt"
 		shell:
 			"""
-			cp {input.alignment} {output.alignment}
-			cp {input.partitions} {output.partitions}
+			cp {input.alignment} results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}/concat.fas
+			cp {input.partitions} results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}/partitions.txt
 			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}
-			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{{threads}}} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params} 2>&1 | tee {params.wd}/{log}
-			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
+			raxml-ng --msa concat.fas $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{{threads}}} --bs-trees {params.bs} --model partitions.txt --all {params.additional_params} 2>&1 | tee {params.wd}/{log}
+			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat partitions.txt | wc -l)\t$(cat raxmlng.raxml.bestTree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}
 			touch {params.wd}/{output.checkpoint}
 			"""
