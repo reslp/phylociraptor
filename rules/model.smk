@@ -7,14 +7,28 @@ import yaml
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated/{busco}_all.fas")
+#create new hashes for current stage 
+hashes = collect_hashes("modeltest")
+
+filter_orthology_hash = hashes['filter-orthology']
+aligner_hashes = hashes['align']["per"]
+trimmer_hashes = hashes['filter-align']["per"]
+previous_hash = hashes['filter-align']["global"]
+
+modeltest_hashes = hashes['modeltest']["per"]
+current_hash = hashes['modeltest']["global"]
+
+BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
+
+def previous_params_global(wildcards):
+	return "results/alignments/trimmed/parameters.filter-align."+previous_hash+".yaml"
+def previous_params_per(wildcards):
+	return "results/alignments/trimmed/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+".yaml"
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
 tree_methods = get_treemethods()
 bscuts = get_bootstrap_cutoffs()
-
-#BUSCOS, = glob_wildcards("results/filtered_alignments/"+config["alignment"]["method"][0]+"/"+config["trimming"]["method"][0]+"/{busco}_aligned_trimmed.fas")
 
 # keep old modeltest rule for later reference. The Alignment info part may be necessary for raxml later...
 #rule modeltest:
@@ -53,43 +67,74 @@ bscuts = get_bootstrap_cutoffs()
 def return_target_modeltest_check(wildcards):
 	lis = []
         for busco in BUSCOS:
-		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
-#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
-			lis.append("results/checkpoints/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_modeltest_"+wildcards.aligner+"_"+wildcards.alitrim+".done")
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
+#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+busco+"/"+busco+".log")
+			lis.append("results/checkpoints/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_modeltest_"+wildcards.aligner+"_"+wildcards.alitrim+".done")
 	return lis
 
 def return_genes(wildcards):
 	lis = []
         for busco in BUSCOS:
-		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+str(busco)+"_aligned_trimmed.fas"):
-#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"/"+busco+"/"+busco+".log")
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
+#			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+busco+"/"+busco+".log")
 			lis.append(busco)
 	return lis
+
+def compare_modeltest(wildcards):
+	return [trigger("results/modeltest/parameters.modeltest.{aligner}-{alitrim}.{hash}.yaml".format(aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
+
+rule read_params_per:
+	input:
+		trigger = compare_modeltest,
+		previous = previous_params_per
+	output:
+		"results/modeltest/parameters.modeltest.{aligner}-{alitrim}.{hash}.yaml"
+	shell:
+		"""
+		bin/read_write_yaml.py {input.trigger} {output} seed modeltest,options,iqtree modeltest,bootstrap
+		cat {input.previous} >> {output}
+		"""
+rule read_params_global:
+	input:
+		trigger = compare("results/modeltest/parameters.modeltest."+current_hash+".yaml", configfi),
+		previous = previous_params_global
+	output:
+		"results/modeltest/parameters.modeltest."+current_hash+".yaml"
+	shell:
+		"""
+		bin/read_write_yaml.py {input.trigger} {output} seed modeltest,method modeltest,options modeltest,bootstrap
+		cat {input.previous} >> {output}
+		"""
+
+def alignments_in(wildcards):
+	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+wildcards.busco+"_aligned_trimmed.fas"
 
 rule iqtree_mt:
 	input:
 #		alignment = get_alignment
-		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
+#		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
+		alignment = alignments_in,
 	output:
-#		logfile = "results/modeltest/{aligner}-{alitrim}/{busco}/{busco}.log",
-		checkpoint = "results/checkpoints/modeltest/{aligner}-{alitrim}/{busco}_modeltest_{aligner}_{alitrim}.done"
+#		logfile = "results/modeltest/{aligner}-{alitrim}.{hash}/{busco}/{busco}.log",
+		checkpoint = "results/checkpoints/modeltest/{aligner}-{alitrim}.{hash}/{busco}_modeltest_{aligner}_{alitrim}.done"
 	benchmark:
-		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.txt"
+		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.{hash}.txt"
 	params:
 		wd = os.getcwd(),
 		busco = "{busco}",
-		bb = config["genetree"]["bootstrap"],
-		additional_params = config["iqtree"]["additional_params"],
+		bb = config["modeltest"]["bootstrap"],
+		additional_params = config["modeltest"]["options"]["iqtree"],
+		target_dir = "results/modeltest/{aligner}-{alitrim}.{hash}/{busco}",
 		seed = config["seed"]
 	singularity:
 		containers["iqtree"]	
 	log:
-		"log/modeltest/iqtree/iqtree_mt-{aligner}-{alitrim}-{busco}.txt"
+		"log/modeltest/iqtree/iqtree_mt-{aligner}-{alitrim}-{busco}.{hash}.txt"
 	threads: config["modeltest"]["threads"]
 	shell:
 		"""
-		if [[ ! -d "results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}" ]]; then mkdir -p results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{wildcards.busco}; fi
-		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/{params.busco}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
+		if [[ ! -d {params.target_dir} ]]; then mkdir -p {params.target_dir}; fi
+		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/{params.target_dir}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
 		touch {output.checkpoint}
 		"""
 
@@ -97,22 +142,22 @@ rule aggregate_best_models:
 	input:
 		checkfiles = return_target_modeltest_check
 	output:
-		best_models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
-		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done",
-		genetree_filter_stats = "results/modeltest/genetree_filter_{aligner}_{alitrim}.txt"
+		best_models = "results/modeltest/best_models_{aligner}_{alitrim}.{hash}.txt",
+		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.{hash}.done",
+		genetree_filter_stats = "results/modeltest/genetree_filter_{aligner}_{alitrim}.{hash}.txt"
 	benchmark:
-		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.txt"
+		"results/statistics/benchmarks/model/aggregate_best_models_{aligner}_{alitrim}.{hash}.txt"
 	params:
 		wd = os.getcwd(),
 		genes = return_genes
 	log:
-		"log/modeltest/aggregate_best_models-{aligner}-{alitrim}.txt"
+		"log/modeltest/aggregate_best_models-{aligner}-{alitrim}.{hash}.txt"
 	shell:
 		"""
 		# echo "name\tmodel" > {output.best_models}
 		for gene in {params.genes}
 		do
-			model=$(cat results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$gene/$gene.log | grep "Best-fit model:" | tail -n 1 | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}')
+			model=$(cat results/modeltest/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/$gene/$gene.log | grep "Best-fit model:" | tail -n 1 | awk -F ":" '{{print $2}}' | awk -F " " '{{print $1}}')
 			# This should not happen
 			if [[ $(echo $model | wc -l) -eq 0 ]]
 			then
@@ -124,7 +169,7 @@ rule aggregate_best_models:
 			fi
 
 			#now calculate mean bootsrap for each tree
-			bootstrapvalues=$(grep -E '\)[0-9]+:' -o results/modeltest/{wildcards.aligner}-{wildcards.alitrim}/$gene/$gene.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
+			bootstrapvalues=$(grep -E '\)[0-9]+:' -o results/modeltest/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/$gene/$gene.treefile | sed 's/)//' | sed 's/://' | tr '\n' '+' | sed 's/+$//')
 #			bootstrapsum=$(echo "$bootstrapvalues" | bc)
 			bootstrapsum=$(echo "$bootstrapvalues" | perl -ne 'chomp; @bs=split(/\+/); $sum=0; for (@bs){{$sum=$sum+$_}}; print "$sum"')
 		
@@ -137,12 +182,22 @@ rule aggregate_best_models:
 
 		"""
 
+def pull(wildcards):
+	lis = []
+	for m in config["modeltest"]["method"]:
+		for a in config["alignment"]["method"]:
+			for t in config["trimming"]["method"]:
+				lis.append("results/checkpoints/modeltest/aggregate_best_models_"+a+"_"+t+"."+modeltest_hashes[m][t][a]+".done")
+				lis.append("results/modeltest/genetree_filter_"+a+"_"+t+"."+modeltest_hashes[m][t][a]+".txt")
+				lis.append("results/modeltest/parameters.modeltest."+a+"-"+t+"."+modeltest_hashes[m][t][a]+".yaml")
+	return lis
+
 rule modeltest:
 	input:
-		expand("results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done", aligner=aligners, alitrim=trimmers),
-		expand("results/modeltest/genetree_filter_{aligner}_{alitrim}.txt", aligner=aligners, alitrim=trimmers)
+		pull,
+		params = rules.read_params_global.output,
 	output:
-		"results/checkpoints/modes/modeltest.done"
+		"results/checkpoints/modes/modeltest."+current_hash+".done"
 	shell:
 		"""
 		touch {output}
