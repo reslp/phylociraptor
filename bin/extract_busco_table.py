@@ -28,7 +28,7 @@ print(header, file= outfile)
 for species in genomes:
 	ones = 0
 	zeros = 0
-	outstring = species
+	outstring = ".".join(species.split(".")[:-1])
 	print("Extracting HMMs for", species, file=sys.stderr)
 	try:
 		busco_listing_file = open(args.busco_results + species + "/run_busco/single_copy_busco_sequences.txt", "r")
