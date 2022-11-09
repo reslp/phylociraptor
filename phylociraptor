@@ -121,6 +121,8 @@ def check_hasrun(mode):
 
 def check_config_file(f):
 	if os.path.isfile(f):
+#		cmd = ['env', 'CONFIG='+f]
+#		popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		return ["--configfile", f]
 	else:
 		print(now(), "ERROR: Config file specified with --config-file not found:", f)
@@ -157,10 +159,13 @@ def check_required_software():
 		sys.exit(1)
 	
 	
-def execute_command(cmd, verbose, isutil=False):
+def execute_command(cmd, verbose, config, isutil=False):
 	# this should also correctly parse and display:
 	# IncompleteFilesException
 	# when singularity command is not available
+	if config:
+		cmd = ['CONFIG='+config] + cmd
+		cmd = ['env'] + cmd
 	popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	line = ""
 	jobcounts = False
@@ -405,7 +410,7 @@ if args.command == "setup":
 	cmd += get_additional_snakemake_flags(setup_args.sm_args, setup_args.rerun, setup_args.unlock)
 	cmd += get_additional_singularity_flags(setup_args.si_args)
 
-	for line in execute_command(cmd, setup_args.verbose):
+	for line in execute_command(cmd, setup_args.verbose, config=setup_args.config_file):
 		print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -449,7 +454,7 @@ elif args.command=="orthology":
 	cmd += get_additional_singularity_flags(orthology_args.si_args)
 
 	
-	for line in execute_command(cmd, orthology_args.verbose):
+	for line in execute_command(cmd, orthology_args.verbose, config=orthology_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", " ".join(cmd))
@@ -507,7 +512,7 @@ elif args.command=="filter-orthology":
 	cmd += get_additional_snakemake_flags(forthology_args.sm_args, forthology_args.rerun, forthology_args.unlock)
 	cmd += get_additional_singularity_flags(forthology_args.si_args)
 	
-	for line in execute_command(cmd, forthology_args.verbose):
+	for line in execute_command(cmd, forthology_args.verbose, config=forthology_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -554,7 +559,7 @@ elif args.command=="align":
 	cmd += get_additional_snakemake_flags(align_args.sm_args, align_args.rerun, align_args.unlock)
 	cmd += get_additional_singularity_flags(align_args.si_args)
 	
-	for line in execute_command(cmd, align_args.verbose):
+	for line in execute_command(cmd, align_args.verbose, config=align_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", " ".join(cmd))
@@ -598,7 +603,7 @@ elif args.command=="filter-align":
 	cmd += get_additional_snakemake_flags(falign_args.sm_args, falign_args.rerun, falign_args.unlock)
 	cmd += get_additional_singularity_flags(falign_args.si_args)
 
-	for line in execute_command(cmd, falign_args.verbose):
+	for line in execute_command(cmd, falign_args.verbose, config=falign_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -627,7 +632,7 @@ elif args.command=="speciestree":
 	cmd += get_additional_snakemake_flags(sptree_args.sm_args, sptree_args.rerun, sptree_args.unlock)
 	cmd += get_additional_singularity_flags(sptree_args.si_args)
 	
-	for line in execute_command(cmd, sptree_args.verbose):
+	for line in execute_command(cmd, sptree_args.verbose, config=sptree_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -657,7 +662,7 @@ elif args.command=="njtree":
 	cmd += get_additional_snakemake_flags(njtree_args.sm_args, njtree_args.rerun, njtree_args.unlock)
 	cmd += get_additional_singularity_flags(njtree_args.si_args)
 	
-	for line in execute_command(cmd, njtree_args.verbose):
+	for line in execute_command(cmd, njtree_args.verbose, njtree_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -687,7 +692,7 @@ elif args.command=="mltree":
 	cmd += get_additional_singularity_flags(tree_args.si_args)
 	
 	
-	for line in execute_command(cmd, tree_args.verbose):
+	for line in execute_command(cmd, tree_args.verbose, config=tree_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)
@@ -716,7 +721,7 @@ elif args.command=="modeltest":
 	cmd += get_additional_snakemake_flags(model_args.sm_args, model_args.rerun, model_args.unlock)
 	cmd += get_additional_singularity_flags(model_args.si_args)
 
-	for line in execute_command(cmd, model_args.verbose):
+	for line in execute_command(cmd, model_args.verbose, config=model_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", cmd)	
@@ -750,7 +755,7 @@ elif args.command=="report":
 		if report_args.config_file:
 			cmd += [report_args.config_file]
 	#proc = subprocess.run(cmd)
-	for line in execute_command(cmd, report_args.verbose):
+	for line in execute_command(cmd, report_args.verbose, config=report_args.config_file):
                 print(line, end="\r")
 	if debug:
 		print(now(), "DEBUG:", cmd)
@@ -1049,7 +1054,7 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python", "bin/reformat_lineage.py", "data/lineage_information/lineage_information.csv", gl_args.outfile]
 		if debug and gl_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not gl_args.quiet):
+		for line in execute_command(cmd, not gl_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "estimate-conflict":
 		qs_parser = UtilParser(add_help=False)
@@ -1099,7 +1104,7 @@ elif args.command == "util":
 
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "plot-tree":
 		qs_parser = UtilParser(add_help=False)
@@ -1137,7 +1142,7 @@ elif args.command == "util":
 
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "plot-conflict":
 		qs_parser = UtilParser(add_help=False)
@@ -1174,7 +1179,7 @@ elif args.command == "util":
 
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "plot-heatmap":
 		qs_parser = UtilParser(add_help=False)
@@ -1192,7 +1197,7 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "plot-pca":
 		qs_parser = UtilParser(add_help=False)
@@ -1212,7 +1217,7 @@ elif args.command == "util":
 		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "modify-busco":
 		qs_parser = UtilParser(add_help=False)
@@ -1242,7 +1247,7 @@ elif args.command == "util":
 		cmd = ["bash", "bin/modify-busco.sh", first_arg, qs_args.buscoset, qs_args.seed]
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet):
+		for line in execute_command(cmd, not qs_args.quiet, config=None):
 			print(line, end="\r")
 	if which_util == "manage-jobs":
 		qs_parser = UtilParser(add_help=False)
@@ -1265,7 +1270,7 @@ elif args.command == "util":
 			cmd += ["--verbose"]
 		if debug and qs_args.verbose:
 			print(cmd)
-		for line in execute_command(cmd, not qs_args.quiet, True):
+		for line in execute_command(cmd, not qs_args.quiet, None, True):
 			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)
