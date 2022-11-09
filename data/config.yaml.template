@@ -7,11 +7,12 @@ seed: "1987" #(optional) random seed number to increase reproducibility of iqtre
 # settings related to busco
 orthology:
     method: "busco"
+    threads: 10
+    exclude: "data/exclude.focus_Neodermata.csv"
     busco_options:
         set: "metazoa_odb10"
         version: "5.2.1" #possible is "3.0.2" or "5.2.1"
         mode: "genome"
-        threads: 10
         augustus_species: #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
         additional_parameters: ""
 
@@ -23,16 +24,14 @@ orthology:
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
 
-exclude_orthology: "data/exclude.focus_Neodermata.csv"
-#exclude_orthology: "data/exclude.small_outgroup.csv"
-
 filtering:
-    concurrency: 20
     dupseq: "persample"
     cutoff: 0.2
     minsp: 30
     seq_type: "aa"
     exclude_orthology: "data/exclude.focus_Neodermata.csv" #"data/exclude.small_outgroup.csv"
+
+genetree_filtering:
     bootstrap_cutoff: [50,60,70,80] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
 # settings related to alignment and trimming
@@ -81,6 +80,12 @@ mltree:
         iqtree: ""
         raxml: ""
         
+njtree:
+    method: ["quicktree"]
+    threads:
+        quicktree: 10
+    options:
+        quicktree: ""
 
 # specific settings for individual tree reconstruction methods
 #iqtree:
