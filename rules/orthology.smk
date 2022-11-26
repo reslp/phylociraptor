@@ -79,7 +79,7 @@ def select_species(dir="results/assemblies"):
 	default_hash = get_hash(default)
 	hashes = []
 	if not "mode" in sample_data:
-		hashes = [len(sps) * str(default_hash)]
+		hashes = [str(default_hash)] * len(sps)
 	else:
 		for sp in sps:
 			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any():
