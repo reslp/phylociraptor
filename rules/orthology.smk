@@ -186,7 +186,7 @@ if config["orthology"]["busco_options"]["version"] == "3.0.2":
 			mv run_busco/missing_busco_list_busco.tsv {output.missing_busco_list}
 			#mv run_busco/single_copy_busco_sequences {output.single_copy_buscos}
 			
-			buscos=$(tail -n +6 results/orthology/busco/busco_runs/{params.species}/run_busco/full_table_busco.tsv | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
+			buscos=$(tail -n +6 {output.full_table} | cut -f 2 | sort | uniq -c | tr '\\n' ' ' | sed 's/ $/\\n/g')
 			name="{params.species}"
 			echo "$(date) $name $buscos" >> results/statistics/runlog.txt
 			
