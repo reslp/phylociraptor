@@ -5,22 +5,28 @@ import yaml
 
 #configfi=str(sys.argv[sys.argv.index("--configfile")+1])
 configfi=os.environ["CONFIG"]
+print("CONFIGFILE:", configfi)
+
+def get_modeltest_checkpoint(wildcards):
+	return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"
+
 
 ###all kinds of functions related to the hash functionality
 
 def read_file_from_yaml(read, file):
 	import pandas as pd
-	print("reading in file:", file, read )
-	if len(read) > 0:
-		df = pd.read_csv(file)
-		lis = read.split(",")
-		for i in reversed(range(len(lis))):
-			if not lis[i] in df:
-				del(lis[i])
-		df = df[lis]
-	else:
-		df = pd.read_csv(file, header=None)
-	return sorted(df.values.tolist())
+	if file:
+		print("reading in file:", file, read )
+		if len(read) > 0:
+			df = pd.read_csv(file)
+			lis = read.split(",")
+			for i in reversed(range(len(lis))):
+				if not lis[i] in df:
+					del(lis[i])
+			df = df[lis]
+		else:
+			df = pd.read_csv(file, header=None)
+		return sorted(df.values.tolist())
 
 def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=False):
 	import collections
@@ -110,6 +116,7 @@ def collect_hashes(mode):
 	#filter-orthology
 	if not os.path.isfile("results/orthology/busco/params.orthology."+hashes['orthology']+".yaml"):
 		print("Please doublecheck if the stage 'orthology' was run with the parameters currently specified in "+configfi)
+		print("I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']+".yaml")
 		sys.exit()
 	else:
 		hashes['filter-orthology'] = get_hash(hashes['orthology'], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi)
@@ -123,6 +130,7 @@ def collect_hashes(mode):
 	hashes['align'] = {"global": "", "per": {}}
 	if not os.path.isfile("results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']+".yaml"):
 		print("Please doublecheck if the stage 'filter-orthology' was run with the parameters currently specified in "+configfi)
+		print("I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']+".yaml")
 		sys.exit()
 	else:
 		hashes['align']["global"] = get_hash(hashes['filter-orthology'], "alignment,options alignment,method", configfi)
@@ -138,6 +146,7 @@ def collect_hashes(mode):
 	hashes['filter-align'] = {"global": "", "per": {}}
 	if not os.path.isfile("results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml"):
 		print("Please doublecheck if the stage 'align' was run with the parameters currently specified in "+configfi)
+		print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
 		sys.exit()
 	else:
 		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites", configfi)
