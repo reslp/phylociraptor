@@ -15,6 +15,9 @@ def get_modeltest_checkpoint(wildcards):
 
 def read_file_from_yaml(read, file):
 	import pandas as pd
+	if not os.path.exists(file) or file == None:
+		print("File not found or not specified")
+		return []
 	if file:
 		print("reading in file:", file, read )
 		if len(read) > 0:
