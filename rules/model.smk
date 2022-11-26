@@ -3,6 +3,8 @@ import os.path
 import glob
 import yaml
 
+ruleorder: read_params_global > read_params_per
+
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
@@ -109,13 +111,15 @@ rule read_params_global:
 def alignments_in(wildcards):
 	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+wildcards.busco+"_aligned_trimmed.fas"
 
+def return_trimmer_checkpoint(wildcards):
+	return "results/statistics/filter-"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/alignment_filter_information_"+wildcards.alitrim+"_"+wildcards.aligner+".txt"
+
 rule iqtree_mt:
 	input:
-#		alignment = get_alignment
-#		alignment = "results/alignments/filtered/{aligner}-{alitrim}/{busco}_aligned_trimmed.fas"
+		"results/modeltest/parameters.modeltest.{aligner}-{alitrim}.{hash}.yaml",
 		alignment = alignments_in,
+		checkpoint = return_trimmer_checkpoint,
 	output:
-#		logfile = "results/modeltest/{aligner}-{alitrim}.{hash}/{busco}/{busco}.log",
 		checkpoint = "results/checkpoints/modeltest/{aligner}-{alitrim}.{hash}/{busco}_modeltest_{aligner}_{alitrim}.done"
 	benchmark:
 		"results/statistics/benchmarks/model/modeltest_{busco}_{aligner}_{alitrim}.{hash}.txt"
