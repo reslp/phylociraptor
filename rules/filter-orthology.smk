@@ -65,6 +65,7 @@ rule create_sequence_files:
 	shell:
 		""" 
 		if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
+		exclude=""
 		if [[ "{params.exclude}" != "None" ]]
 		then
 			exclude="--exclude {params.exclude}"
@@ -129,6 +130,7 @@ rule remove_duplicated_sequence_files:
 
 rule filter_orthology:
 	input:
+		"results/checkpoints/modes/orthology."+previous_hash+".done",
 		"results/checkpoints/remove_duplicated_sequence_files."+current_hash+".done"
 	output:
 		"results/checkpoints/modes/filter_orthology."+current_hash+".done"
