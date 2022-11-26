@@ -210,7 +210,7 @@ rule rename_assemblies:
 						ln -rs {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
 					else
 						echo "Copying: $(realpath ${{sparr[1]}})"
-						cp $(realpath "${{sparr[1]}}") results/assemblies/"${{sparr[0]}}".fasta
+						rsync -apuzP $(realpath "${{sparr[1]}}") results/assemblies/"${{sparr[0]}}".fasta
 					fi
 				else
 					echo -e "{params.wd}/${{sparr[1]}} doesn't seem to exist - please check the path"
