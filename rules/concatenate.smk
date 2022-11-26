@@ -1,10 +1,6 @@
 include: "functions.smk"
 import yaml
 
-
-def get_modeltest_checkpoint(wildcards):
-	return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"
-
 def get_alignment_dir(wildcards):
 	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]
 

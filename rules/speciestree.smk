@@ -3,6 +3,8 @@ import os.path
 import glob
 import yaml
 
+ruleorder: read_params_global > read_params_per
+
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
@@ -71,6 +73,8 @@ def get_modeltest_hash(wildcards):
 rule aggregate_gene_trees:
 	input:
 #		treefiles = return_trees,
+		"results/phylogeny-{bootstrap}/parameters.speciestree.astral-{aligner}-{alitrim}.{hash}.yaml",
+		get_modeltest_checkpoint,
 	output:
 		trees = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}.{hash}/trees_{aligner}_{alitrim}.tre",
 		checkpoint = "results/checkpoints/aggregate_gene_trees_{aligner}_{alitrim}_{bootstrap}.{hash}.done"

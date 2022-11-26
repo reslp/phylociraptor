@@ -1,6 +1,8 @@
 include: "functions.smk"
 import yaml
 
+ruleorder: read_params_global > read_params_per
+
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
