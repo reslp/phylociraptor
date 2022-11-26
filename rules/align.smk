@@ -65,7 +65,7 @@ rule read_params_global:
 
 rule clustalo:
 		input:
-			checkpoint = "results/checkpoints/modes/filter_orthology.done",
+			"results/alignments/full/clustalo."+clustalo_hash+"/parameters.align.clustalo."+clustalo_hash+".yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/clustalo."+clustalo_hash+"/{busco}_aligned.fas",
@@ -86,7 +86,7 @@ rule clustalo:
 
 rule mafft:
 		input:
-			checkpoint = "results/checkpoints/modes/filter_orthology.done",
+			"results/alignments/full/mafft."+mafft_hash+"/parameters.align.mafft."+mafft_hash+".yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/mafft."+mafft_hash+"/{busco}_aligned.fas",
@@ -106,7 +106,7 @@ rule mafft:
 			"""
 rule muscle:
 		input:
-			checkpoint = "results/checkpoints/modes/filter_orthology.done",
+			"results/alignments/full/muscle."+muscle_hash+"/parameters.align.muscle."+muscle_hash+".yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/muscle."+muscle_hash+"/{busco}_aligned.fas",
@@ -197,6 +197,7 @@ rule align:
 	input:
 		pull,
 		rules.read_params_global.output,
+		checkpoint = "results/checkpoints/modes/filter_orthology."+previous_hash+".done",
 	output:
 		"results/checkpoints/modes/align."+current_hash+".done"
 	shell:
