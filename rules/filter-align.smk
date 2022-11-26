@@ -3,6 +3,8 @@ import subprocess
 import glob
 import yaml
 
+ruleorder: read_params_global > read_params_per 
+
 # get list of containers to use:
 with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
@@ -78,10 +80,20 @@ rule read_params_global:
 		bin/read_write_yaml.py {input.trigger} {output} trimming,method trimming,options trimming,min_parsimony_sites
 		cat {input.previous} >> {output}
 		"""
+def return_aligner_checkpoint(wildcards):
+	return "results/checkpoints/"+wildcards.aligner+"_aggregate_align."+aligner_hashes[wildcards.aligner]+".done"
+
+def return_bmge_params(wildcards):
+	return "results/alignments/trimmed/"+wildcards.aligner+"-bmge."+trimmer_hashes["bmge"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-bmge."+trimmer_hashes["bmge"][wildcards.aligner]+".yaml"
+def return_trimal_params(wildcards):
+	return "results/alignments/trimmed/"+wildcards.aligner+"-trimal."+trimmer_hashes["trimal"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-trimal."+trimmer_hashes["trimal"][wildcards.aligner]+".yaml"
+def return_aliscore_params(wildcards):
+	return "results/alignments/trimmed/"+wildcards.aligner+"-aliscore."+trimmer_hashes["aliscore"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-aliscore."+trimmer_hashes["aliscore"][wildcards.aligner]+".yaml"
+
 rule bmge:
 		input:
-			checkpoint = "results/checkpoints/modes/align.done",
-#			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
+			checkpoint = return_aligner_checkpoint,
+			params = return_bmge_params,
 			alignment = per_aligner
 		output:
 			trimmed_alignment = "results/alignments/trimmed/{aligner}-bmge.{hash}/{busco}_aligned_trimmed.fas",
@@ -96,12 +108,22 @@ rule bmge:
 			containers["bmge"]	
 		shell:
 			"""
-			bmge -i {input.alignment} -t $(if [[ "{params.type}" == "aa" ]]; then echo "AA"; else echo "NT"; fi) -of {output.trimmed_alignment} 2>&1 | tee {log}
+			if [[ "{params.type}" == "aa" ]]
+			then
+				echo "Setting sequence type to AA" 2>&1 | tee {log}
+				seqtype="AA"
+			elif [[ "{params.type}" == "nu" ]]
+			then
+				seqtype="DNA"
+				echo "Setting sequence type to DNA" 2>&1 | tee {log}
+			fi
+			bmge -i {input.alignment} -t $seqtype -of {output.trimmed_alignment} 2>&1 | tee -a {log}
 			"""
 
 rule trimal:
 		input:
-			checkpoint = "results/checkpoints/modes/align.done",
+			checkpoint = return_aligner_checkpoint,
+			params = return_trimal_params,
 			alignment = per_aligner
 		output:
 			trimmed_alignment = "results/alignments/trimmed/{aligner}-trimal.{hash}/{busco}_aligned_trimmed.fas",
@@ -116,11 +138,13 @@ rule trimal:
 		shell:
 			"""
 			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment} 2>&1 | tee {log}
+			#it can happen that the alignment is empty after trimming. In this case trimal doesn't produce an error, but does not write the file so we do that manually
+			if [[ ! -f "{output.trimmed_alignment}" ]]; then echo "Making dummy file" 2>&1 | tee {log}; touch {output.trimmed_alignment}; fi
 			"""
 rule aliscore:
 		input:
-			checkpoint = "results/checkpoints/modes/align.done",
-#			alignment = "results/alignments/full/{aligner}/{busco}_aligned.fas"
+			checkpoint = return_aligner_checkpoint,
+			params = return_aliscore_params,
 			alignment = per_aligner
 		output:
 			trimmed_alignment = "results/alignments/trimmed/{aligner}-aliscore.{hash}/{busco}_aligned_trimmed.fas",
@@ -172,7 +196,6 @@ rule aliscore:
 
 rule get_trimmed_statistics:
 	input:
-#		alignments = expand("results/alignments/trimmed/{{aligner}}-{{alitrim}}/{bus}_aligned_trimmed.fas", bus=BUSCOS)
 		alignments = per_trimmer
 	output:
 		statistics_trimmed = "results/statistics/trim-{aligner}-{alitrim}.{hash}/stats_trimmed_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt"
@@ -302,20 +325,11 @@ def pull_algn_info(wildcards):
 				lis.append("results/statistics/filter-"+a+"-"+t+"."+trimmer_hashes[t][a]+"/alignment_filter_information_"+t+"_"+a+".txt")
 	return lis
 
-def pull_params(wildcards):
-	lis = []
-	for t in trimmer_hashes.keys():
-		for a in trimmer_hashes[t].keys():
-			for i in range(1, config["concurrency"] + 1):
-				lis.append("results/alignments/trimmed/"+a+"-"+t+"."+trimmer_hashes[t][a]+"/parameters.filter-align."+a+"-"+t+"."+trimmer_hashes[t][a]+".yaml")
-	return lis
-
 rule filter_align:
 	input:
 		filtered = pull_filtered_stats,
 		algntrim = pull_algn_info,
 		params = rules.read_params_global.output,
-		params_per = pull_params
 	output:
 		checkpoint = "results/checkpoints/modes/filter_align."+current_hash+".done",
 		stats = "results/statistics/filtered-alignments-stats."+current_hash+".txt"
