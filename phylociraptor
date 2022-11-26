@@ -1065,7 +1065,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-t", "--threads", action="store", default="1")
 		qs_parser.add_argument("-l", "--lineagefile", action="store")
 		qs_parser.add_argument("-b", "--stopby", action="store", default=None)
-		qs_parser.add_argument("-a", "--selecttaxa", action="store")
+		qs_parser.add_argument("-a", "--selecttaxa", action="store", default="")
 		qs_parser.add_argument("--quiet", action="store_true", default=False) 
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help: 
@@ -1091,7 +1091,7 @@ elif args.command == "util":
 
 		if qs_args.lineagefile and qs_args.selecttaxa:
 			cmd += ["-l", qs_args.lineagefile, "--selecttaxa", qs_args.selecttaxa]
-		elif not qs_args.lineagefile and qs_args.selecttaxa.startswith("tips"):
+		elif not qs_args.lineagefile and "tips" not in qs_args.selecttaxa:
 			cmd += ["--selecttaxa", qs_args.selecttaxa]
 		if qs_args.nquartets:
 			cmd += ["-q", qs_args.nquartets]

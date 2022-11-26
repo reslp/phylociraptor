@@ -133,6 +133,7 @@ get_triangle_coordinates <- function(phylo, nodes, mode = c("max", "min", "mixed
 # till here
 
 is_node_supported <- function(support) {
+  if (is.na(support) == TRUE) {return("no")} #treat nodes without support values as unsupported
   if (length(support) == 0) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
