@@ -10,9 +10,9 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 #create new hashes for current stage (alignment) by combining the previuos hash with a newly generated
-hashes = collect_hashes("filter-align")
+hashes = collect_hashes("filter-align", config, configfi)
 
-filter_orthology_hash = hashes['filter-orthology']
+filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 previous_hash = hashes['align']["global"]
 current_hash = hashes['filter-align']["global"]
@@ -206,7 +206,7 @@ rule get_trimmed_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']
+		orthology_hash = hashes['orthology']["global"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
@@ -299,7 +299,7 @@ rule get_filter_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']
+		orthology_hash = hashes['orthology']["global"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:

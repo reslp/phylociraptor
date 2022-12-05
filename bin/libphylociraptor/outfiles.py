@@ -1,22 +1,22 @@
 
 outfile_dict = {
-	"setup": ["results/checkpoints/modes/phylogenomics_setup.done"],
+	"setup": [],
 	"orthology": ["results/checkpoints/modes/phylogenomics_setup.done"],
-	"filter-orthology": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done"],
-	"align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done"],
-	"filter-align": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done"],
-	"speciestree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"njtree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"mltree": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"modeltest": ["results/checkpoints/modes/phylogenomics_setup.done", "results/checkpoints/modes/orthology.done", "results/checkpoints/modes/filter_orthology.done", "results/checkpoints/modes/align.done", "results/checkpoints/modes/filter_align.done"],
-	"report": ["results/checkpoints/modes/phylogenomics_setup.done"]
+	"filter-orthology": ["results/checkpoints/modes/orthology.HASH.done"],
+	"align": ["results/checkpoints/modes/filter_orthology.HASH.done"],
+	"filter-align": ["results/checkpoints/modes/align.HASH.done"],
+	"speciestree": ["results/checkpoints/modes/modeltest.HASH.done"],
+	"njtree": ["results/checkpoints/modes/filter_align.HASH.done"],
+	"mltree": ["results/checkpoints/modes/modeltest.HASH.done"],
+	"modeltest": ["results/checkpoints/modes/filter_align.HASH.done"],
 	}
 
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
+#steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree"]
 checkpoint_file_dict = {
 	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
-	"orthology": "results/checkpoints/modes/orthology.done",
-	"filter-orthology": "results/checkpoints/modes/filter_orthology.done",
+	"orthology": "results/checkpoints/modes/orthology.HASH.done",
+	"filter-orthology": "results/checkpoints/modes/filter_orthology.HASH.done",
 	"align": "results/checkpoints/modes/align.done",
 	"filter-align": "results/checkpoints/modes/filter_align.done",
 	"speciestree": "results/checkpoints/modes/speciestree.done",

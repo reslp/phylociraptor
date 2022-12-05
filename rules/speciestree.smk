@@ -14,14 +14,14 @@ trimmers = get_trimmers()
 bscuts = get_bootstrap_cutoffs()
 
 #create new hashes for current stage 
-hashes = collect_hashes("speciestree")
+hashes = collect_hashes("speciestree", config, configfi)
 
-filter_orthology_hash = hashes['filter-orthology']
+filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 trimmer_hashes = hashes['filter-align']["per"]
 modeltest_hashes = hashes['modeltest']["per"]
-tinference_hashes = hashes['tree_inference']["per"]
-current_hash = hashes['tree_inference']["global"]
+tinference_hashes = hashes['speciestree']["per"]
+current_hash = hashes['speciestree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
 def previous_params_per(wildcards):

@@ -10,9 +10,9 @@ with open("data/containers.yaml", "r") as yaml_stream:
 
 
 #get hash for current
-hashes = collect_hashes("filter-orthology")
-current_hash = hashes["filter-orthology"]
-previous_hash = hashes["orthology"]
+hashes = collect_hashes("filter-orthology", config, configfi)
+current_hash = hashes["filter-orthology"]["global"]
+previous_hash = hashes["orthology"]["global"]
 
 def determine_concurrency_limit():
 	fname = "results/orthology/orthology_table."+previous_hash+".txt"

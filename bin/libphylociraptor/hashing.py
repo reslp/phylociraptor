@@ -4,7 +4,7 @@ import pandas as pd
 import hashlib
 import yaml
 
-def read_file_from_yaml(read, file):
+def read_file_from_yaml(read, file, debug=False):
 	import pandas as pd
 	if file == None:
 		print("File not found!")
@@ -12,7 +12,8 @@ def read_file_from_yaml(read, file):
 	if not os.path.exists(file):
 		return []
 	if file:
-		print("reading in file:", file, read )
+		if debug:
+			print("reading in file:", file, read )
 		if len(read) > 0:
 			df = pd.read_csv(file)
 			lis = read.split(",")
@@ -104,12 +105,15 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 
 
 
-def collect_hashes(mode, config, configfi, debug=False):
+def collect_hashes(mode, config, configfi, debug=False, check=True):
 	hashes = {}
-
+	if mode == "setup":
+		hashes["setup"] = {"global": "", "per": {}}
+		return hashes
 	#orthology
+	hashes['orthology'] = {"global": "", "per": {}}
 	if config["orthology"]["method"] == "busco":
-		hashes['orthology'] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters", configfi, debug=debug)
+		hashes['orthology']["global"] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters", configfi, debug=debug)
 
 	if mode == "orthology":
 		if debug:
@@ -117,13 +121,14 @@ def collect_hashes(mode, config, configfi, debug=False):
 		return hashes
 	
 	#filter-orthology
-	if not os.path.isfile("results/orthology/busco/params.orthology."+hashes['orthology']+".yaml"):
+	hashes['filter-orthology'] = {"global": "", "per": {}}
+	if not os.path.isfile("results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml") and not check:
 		if debug:
 			print("Please doublecheck if the stage 'orthology' was run with the parameters currently specified in "+configfi)
-			print("I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']+".yaml")
+			print("I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['filter-orthology'] = get_hash(hashes['orthology'], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi, debug=debug)
+		hashes['filter-orthology']["global"] = get_hash(hashes['orthology']["global"], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi, debug=debug)
 
 	if mode == "filter-orthology":
 		if debug:
@@ -133,15 +138,15 @@ def collect_hashes(mode, config, configfi, debug=False):
 
 	#align
 	hashes['align'] = {"global": "", "per": {}}
-	if not os.path.isfile("results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']+".yaml"):
+	if not os.path.isfile("results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml") and not check:
 		if debug:
 			print("Please doublecheck if the stage 'filter-orthology' was run with the parameters currently specified in "+configfi)
-			print("I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']+".yaml")
+			print("I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['align']["global"] = get_hash(hashes['filter-orthology'], "alignment,options alignment,method", configfi, debug=debug)
+		hashes['align']["global"] = get_hash(hashes['filter-orthology']["global"], "alignment,options alignment,method", configfi, debug=debug)
 		for a in config["alignment"]["method"]:
-			hashes['align']["per"][a] = get_hash(hashes['filter-orthology'], "alignment,options,"+a, configfi, debug=debug)
+			hashes['align']["per"][a] = get_hash(hashes['filter-orthology']["global"], "alignment,options,"+a, configfi, debug=debug)
 
 	if mode == "align":
 		if debug:
@@ -151,7 +156,7 @@ def collect_hashes(mode, config, configfi, debug=False):
 
 	#filter-alignment
 	hashes['filter-align'] = {"global": "", "per": {}}
-	if not os.path.isfile("results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml"):
+	if not os.path.isfile("results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml") and not check:
 		if debug:
 			print("Please doublecheck if the stage 'align' was run with the parameters currently specified in "+configfi)
 			print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
@@ -171,7 +176,7 @@ def collect_hashes(mode, config, configfi, debug=False):
 
 	#modeltest
 	hashes['modeltest'] = {"global": "", "per": {}}
-	if not os.path.isfile("results/alignments/trimmed/parameters.filter-align."+hashes['filter-align']["global"]+".yaml"):
+	if not os.path.isfile("results/alignments/trimmed/parameters.filter-align."+hashes['filter-align']["global"]+".yaml") and not check:
 		if debug:
 			print("Please doublecheck if the stage 'filter-align' was run with the parameters currently specified in "+configfi, debug=debug)
 		sys.exit()
@@ -190,78 +195,81 @@ def collect_hashes(mode, config, configfi, debug=False):
 			print(hashes['modeltest'])
 		return hashes
 
-	hashes['tree_inference'] = {"global": "", "per": {}}
+	hashes['speciestree'] = {"global": "", "per": {}}
 	#speciestree
 	if mode == "speciestree":
-		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml"):
+		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
 			if debug:
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['tree_inference']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include", configfi, debug=debug)
+			hashes['speciestree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include", configfi, debug=debug)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
-				hashes['tree_inference']["per"][c] = {}
+				hashes['speciestree']["per"][c] = {}
 				for i in config["speciestree"]["method"]:
-					hashes['tree_inference']["per"][c][i] = {}
+					hashes['speciestree']["per"][c][i] = {}
 					for m in hashes['modeltest']["per"].keys():
-						hashes['tree_inference']["per"][c][i][m] = {}
+						hashes['speciestree']["per"][c][i][m] = {}
 						for t in hashes['filter-align']["per"].keys():
-							hashes['tree_inference']["per"][c][i][m][t] = {}
+							hashes['speciestree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['tree_inference']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed speciestree,options,"+i+" speciestree,include", configfi, debug=debug)
+								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed speciestree,options,"+i+" speciestree,include", configfi, debug=debug)
 		if debug:
 			print("Gathered hashes until 'speciestree'")
-			print(hashes['tree_inference'])
+			#print(hashes['tree_inference'])
+			print(hashes)
 		return hashes
 
 	###################################
 	#mltree	
+	hashes['mltree'] = {"global": "", "per": {}}
 	if mode == "mltree":
-		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml"):
+		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
 			if debug:
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['tree_inference']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff mltree,method mltree,bootstrap mltree,options", configfi, debug=debug)
+			hashes['mltree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff mltree,method mltree,bootstrap mltree,options", configfi, debug=debug)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
-				hashes['tree_inference']["per"][c] = {}
+				hashes['mltree']["per"][c] = {}
 				for i in config["mltree"]["method"]:
-					hashes['tree_inference']["per"][c][i] = {}
+					hashes['mltree']["per"][c][i] = {}
 					for m in hashes['modeltest']["per"].keys():
-						hashes['tree_inference']["per"][c][i][m] = {}
+						hashes['mltree']["per"][c][i][m] = {}
 						for t in hashes['filter-align']["per"].keys():
-							hashes['tree_inference']["per"][c][i][m][t] = {}
+							hashes['mltree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['tree_inference']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" mltree,bootstrap,"+i+" mltree,options,"+i, configfi, debug=debug)
+								hashes['mltree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" mltree,bootstrap,"+i+" mltree,options,"+i, configfi, debug=debug)
 		if debug:
 			print("Gathered hashes until 'mltree'")
-			print(hashes['tree_inference'])
+			print(hashes['mltree'])
 		return hashes
 
 	#njtree	
+	hashes['njtree'] = {"global": "", "per": {}}
 	if mode == "njtree":
-		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml"):
+		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
 			if debug:
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['tree_inference']["global"] = get_hash(hashes['modeltest']["global"], "genetree_filtering,bootstrap_cutoff njtree,method njtree,options", configfi, debug=debug)
+			hashes['njtree']["global"] = get_hash(hashes['modeltest']["global"], "genetree_filtering,bootstrap_cutoff njtree,method njtree,options", configfi, debug=debug)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
-				hashes['tree_inference']["per"][c] = {}
+				hashes['njtree']["per"][c] = {}
 				for i in config["njtree"]["method"]:
-					hashes['tree_inference']["per"][c][i] = {}
+					hashes['njtree']["per"][c][i] = {}
 					for m in hashes['modeltest']["per"].keys():
-						hashes['tree_inference']["per"][c][i][m] = {}
+						hashes['njtree']["per"][c][i][m] = {}
 						for t in hashes['filter-align']["per"].keys():
-							hashes['tree_inference']["per"][c][i][m][t] = {}
+							hashes['njtree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['tree_inference']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "genetree_filtering,bootstrap_cutoff,"+c+" njtree,options,"+i, configfi, debug=debug)
+								hashes['njtree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "genetree_filtering,bootstrap_cutoff,"+c+" njtree,options,"+i, configfi, debug=debug)
 		if debug:
 			print("Gathered hashes until 'njtree'")
-			print(hashes['tree_inference'])
+			print(hashes['njtree'])
 		return hashes
 
 def trigger(current_yaml, config_yaml, optional=[], debug=False):

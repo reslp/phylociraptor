@@ -96,8 +96,8 @@ print(species[1])
 	
 
 #get hash for current step
-hashes = collect_hashes("orthology")
-current_hash = hashes["orthology"]
+hashes = collect_hashes("orthology", config, configfi)
+current_hash = hashes["orthology"]["global"]
 
 ###############
 rule read_params_global:

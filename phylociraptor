@@ -2,13 +2,16 @@
 
 import sys, os, io
 sys.path.insert(0, os.getcwd()+"/bin")
-from phylociraptor_modules.usageinfo import *
-from phylociraptor_modules.outfiles import *
+from libphylociraptor.usageinfo import *
+from libphylociraptor.outfiles import *
+from libphylociraptor.hashing import *
+from libphylociraptor.check import *
 import time
 import subprocess
 import argparse
 import glob
 import logging
+import yaml
 try:
 	import snakemake
 except ImportError:
@@ -94,30 +97,46 @@ def get_flags(flags):
 	
 	return cmd
 
-def check_required_files(runmode):
+def check_required_files(runmode, previous_runmode, args):
+	if args.debug:
+		print(now(), "DEBUG: Checking required files for:", runmode, "as they should be present")
+	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file) 
+	currenthash = hashes[previous_runmode]["global"]
 	for f in outfile_dict[runmode]:
+		if currenthash != "":
+			f = f.replace("HASH", currenthash)
 		if not os.path.isfile(f):
-			if debug:
-				print(now(),"DEBUG: check_required_files: File not found:", f)
-			return f
+			print(now(), "ERROR: Some files are missing preventing this part to run.")
+			print(now(), "Did you run ", previous_runmode, "which is required by this step?")
+			print(now(), "Missing file:", f)
+			sys.exit(1)
+		else:
+			if args.debug:
+				print(now(), "DEBUG: File found:", f)
 	return
 
-def check_directories(mode):
-	for directory in outdir_dict[mode]:
-		if not os.path.isdir(directory):
-			if debug:
-				print(now(), "DEBUG: check_directories: Directory not found:", directory)
-			return directory
-	return
+#def check_directories(mode, currenthash=""):
+#	for directory in outdir_dict[mode]:
+#		if currenthash != "":
+#			directory = directory.replace("HASH", currenthash[list(currenthash.keys())[0]]["global"])
+#		if not os.path.isdir(directory):
+#			if debug:
+#				print(now(), "DEBUG: check_directories: Directory not found:", directory)
+#			return directory
+#	return
 
-def check_hasrun(mode):
-	f = checkpoint_file_dict[mode]
-	if not os.path.isfile(f):
-		if debug:
-			print(now(), "DEBUG: check_hasrun: Not found:", f)
-		return f
-	else:
-		return
+#def check_hasrun(mode, currenthash=""):
+#	f = checkpoint_file_dict[mode]
+#	if currenthash != "":
+#		f = f.replace("HASH", currenthash[list(currenthash.keys())[0]]["global"])
+#	print("hasrun:",f)
+#	print("hasrun:",currenthash)
+#	if not os.path.isfile(f):
+#		if debug:
+#			print(now(), "DEBUG: check_hasrun: Not found:", f)
+#		return f
+#	else:
+#		return
 
 def check_config_file(f):
 	if os.path.isfile(f):
@@ -189,6 +208,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 						yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 					if line.lstrip().startswith("wildcards:"):
 						yield "\tParameters: %s\n" % line.split(":")[1]
+					if line.startswith("Nothing to be done"):
+						yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 			else:
 				result = line
 				if check_for_errors(result):
@@ -226,6 +247,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 						yield "\tParameters:" + line.split(":")[1]
 					if line.startswith("sbatch") or line.startswith("qsub"):
 						yield "\t%s\n" % line
+					if line.startswith("Nothing to be done"):
+						yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 			else:
 				result = line
 				if check_for_errors(result):
@@ -243,6 +266,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
+				if line.startswith("Nothing to be done"):
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if line.startswith("rule"):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
@@ -265,12 +290,12 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:"):
 					yield "\tParameters: %s\n" % line.split(":")[1]
+				if line.startswith("Nothing to be done"):
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 			else:
 				result = line
 				if check_for_errors(result):
 					yield check_for_errors(result)
-				if result.startswith("Nothing"):
-					yield now()+" There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
@@ -285,6 +310,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule"):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
+				if line.startswith("Nothing to be done"):
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				line=""
 
 def get_additional_snakemake_flags(flags, rerun, unlock):
@@ -319,6 +346,12 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+[singularity_bindpoints +" " + flags]
 	else:
 		return ["--singularity-args"]+ [singularity_bindpoints]
+
+def parse_config_file(cf):
+	with open(cf) as f:
+    		data = yaml.load(f, Loader=yaml.FullLoader)
+	return data
+
 	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
 pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
@@ -329,6 +362,7 @@ args = pars.parse_args()
 
 def get_commit():
 		return str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
+
 if args.version == True:
 	commit = get_commit()
 	print("Version:", version)
@@ -428,9 +462,7 @@ elif args.command=="orthology":
 		print(help_message(orthology_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup already? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(orthology_args.cluster)
 	cmd += get_flags(vars(orthology_args))
@@ -473,9 +505,8 @@ elif args.command=="filter-orthology":
 		print(help_message(forthology_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run phylociraptor setup and orthology already? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], forthology_args)
+	
 	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "filter_orthology", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(forthology_args.cluster)
 	cmd += get_flags(vars(forthology_args))
@@ -529,9 +560,7 @@ elif args.command=="align":
 		print(help_message(align_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], align_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(align_args.cluster)
@@ -577,9 +606,7 @@ elif args.command=="filter-align":
 		print(help_message(falign_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], falign_args)
 
 	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "filter_align", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(falign_args.cluster)
@@ -617,9 +644,7 @@ elif args.command=="speciestree":
 		print(help_message(sptree_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], sptree_args)
 
 	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "speciestree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(sptree_args.cluster)
@@ -647,9 +672,7 @@ elif args.command=="njtree":
 		print(help_message(njtree_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
 	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(njtree_args.cluster)
@@ -676,9 +699,7 @@ elif args.command=="mltree":
 		print(help_message(tree_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], tree_args)
 
 	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(tree_args.cluster)
@@ -706,9 +727,7 @@ elif args.command=="modeltest":
 		print(help_message(model_help))
 		sys.exit(0)
 	check_required_software()
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	check_required_files(args.command, previous_steps[args.command], model_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(model_args.cluster)
@@ -769,6 +788,7 @@ elif args.command == "check":
 	print(now(), "Welcome to phylociraptor check v%s" % version)
 	check_parser = argparse.ArgumentParser(add_help=False)
 	check_parser.add_argument("-h", "--help", action="store_true")
+	check_parser.add_argument("-c", "--configfile", action="store", default="data/config.yaml")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
 	check_parser.add_argument("--debug", action="store_true", dest="debug", default=False)
 	check_args = check_parser.parse_args(args.arguments)
@@ -779,236 +799,35 @@ elif args.command == "check":
 		sys.exit(0)
 
 	print(now(), "Checking the status of the pipeline:")
-
+	if check_args.configfile:
+		print(now(), "A configfile was provided. Will only look for analyses matching:", check_args.configfile)
+	
 	check_rest = True
 	filter_align_done = False
+	currenthash = ""
+	all_hashes = {}
+	if check_args.configfile:
+		print(now(), "Calculating analysis hashes, may take a few seconds...")
+		for mode in steps_to_check:
+			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=False)
+
+	previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "filter-align", "mltree": "modeltest", "speciestree": "modeltest"}
+	steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree"]
+
+
+	step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}									
 	for mode in steps_to_check:
-		if mode == "report":
-			continue
-		failed = 0
-		if filter_align_done and not check_rest: # in case filter_align is already finished, check the rest of the parts.
-			check_rest = True 
-		if debug:
-			print("\n(Debug) Checking runmode:", mode)
-		if check_hasrun(mode) and check_rest == True:
-			failed = 1
-			check_rest = False
-			if debug:
-				print("After check_hasrun: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
-		if check_required_files(mode) and check_rest == True:
-			failed = 1
-			check_rest = False
-			if debug:
-				print("After check_required files: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
-		if check_directories(mode) and check_rest == True:
-			failed = 1
-			check_rest  = False
-			if debug:
-				print("After check_directories: Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
-		# if non of the checkpoint files are missing, lets check if the dataset has changed:
-		if failed == 0 and check_rest == True:
-			last_files = []
-			for n in outfile_dict[mode]:
-				last_files.append(os.path.getmtime(n))
-			last = max(last_files)
-			current = os.path.getmtime(checkpoint_file_dict[mode])
-			if debug: 
-				print("Current file timestamp:", current)
-				print("Last file timestamp:", last)
-			if last > current and mode != "setup":	
-				failed = 1
-				check_rest = False
-				if debug:
-					print("Due to timestamp. Failed=", failed, "check_rest=", check_rest, "filter_align_done=", filter_align_done)
-		if failed == 0 and check_rest == False and filter_align_done == False:
-			failed = 2
-		if failed == 1: 
-			print(" ", mode, " ...", '\033[91m' , "INCOMPLETE", '\033[0m')
-			if mode == "orthology":
-				missing=""
-				if not os.path.isdir("results/assemblies"):
-					print("\tDirectory not found: results/assemblies")
-					continue
-				nassemblies = 0
-				for assembly in os.listdir("results/assemblies"):
-					assembly = os.path.splitext(assembly)[0]
-					assembly = assembly.split(".")[0]
-					if not os.path.isfile("results/checkpoints/busco/busco_"+ assembly + ".done"):
-						missing += assembly +","
-					nassemblies += 1
-				missing = missing.strip(",")
-				if missing:
-					print("\t Missing orthology results for", len(missing.split(",")), "of", nassemblies, "genomes.")
-					if check_args.verbose:
-						print("\tOrthology step was not successful for these genomes:")
-						print("\t", missing)		
-			if mode == "align":
-				missing = ""
-				genes = []
-				# first get all sequences files after filter-orthology
-				if not os.path.isdir("results/alignments"):
-					continue
-				for gene in os.listdir("results/orthology/busco/busco_sequences_deduplicated"):
-					gene = os.path.splitext(gene)[0]
-					genes.append(gene.split("_")[0])
-				# now check if the same files are in align
-				total_genes = len(genes)
-				for directory in os.listdir("results/alignments/full"):
-					for gene in os.listdir("results/alignments/full/"+directory):
-						gene = os.path.splitext(gene)[0]
-						gene = gene.split("_")[0]
-						if gene in genes:
-							genes.remove(gene)	
-					missing = ",".join(genes)
-					missing = missing.strip(",")
-					if missing:
-						print("\tMissing", directory, "alignments for", len(missing.split(",")), "of", total_genes, "genes.")
-						if check_args.verbose:
-							print("\t These alignments are missing:")
-							print("\t", missing)
-			if mode == "filter-align":
-				# first look for missing trimmed files
-				if not os.path.isdir("results/alignments/trimmed"):
-					continue
-				aligners = os.listdir("results/alignments/full")
-				for aligner in aligners:
-					for directory in glob.glob("results/alignments/trimmed/"+aligner+"-*"):
-						missing = ""
-						genes = []
-						for gene in os.listdir("results/alignments/full/"+aligner):
-							gene = os.path.splitext(gene)[0]
-							genes.append(gene.split("_")[0])
-						total_genes = len(genes)
-						genes_all = genes
-						for gene in glob.glob(directory+"/*.fas"):
-							gene = os.path.basename(gene)
-							gene = os.path.splitext(gene)[0]
-							gene = gene.split("_")[0]
-							if gene in genes_all:
-								genes_all.remove(gene)	
-						missing = ",".join(genes_all)
-						missing = missing.strip(",")
-						if missing:
-							print("\tMissing",aligner,directory.split("-")[-1],"trimmed alignments for", len(missing.split(",")), "of", total_genes, "genes.")
-							if check_args.verbose:
-								print("\t These trimmed alignments are missing:")
-								print("\t", missing)
-				# second check missing filtered files (after trimming)
-				if not os.path.isdir("results/alignments/filtered"):
-					continue
-				aligners = os.listdir("results/alignments/trimmed")
-				for aligner in aligners:
-					for directory in glob.glob("results/alignments/filtered/"+aligner+"-*"):
-						missing = ""
-						genes = []
-						for gene in os.listdir("results/alignments/trimmed/"+aligner):
-							gene = os.path.splitext(gene)[0]
-							genes.append(gene.split("_")[0])
-						total_genes = len(genes)
-						genes_all = genes
-						for gene in glob.glob(directory+"/*.fas"):
-							gene = os.path.basename(gene)
-							gene = os.path.splitext(gene)[0]
-							gene = gene.split("_")[0]
-							if gene in genes_all:
-								genes_all.remove(gene)	
-						missing = ",".join(genes_all)
-						missing = missing.strip(",")
-						if missing:
-							print("\tMissing",aligner,directory.split("-")[-1],"filtered alignments for", len(missing.split(",")), "of", total_genes, "genes.")
-							print("(Automatically filtered alignments will also show up here)")
-							if check_args.verbose:
-								print("\t These filtered alignments are missing:")
-								print("\t", missing)
-			if mode == "modeltest":
-				if not os.path.isdir("results/checkpoints/modeltest"):
-					continue
-				units = os.listdir("results/alignments/filtered")
-				for unit in units:
-					if not os.path.isdir("results/checkpoints/modeltest/"+unit):
-						continue
-					genes = []
-					missing = ""
-					for gene in os.listdir("results/alignments/filtered/"+unit):
-						gene = os.path.splitext(gene)[0]
-						genes.append(gene.split("_")[0])
-					total_genes = len(genes)
-					for gene in os.listdir("results/checkpoints/modeltest/"+unit):
-						gene = os.path.splitext(gene)[0]
-						gene = gene.split("_")[0]
-						if gene in genes:
-							genes.remove(gene)	
-					missing = ",".join(genes)
-					missing = missing.strip(",")
-					if missing:
-						print("\tMissing",unit,"modeltest results for", len(missing.split(",")), "of", total_genes, "genes.")
-						if check_args.verbose:
-							print("\t These modeltest results are missing:")
-							print("\t", missing)
-			if mode == "speciestree":
-				if not os.path.isdir("results/checkpoints/gene_trees"):
-					continue
-				units = os.listdir("results/alignments/filtered")
-				for unit in units:
-					missing = ""
-					genes = []
-					if not os.path.isdir("results/checkpoints/gene_trees/"+unit):
-						continue
-					for gene in os.listdir("results/alignments/filtered/"+unit):
-						gene = os.path.splitext(gene)[0]
-						genes.append(gene.split("_")[0])
-					total_genes = len(genes)
-					for gene in os.listdir("results/checkpoints/gene_trees/"+unit):
-						gene = os.path.splitext(gene)[0]
-						gene = gene.split("_")[0]
-						if gene in genes:
-							genes.remove(gene)	
-					missing = ",".join(genes)
-					missing = missing.strip(",")
-					if missing:
-						print("\tMissing",unit,"gene tree for", len(missing.split(",")), "of", total_genes, "genes.")
-						if check_args.verbose:
-							print("\t These gene trees are missing:")
-							print("\t", missing)
-			if mode == "mltree":
-				phylolist = glob.glob("results/phylogeny-*")
-				if len(phylolist) == 0:
-					continue
-				for p in phylolist:
-					iqtree_combs = glob.glob(p+"/iqtree/*")
-					if check_args.verbose:
-						print("\tResults for bootstrap cut-off:",p.split("-")[-1])
-						if len(iqtree_combs) > 0:
-							nmltrees = 0
-							mltreemissing = []
-							for comb in iqtree_combs:
-								if os.path.isfile(comb+"/concat.contree"):
-									nmltrees += 1
-								else:
-									mltreemissing.append(comb.split("/")[-1])
-							print("\t\tIQTREE: Found", len(iqtree_combs), "aligner-trimmer combinations of which", nmltrees, "are finished.")
-							if len(mltreemissing) > 0:
-								print("\t\tMISSING:", ",".join(mltreemissing))	
-				
-						iqtree_combs = glob.glob(p+"/raxml/*")
-						if len(iqtree_combs) > 0:
-							nmltrees = 0
-							mltreemissing = []
-							for comb in iqtree_combs:
-								if os.path.isfile(comb+"/raxmlng.raxml.support"):
-									nmltrees += 1
-								else:
-									mltreemissing.append(comb.split("/")[-1])
-							print("\t\tRAXMLNG: Found", len(iqtree_combs), "aligner-trimmer combinations of which", nmltrees, "are finished.")
-							if len(mltreemissing) > 0:
-								print("\t\tMISSING:", ",".join(mltreemissing))	
-		elif failed == 2:	
-			print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step not finished)")
-		else:
-			if mode == "filter-align":
-				filter_align_done = True
+		print("\n Checking runmode:", mode)
+		if has_outfile(mode=mode, previous_mode=previous_steps[mode], hashes = all_hashes[mode], previous_hashes=all_hashes[previous_steps[mode]], debug=check_args.debug, verbose=check_args.verbose):
 			print(" ", mode," ...", '\033[92m', "DONE", '\033[0m')
-	print("\nWARNING: phylociraptor check is just a quick and shallow verification of the run. In case you run into problems, please also check logfiles in the log directory for more in-depth diagnostics.")  
+			step_status[mode] = 1
+		else:
+			if step_status[previous_steps[mode]] == 1:
+				check_is_running(mode=mode, previous_mode=previous_steps[mode], hashes=all_hashes[mode], previous_hashes=all_hashes[previous_steps[mode]], debug=check_args.debug, verbose=check_args.verbose)		
+				print(" ", mode, " ...", '\033[91m' , "INCOMPLETE", '\033[0m')
+			else:
+				print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step [" + previous_steps[mode] + "] not finished)")	
+	print("\n"+now(), "phylociraptor check is done.\n")
 
 elif args.command == "util":
 	print(now(), "Welcome to phylociraptor util v%s" % version)

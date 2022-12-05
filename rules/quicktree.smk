@@ -10,15 +10,14 @@ trimmers = get_trimmers()
 bscuts = get_bootstrap_cutoffs()
 
 #create new hashes for current stage 
-hashes = collect_hashes("njtree")
+hashes = collect_hashes("njtree", config, configfi)
 
-filter_orthology_hash = hashes['filter-orthology']
+filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 trimmer_hashes = hashes['filter-align']["per"]
 modeltest_hashes = hashes['modeltest']["per"]
-tinference_hashes = hashes['tree_inference']["per"]
-print("TEST",tinference_hashes)
-current_hash = hashes['tree_inference']["global"]
+tinference_hashes = hashes['njtree']["per"]
+current_hash = hashes['njtree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
 def compare_njtree(wildcards):
@@ -26,6 +25,17 @@ def compare_njtree(wildcards):
 
 def get_concatenate_params(wildcards):
 	return "results/phylogeny-"+wildcards.bootstrap+"/parameters.njtree.quicktree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+
+def pull(wildcards):
+	lis = []
+	for i in config["njtree"]["method"]:
+		for m in config['modeltest']['method']:
+			for a in aligners:
+				for t in trimmers:
+					for b in bscuts:
+						lis.append("results/checkpoints/"+i+"_"+a+"_"+t+"_"+str(b)+"."+tinference_hashes[str(b)][i][m][t][a]+".done")
+						lis.append("results/phylogeny-"+str(b)+"/parameters.njtree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
+	return lis
 
 include: "concatenate.smk"
 
@@ -40,6 +50,7 @@ rule read_params_per:
 		bin/read_write_yaml.py {input.trigger} {output} genetree_filtering,bootstrap_cutoff,{wildcards.bootstrap} njtree,options,{wildcards.inference}
 		cat {input.previous} >> {output}
 		"""
+
 rule read_params_global:
 	input:
 		trigger = compare("results/parameters.njtree."+current_hash+".yaml", configfi),
@@ -51,6 +62,7 @@ rule read_params_global:
 		bin/read_write_yaml.py {input.trigger} {output} genetree_filtering,bootstrap_cutoff njtree,method njtree,options
 		cat {input.previous} >> {output}
 		"""
+
 rule quicktree:
 	input:
 		rules.concatenate.output.stockholm_alignment
@@ -65,16 +77,7 @@ rule quicktree:
 		quicktree -in a $(if [[ "{params.additional_params}" != "None" ]]; then echo "{params.additional_params}"; fi) {input} > {output.tree}
 		touch {output.checkpoint}
 		"""
-def pull(wildcards):
-	lis = []
-	for i in config["njtree"]["method"]:
-		for m in config['modeltest']['method']:
-			for a in aligners:
-				for t in trimmers:
-					for b in bscuts:
-						lis.append("results/checkpoints/"+i+"_"+a+"_"+t+"_"+str(b)+"."+tinference_hashes[str(b)][i][m][t][a]+".done")
-						lis.append("results/phylogeny-"+str(b)+"/parameters.njtree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
-	return lis
+
 		
 rule njtree:
 	input:

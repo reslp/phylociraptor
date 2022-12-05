@@ -10,16 +10,16 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 #create new hashes for current stage (alignment) by combining the previuos hash with a newly generated
-hashes = collect_hashes("align")
+hashes = collect_hashes("align", config, configfi)
 current_hash = hashes["align"]["global"]
 mafft_hash = hashes["align"]["per"]["mafft"]
 muscle_hash = hashes["align"]["per"]["muscle"]
 clustalo_hash = hashes["align"]["per"]["clustalo"]
 #previous hash
-previous_hash = hashes['filter-orthology']
+previous_hash = hashes['filter-orthology']["global"]
 
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas")
 
 def determine_concurrency_limit():
 	fname = "results/orthology/busco/busco_sequences_deduplicated."+previous_hash
@@ -42,7 +42,7 @@ def compare_align(wildcards):
 rule read_params_per:
 	input:
 		trigger = compare_align,
-		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]+".yaml"
+		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
 	output:
 		"results/alignments/full/{aligner}.{hash}/parameters.align.{aligner}.{hash}.yaml"
 	shell:
@@ -54,7 +54,7 @@ rule read_params_per:
 rule read_params_global:
 	input:
 		trigger = compare("results/alignments/full/parameters.align."+current_hash+".yaml", configfi),
-		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]+".yaml"
+		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
 	output:
 		"results/alignments/full/parameters.align."+current_hash+".yaml"
 	shell:
@@ -66,7 +66,7 @@ rule read_params_global:
 rule clustalo:
 		input:
 			"results/alignments/full/clustalo."+clustalo_hash+"/parameters.align.clustalo."+clustalo_hash+".yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/clustalo."+clustalo_hash+"/{busco}_aligned.fas",
 		benchmark:
@@ -87,7 +87,7 @@ rule clustalo:
 rule mafft:
 		input:
 			"results/alignments/full/mafft."+mafft_hash+"/parameters.align.mafft."+mafft_hash+".yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/mafft."+mafft_hash+"/{busco}_aligned.fas",
 		benchmark:
@@ -107,7 +107,7 @@ rule mafft:
 rule muscle:
 		input:
 			"results/alignments/full/muscle."+muscle_hash+"/parameters.align.muscle."+muscle_hash+".yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/muscle."+muscle_hash+"/{busco}_aligned.fas",
 		benchmark:
@@ -160,7 +160,7 @@ rule get_alignment_statistics:
 		pars_sites = config["trimming"]["min_parsimony_sites"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']
+		orthology_hash = hashes['orthology']["global"]
 	log:	"log/align/{aligner}_{batch}_get_aligment_statistics.{hash}.txt"
 	singularity: containers["concat"] 
 	shadow: "minimal"

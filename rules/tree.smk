@@ -13,14 +13,14 @@ tree_methods = get_treemethods()
 bscuts = get_bootstrap_cutoffs()
 
 #create new hashes for current stage 
-hashes = collect_hashes("mltree")
+hashes = collect_hashes("mltree", config, configfi)
 
-filter_orthology_hash = hashes['filter-orthology']
+filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 trimmer_hashes = hashes['filter-align']["per"]
 modeltest_hashes = hashes['modeltest']["per"]
-tinference_hashes = hashes['tree_inference']["per"]
-current_hash = hashes['tree_inference']["global"]
+tinference_hashes = hashes['mltree']["per"]
+current_hash = hashes['mltree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
 def compare_mltree(wildcards):
@@ -262,7 +262,7 @@ rule mltree:
 		pull,
 		rules.read_params_global.output
 	output:
-		"results/checkpoints/modes/trees."+current_hash+".done"
+		"results/checkpoints/modes/mltree."+current_hash+".done"
 	shell:
 		"""
 		touch {output}
