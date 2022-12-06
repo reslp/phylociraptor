@@ -141,7 +141,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 						if verbose:
 							print("\tnjtree for", njtree, "done.")
 					else:
-						missing.append(mltree)
+						missing.append(njtree)
 						if verbose:
 							print("\tMissing njtree for", njtree)
 			if len(missing) > 0:
