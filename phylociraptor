@@ -811,10 +811,6 @@ elif args.command == "check":
 		for mode in steps_to_check:
 			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=False)
 
-	previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "filter-align", "mltree": "modeltest", "speciestree": "modeltest"}
-	steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree"]
-
-
 	step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}									
 	for mode in steps_to_check:
 		print("\n Checking runmode:", mode)

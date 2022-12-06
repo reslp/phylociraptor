@@ -6,7 +6,7 @@ outfile_dict = {
 	"align": ["results/checkpoints/modes/filter_orthology.HASH.done"],
 	"filter-align": ["results/checkpoints/modes/align.HASH.done"],
 	"speciestree": ["results/checkpoints/modes/modeltest.HASH.done"],
-	"njtree": ["results/checkpoints/modes/filter_align.HASH.done"],
+	"njtree": ["results/checkpoints/modes/modeltest.HASH.done"],
 	"mltree": ["results/checkpoints/modes/modeltest.HASH.done"],
 	"modeltest": ["results/checkpoints/modes/filter_align.HASH.done"],
 	}

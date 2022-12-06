@@ -31,10 +31,10 @@ batches = determine_concurrency_limit()
 
 rule read_params_global:
 	input:
-		trigger = compare("results/orthology/busco/params.filter-orthology."+current_hash+".yaml", configfi),
-		previous = "results/orthology/busco/params.orthology."+previous_hash+".yaml"
+		trigger = compare("results/orthology/busco/parameters.filter-orthology."+current_hash+".yaml", configfi),
+		previous = "results/orthology/busco/parameters.orthology."+previous_hash+".yaml"
 	output:
-		"results/orthology/busco/params.filter-orthology."+current_hash+".yaml"
+		"results/orthology/busco/parameters.filter-orthology."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology

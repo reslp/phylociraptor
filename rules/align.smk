@@ -42,7 +42,7 @@ def compare_align(wildcards):
 rule read_params_per:
 	input:
 		trigger = compare_align,
-		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
+		previous = "results/orthology/busco/parameters.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
 	output:
 		"results/alignments/full/{aligner}.{hash}/parameters.align.{aligner}.{hash}.yaml"
 	shell:
@@ -54,7 +54,7 @@ rule read_params_per:
 rule read_params_global:
 	input:
 		trigger = compare("results/alignments/full/parameters.align."+current_hash+".yaml", configfi),
-		previous = "results/orthology/busco/params.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
+		previous = "results/orthology/busco/parameters.filter-orthology."+hashes["filter-orthology"]["global"]+".yaml"
 	output:
 		"results/alignments/full/parameters.align."+current_hash+".yaml"
 	shell:

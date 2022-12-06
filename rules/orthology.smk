@@ -102,9 +102,9 @@ current_hash = hashes["orthology"]["global"]
 ###############
 rule read_params_global:
 	input:
-		compare("results/orthology/busco/params.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
+		compare("results/orthology/busco/parameters.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
 	output:
-		"results/orthology/busco/params.orthology."+current_hash+".yaml"
+		"results/orthology/busco/parameters.orthology."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input[0]} {output} species orthology,method orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters

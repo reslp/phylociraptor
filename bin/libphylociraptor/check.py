@@ -8,13 +8,13 @@ outfile_check_dict = {
 "align": [ "results/checkpoints/modes/align.HASH.done", "results/checkpoints/modes/filter_orthology.PREVIOUS.done"],
 "filter-align": ["results/checkpoints/modes/align.PREVIOUS.done", "results/checkpoints/modes/filter_align.HASH.done"],
 "speciestree": ["results/checkpoints/modes/modeltest.PREVIOUS.done", "results/checkpoints/modes/speciestree.HASH.done" ],
-"njtree": ["results/checkpoints/modes/njtree.HASH.done", "results/checkpoints/modes/filter_align.PREVIOUS.done"],
+"njtree": ["results/checkpoints/modes/njtree.HASH.done", "results/checkpoints/modes/modeltest.PREVIOUS.done"],
 "mltree": ["results/checkpoints/modes/modeltest.PREVIOUS.done", "results/checkpoints/modes/mltree.HASH.done"],
 "modeltest": ["results/checkpoints/modes/filter_align.PREVIOUS.done", "results/checkpoints/modes/modeltest.HASH.done"]
 }
 
-previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "filter-align", "mltree": "modeltest", "speciestree": "modeltest"}
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree"]
+previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "modeltest", "mltree": "modeltest", "speciestree": "modeltest"}
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "modeltest", "njtree", "speciestree", "mltree"]
 step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}
 
 def has_outfile(mode="", previous_mode = "", hashes={}, previous_hashes={}, debug=False, verbose=False):
@@ -122,9 +122,9 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 				else:
 					print("\tMissing", mt, "genetrees for", len(genes_to_check), "of", len(genes_to_check), "genes.")
 	if mode == "njtree":
-	#	print(hashes[mode])
-	#	print("  ")
-	#	print(previous_hashes[previous_mode])
+		#print(hashes[mode])
+		#print("  ")
+		#print(previous_hashes[previous_mode])
 
 		for bs in hashes[mode]["per"].keys():
 			print(" Bootstrap-cutoff:", bs)
@@ -134,7 +134,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 			missing = []
 			for trimmer in hashes[mode]["per"][bs]["quicktree"]["iqtree"].keys(): #not sure why iqtree is in this
 				for aligner in hashes[mode]["per"][bs]["quicktree"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
-					alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"][trimmer][aligner]
+					alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
 					genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/alignments/filtered/"+alitrim+"/*.fas")]
 					njtree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["quicktree"]["iqtree"][trimmer][aligner]	
 					if os.path.isfile("results/phylogeny-"+bs+"/quicktree/"+njtree+"/njtree.tre"):
@@ -208,7 +208,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 						if verbose:
 							print("\tSpeciestree for", sptree, "done.")
 					else:
-						missing.append(mltree)
+						missing.append(sptree)
 						if verbose:
 							print("\tMissing speciestree for", sptree)
 			if len(missing) > 0:
