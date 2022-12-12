@@ -674,7 +674,7 @@ elif args.command=="njtree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
-	cmd = ["snakemake", "-s", "rules/quicktree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/njtree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
@@ -701,7 +701,7 @@ elif args.command=="mltree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
-	cmd = ["snakemake", "-s", "rules/tree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/mltree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
@@ -729,7 +729,7 @@ elif args.command=="modeltest":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], model_args)
 
-	cmd = ["snakemake", "-p", "-s", "rules/model.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/modeltest.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
 	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	
