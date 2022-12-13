@@ -1,11 +1,9 @@
 include: "functions.smk"
-import yaml
+include: "concatenate.smk"
+
+os.environ["MODE"] = "mltree" # for communication with concatenate.smk
 
 ruleorder: read_params_global > read_params_per
-
-# get list of containers to use:
-with open("data/containers.yaml", "r") as yaml_stream:
-    containers = yaml.safe_load(yaml_stream)
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
@@ -23,23 +21,22 @@ tinference_hashes = hashes['mltree']["per"]
 current_hash = hashes['mltree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
+
+
+############ functions specifically for this step
 def compare_mltree(wildcards):
-	return [trigger("results/phylogeny-{bootstrap}/parameters.mltree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
+	return [trigger("results/phylogeny/{inference}/bootstrap-cutoff-{bootstrap}/parameters.mltree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
 
 def get_iqtree_params(wildcards):
-	return "results/phylogeny-"+wildcards.bootstrap+"/parameters.mltree.iqtree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
-
-def get_concatenate_params(wildcards):
-	return "results/phylogeny-"+wildcards.bootstrap+"/parameters.mltree.raxml-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
-
-include: "concatenate.smk"
+	return "results/phylogeny/iqtree/bootstrap-cutoff-" + wildcards.bootstrap + "/parameters.mltree.iqtree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+############
 
 rule read_params_per:
 	input:
 		trigger = compare_mltree,
 		previous = previous_params_per
 	output:
-		"results/phylogeny-{bootstrap}/parameters.mltree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
+		"results/phylogeny/{inference}/bootstrap-cutoff-{bootstrap}/parameters.mltree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff,{wildcards.bootstrap} mltree,options,{wildcards.inference} mltree,bootstrap,{wildcards.inference}
@@ -47,10 +44,10 @@ rule read_params_per:
 		"""
 rule read_params_global:
 	input:
-		trigger = compare("results/parameters.mltree."+current_hash+".yaml", configfi),
+		trigger = compare("results/phylogeny/parameters.mltree."+current_hash+".yaml", configfi),
 		previous = previous_params_global
 	output:
-		"results/parameters.mltree."+current_hash+".yaml"
+		"results/phylogeny/parameters.mltree."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff mltree,method mltree,options mltree,bootstrap
@@ -62,7 +59,7 @@ rule partition_alignment:
 	input:
 		rules.concatenate.output.statistics
 	output:
-		partitions = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}/partitions.txt"
+		partitions = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt"
 	params:
 		wd = os.getcwd(),
 		models = "results/modeltest/best_models_{aligner}_{alitrim}.{hash}.txt",
@@ -71,18 +68,18 @@ rule partition_alignment:
 		"""
 		if [[ -f {params.wd}/{params.models} && {params.wd}/checkpoints/modeltest.done ]]; then
 			echo "$(date) - 'phylociraptor model' finished successfully before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
-			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 		else
 			echo "$(date) - 'phylociraptor model' was NOT run before. Will run raxml with GTR or PROTGTR depending on input data type." >> {params.wd}/results/statistics/runlog.txt
 			if [[ {params.datatype} == "aa" ]]; then
-				awk '{{print $0"\\tPROTGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+				awk '{{print $0"\\tPROTGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 			else
-				awk '{{print $0"\\tGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+				awk '{{print $0"\\tGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 			fi
 		fi
 		# correct some model names to make them raxml compatible:
 		# it is not quite clear which models are compatible. During more extensive tests additional problems should show up
-		cat results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
+		cat results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt | sed 's/JTTDCMut/JTT-DCMut/' > {output.partitions}
 		touch {output.partitions}
 		"""
 
@@ -92,8 +89,8 @@ rule raxmlng:
 			partitions = rules.partition_alignment.output.partitions
 		output:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.{hash}.done",
-			alignment = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}.{hash}/concat.fas",
-			partitions = "results/phylogeny-{bootstrap}/raxml/{aligner}-{alitrim}.{hash}/partitions.txt",
+			alignment = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
+			partitions = "results/phylogeny/raxml/boostrap-cutoff--{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
 			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.{hash}.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.{hash}.txt"
@@ -111,7 +108,7 @@ rule raxmlng:
 			"""
 			cp {input.alignment} {output.alignment}
 			cp {input.partitions} {output.partitions}
-			cd results/phylogeny-{wildcards.bootstrap}/raxml/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}
+			cd results/phylogeny/raxml/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}
 			raxml-ng --msa {params.wd}/{output.alignment} $(if [[ "{params.seed}" != "None" ]]; then echo "--seed {params.seed}"; fi) --prefix raxmlng --threads auto{{{threads}}} --bs-trees {params.bs} --model {params.wd}/{output.partitions} --all {params.additional_params} 2>&1 | tee {params.wd}/{log}
 			statistics_string="raxmlng\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bs}\t{wildcards.bootstrap}\t$(cat {params.wd}/{output.partitions} | wc -l)\t$(cat raxmlng.raxml.bestTree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}
@@ -123,8 +120,8 @@ rule prepare_iqtree:
 			get_modeltest_checkpoint,
 			get_iqtree_params
 		output:
-			algn = directory("results/phylogeny-{bootstrap}/iqtree/{aligner}-{alitrim}.{hash}/algn"),
-			nexus = "results/phylogeny-{bootstrap}/iqtree/{aligner}-{alitrim}.{hash}/concat.nex"
+			algn = directory("results/phylogeny/iqtree/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/algn"),
+			nexus = "results/phylogeny/iqtree/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.nex"
 		singularity:
 			containers["iqtree"]
 		params:
@@ -181,7 +178,7 @@ rule iqtree:
 			"log/mltree/iqtree/iqtree-{aligner}-{alitrim}-{bootstrap}.{hash}.txt"
 		shell:
 			"""
-			cd results/phylogeny-{wildcards.bootstrap}/iqtree/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/
+			cd results/phylogeny/iqtree/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/
 			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {params.wd}/{log}
 			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
 			echo -e $statistics_string > {params.wd}/{output.statistics}	
@@ -252,7 +249,7 @@ def pull(wildcards):
 				for t in trimmers:
 					for b in bscuts:
 						lis.append("results/checkpoints/"+i+"_"+a+"_"+t+"_"+str(b)+"."+tinference_hashes[str(b)][i][m][t][a]+".done")
-						lis.append("results/phylogeny-"+str(b)+"/parameters.mltree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
+						lis.append("results/phylogeny/" + i + "/bootstrap-cutoff-"+str(b)+"/parameters.mltree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
 	return lis
 	
 

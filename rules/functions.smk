@@ -1,9 +1,13 @@
 import os
 import sys
+import glob
 sys.path.insert(0, os.getcwd()+"/bin") #needed so that phylociraptor module can be imported.
-#import hashlib
-#import yaml
+import yaml
 from libphylociraptor.hashing import *
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
 
 #configfi=str(sys.argv[sys.argv.index("--configfile")+1])
 configfi=os.environ["CONFIG"]

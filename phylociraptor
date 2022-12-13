@@ -788,7 +788,7 @@ elif args.command == "check":
 	print(now(), "Welcome to phylociraptor check v%s" % version)
 	check_parser = argparse.ArgumentParser(add_help=False)
 	check_parser.add_argument("-h", "--help", action="store_true")
-	check_parser.add_argument("-c", "--configfile", action="store", default="data/config.yaml")
+	check_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
 	check_parser.add_argument("--verbose", action="store_true", default=False)
 	check_parser.add_argument("--debug", action="store_true", dest="debug", default=False)
 	check_args = check_parser.parse_args(args.arguments)
@@ -807,9 +807,9 @@ elif args.command == "check":
 	currenthash = ""
 	all_hashes = {}
 	if check_args.configfile:
-		print(now(), "Calculating analysis hashes, may take a few seconds...")
+		print(now(), "Calculating analysis hashes, this may take a few seconds...")
 		for mode in steps_to_check:
-			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=False)
+			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=check_args.debug)
 
 	step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}									
 	for mode in steps_to_check:

@@ -1,9 +1,7 @@
 include: "functions.smk"
-import yaml
+include: "concatenate.smk"
 
-# get list of containers to use:
-with open("data/containers.yaml", "r") as yaml_stream:
-    containers = yaml.safe_load(yaml_stream)
+os.environ["MODE"] = "njtree" #for communication with concatenate.smk
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
@@ -20,11 +18,9 @@ tinference_hashes = hashes['njtree']["per"]
 current_hash = hashes['njtree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
+########### functions specifically for this step
 def compare_njtree(wildcards):
-	return [trigger("results/phylogeny-{bootstrap}/parameters.njtree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]
-
-def get_concatenate_params(wildcards):
-	return "results/phylogeny-"+wildcards.bootstrap+"/parameters.njtree.quicktree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+	return [trigger("results/phylogeny/quicktree/bootstrap-cutoff-{bootstrap}/parameters.njtree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]
 
 def pull(wildcards):
 	lis = []
@@ -34,17 +30,16 @@ def pull(wildcards):
 				for t in trimmers:
 					for b in bscuts:
 						lis.append("results/checkpoints/"+i+"_"+a+"_"+t+"_"+str(b)+"."+tinference_hashes[str(b)][i][m][t][a]+".done")
-						lis.append("results/phylogeny-"+str(b)+"/parameters.njtree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
+						lis.append("results/phylogeny/" + i + "/bootstrap-cutoff-"+str(b)+"/parameters.njtree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
 	return lis
-
-include: "concatenate.smk"
+########### 
 
 rule read_params_per:
 	input:
 		trigger = compare_njtree,
-		previous = previous_params_per
+		previous = previous_params_per #from concatenate.smk
 	output:
-		"results/phylogeny-{bootstrap}/parameters.njtree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
+		"results/phylogeny/quicktree/bootstrap-cutoff-{bootstrap}/parameters.njtree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} genetree_filtering,bootstrap_cutoff,{wildcards.bootstrap} njtree,options,{wildcards.inference}
@@ -56,7 +51,7 @@ rule read_params_global:
 		trigger = compare("results/parameters.njtree."+current_hash+".yaml", configfi),
 		previous = "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
 	output:
-		"results/parameters.njtree."+current_hash+".yaml"
+		"results/phylogeny/quicktree/parameters.njtree."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} genetree_filtering,bootstrap_cutoff njtree,method njtree,options
@@ -67,7 +62,7 @@ rule quicktree:
 	input:
 		rules.concatenate.output.stockholm_alignment
 	output:
-		tree = "results/phylogeny-{bootstrap}/quicktree/{aligner}-{alitrim}.{hash}/njtree.tre",
+		tree = "results/phylogeny/quicktree/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/njtree.tre",
 		checkpoint = "results/checkpoints/quicktree_{aligner}_{alitrim}_{bootstrap}.{hash}.done"
 	params:
 		additional_params = config["njtree"]["options"]["quicktree"],

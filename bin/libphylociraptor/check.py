@@ -23,9 +23,10 @@ def has_outfile(mode="", previous_mode = "", hashes={}, previous_hashes={}, debu
 	for f in outfile_check_dict[mode]:
 		f = f.replace("HASH", hashes[mode]["global"]).replace("PREVIOUS",previous_hashes[previous_mode]["global"])
 		if not os.path.isfile(f):
-			print(" File not found:", f)
+			print(" This final output file for this step is missing:", f)
 			return False
 	return True
+
 def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, debug=False, verbose=False):
 	#print(hashes[mode])
 	#print("   ")
@@ -128,7 +129,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 
 		for bs in hashes[mode]["per"].keys():
 			print(" Bootstrap-cutoff:", bs)
-			if not os.path.isdir("results/phylogeny-"+bs+"/quicktree"):
+			if not os.path.isdir("results/phylogeny/bootstrap-cutoff-"+bs+"/quicktree"):
 				print("\tAnalysis for boostrap-cutoff "+bs+" not yet started.")
 				continue
 			missing = []
@@ -137,7 +138,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 					alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
 					genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/alignments/filtered/"+alitrim+"/*.fas")]
 					njtree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["quicktree"]["iqtree"][trimmer][aligner]	
-					if os.path.isfile("results/phylogeny-"+bs+"/quicktree/"+njtree+"/njtree.tre"):
+					if os.path.isfile("results/phylogeny/quicktree/bootstrap-cutoff-"+bs+"/"+njtree+"/njtree.tre"):
 						if verbose:
 							print("\tnjtree for", njtree, "done.")
 					else:
@@ -149,53 +150,53 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 	if mode == "mltree":
 		for bs in hashes[mode]["per"].keys():
 			print(" Bootstrap-cutoff:", bs)
-			if not os.path.isdir("results/phylogeny-"+bs+"/astral"):
-				print("\tAnalysis for boostrap-cutoff "+bs+" not yet started.")
-				continue
 			missing = []
 			if "iqtree" in hashes[mode]["per"][bs].keys(): # this can be made more efficient!
-				for trimmer in hashes[mode]["per"][bs]["iqtree"]["iqtree"].keys(): #not sure why iqtree is in this
-					for aligner in hashes[mode]["per"][bs]["iqtree"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
-						alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
-						genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
-						mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["iqtree"]["iqtree"][trimmer][aligner]	
-						if os.path.isfile("results/phylogeny-"+bs+"/iqtree/"+mltree+"/concat.contree"):
-							if verbose:
-								print("\tIQ-Tree for", mltree, "done.")
-						else:
-							missing.append(mltree)
-							if verbose:
-								print("\tMissing IQ-Tree for", mltree)
-				if len(missing) > 0:
-					print("\tTotal number of missing IQ-Tree trees:", len(missing))
+				if not os.path.isdir("results/phylogeny/iqtree/bootstrap-cutoff-"+bs):
+					print("\t IQ-Tree analysis for boostrap-cutoff "+bs+" not yet started.")
 				else:
-					print("\tAll IQ-Tree trees finished.")
+					for trimmer in hashes[mode]["per"][bs]["iqtree"]["iqtree"].keys(): #not sure why iqtree is in this
+						for aligner in hashes[mode]["per"][bs]["iqtree"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
+							alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
+							genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
+							mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["iqtree"]["iqtree"][trimmer][aligner]	
+							if os.path.isfile("results/phylogeny/iqtree/bootstrap-cutoff-"+bs+"/"+mltree+"/concat.contree"):
+								if verbose:
+									print("\tIQ-Tree for", mltree, "done.")
+							else:
+								missing.append(mltree)
+								if verbose:
+									print("\tMissing IQ-Tree for", mltree)
+					if len(missing) > 0:
+						print("\tTotal number of missing IQ-Tree trees:", len(missing))
+					else:
+						print("\tAll IQ-Tree trees finished.")
 			print()
-			if not os.path.isdir("results/phylogeny-"+bs+"/astral"):
-				print("\tAnalysis for boostrap-cutoff "+bs+" not yet started.")
-				continue
 			missing = []
 			if "raxml" in hashes[mode]["per"][bs].keys(): # this can be made more efficient!
-				for trimmer in hashes[mode]["per"][bs]["raxml"]["iqtree"].keys(): #not sure why iqtree is in this
-					for aligner in hashes[mode]["per"][bs]["raxml"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
-						alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
-						genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
-						mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["raxml"]["iqtree"][trimmer][aligner]	
-						if os.path.isfile("results/phylogeny-"+bs+"/raxml/"+mltree+"/raxmlng.raxml.bestTree"):
-							if verbose:
-								print("\tRAxML-NG for", mltree, "done.")
-						else:
-							missing.append(mltree)
-							if verbose:
-								print("\tMissing RAxML-NG for", mltree)
-				if len(missing) > 0:
-					print("\tTotal number of missing RAxML-NG trees:", len(missing))
+				if not os.path.isdir("results/phylogeny/raxml/bootstrap-cutoff-"+bs):
+					print("\tRAxML analysis for boostrap-cutoff-"+bs+" not yet started.")
 				else:
-					print("\tAll RAxML-NG trees finished.")
+					for trimmer in hashes[mode]["per"][bs]["raxml"]["iqtree"].keys(): #not sure why iqtree is in this
+						for aligner in hashes[mode]["per"][bs]["raxml"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
+							alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
+							genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
+							mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["raxml"]["iqtree"][trimmer][aligner]	
+							if os.path.isfile("results/phylogeny/raxml/bootstrap-cutoff-"+bs+"/"+mltree+"/raxmlng.raxml.bestTree"):
+								if verbose:
+									print("\tRAxML-NG for", mltree, "done.")
+							else:
+								missing.append(mltree)
+								if verbose:
+									print("\tMissing RAxML-NG for", mltree)
+					if len(missing) > 0:
+						print("\tTotal number of missing RAxML-NG trees:", len(missing))
+					else:
+						print("\tAll RAxML-NG trees finished.")
 	if mode == "speciestree":
 		for bs in hashes[mode]["per"].keys():
 			print(" Bootstrap-cutoff:", bs)
-			if not os.path.isdir("results/phylogeny-"+bs+"/astral"):
+			if not os.path.isdir("results/phylogeny/bootstrap-cutoff-"+bs):
 				print("\tAnalysis for boostrap-cutoff "+bs+" not yet started.")
 				continue
 			missing = []
@@ -204,7 +205,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 					alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
 					genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
 					sptree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["astral"]["iqtree"][trimmer][aligner]	
-					if os.path.isfile("results/phylogeny-"+bs+"/astral/"+sptree+"/species_tree.tre"):
+					if os.path.isfile("results/phylogeny/astral/bootstrap-cutoff-"+bs+"/"+sptree+"/species_tree.tre"):
 						if verbose:
 							print("\tSpeciestree for", sptree, "done.")
 					else:

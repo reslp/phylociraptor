@@ -1,13 +1,6 @@
 include: "functions.smk"
-import os.path
-import glob
-import yaml
 
 ruleorder: read_params_global > read_params_per
-
-# get list of containers to use:
-with open("data/containers.yaml", "r") as yaml_stream:
-    containers = yaml.safe_load(yaml_stream)
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
@@ -24,6 +17,7 @@ tinference_hashes = hashes['speciestree']["per"]
 current_hash = hashes['speciestree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
+######################## functions specifically for this step
 def previous_params_per(wildcards):
 	return "results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"
 
@@ -31,8 +25,9 @@ def previous_params_per(wildcards):
 	return "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
 
 def compare_speciestree(wildcards):
-	return [trigger("results/phylogeny-{bootstrap}/parameters.speciestree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
+	return [trigger("results/phylogeny/{inference}/bootstrap-cutoff-{bootstrap}/parameters.speciestree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
 ########################
+
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
 
 def return_trees(wildcards):
@@ -49,12 +44,13 @@ rule read_params_per:
 	params:
 		conf = configfi 
 	output:
-		"results/phylogeny-{bootstrap}/parameters.speciestree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
+		"results/phylogeny/{inference}/bootstrap-cutoff-{bootstrap}/parameters.speciestree.{inference}-{aligner}-{alitrim}.{hash}.yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {params.conf} {output} seed genetree_filtering,bootstrap_cutoff,{wildcards.bootstrap} speciestree,options,{wildcards.inference} speciestree,include
 		cat {input.previous} >> {output}
 		"""
+
 rule read_params_global:
 	input:
 		trigger = compare("results/parameters.speciestree."+current_hash+".yaml", configfi),
@@ -73,10 +69,10 @@ def get_modeltest_hash(wildcards):
 rule aggregate_gene_trees:
 	input:
 #		treefiles = return_trees,
-		"results/phylogeny-{bootstrap}/parameters.speciestree.astral-{aligner}-{alitrim}.{hash}.yaml",
+		"results/phylogeny/astral/bootstrap-cutoff-{bootstrap}/parameters.speciestree.astral-{aligner}-{alitrim}.{hash}.yaml",
 		get_modeltest_checkpoint,
 	output:
-		trees = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}.{hash}/trees_{aligner}_{alitrim}.tre",
+		trees = "results/phylogeny/astral/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/trees_{aligner}_{alitrim}.tre",
 		checkpoint = "results/checkpoints/aggregate_gene_trees_{aligner}_{alitrim}_{bootstrap}.{hash}.done"
 #		genetree_filter_stats = "results/statistics/genetree_filter_{aligner}_{alitrim}_{bootstrap}.{hash}.txt"
 	params:
@@ -103,11 +99,11 @@ rule aggregate_gene_trees:
 
 rule astral:
 	input:
-		trees = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}.{hash}/trees_{aligner}_{alitrim}.tre" 
+		trees = "results/phylogeny/astral/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/trees_{aligner}_{alitrim}.tre",
 #		trees = rules.aggregate_gene_trees.output.trees,
 #		checkpoint = rules.aggregate_gene_trees.output.checkpoint
 	output:
-		species_tree = "results/phylogeny-{bootstrap}/astral/{aligner}-{alitrim}.{hash}/species_tree.tre",
+		species_tree = "results/phylogeny/astral/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/species_tree.tre",
 		statistics = "results/statistics/speciestree/astral_{aligner}-{alitrim}-{bootstrap}_statistics.{hash}.txt",
 		checkpoint = "results/checkpoints/astral_{aligner}_{alitrim}_{bootstrap}.{hash}.done"
 	benchmark:
@@ -134,7 +130,7 @@ def pull(wildcards):
 				for t in trimmers:
 					for b in bscuts:
 						lis.append("results/checkpoints/"+i+"_"+a+"_"+t+"_"+str(b)+"."+tinference_hashes[str(b)][i][m][t][a]+".done")
-						lis.append("results/phylogeny-"+str(b)+"/parameters.speciestree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
+						lis.append("results/phylogeny/"+i+"/bootstrap-cutoff-"+str(b)+"/parameters.speciestree."+i+"-"+a+"-"+t+"."+tinference_hashes[str(b)][i][m][t][a]+".yaml")
 	return lis
 
 rule speciestree:

@@ -1,4 +1,4 @@
-include: "functions.smk"
+#include: "functions.smk"
 import yaml
 
 def get_alignment_dir(wildcards):
@@ -16,24 +16,28 @@ def previous_params_per(wildcards):
 def previous_params_global(wildcards):
 	return "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
 
-
+def get_concatenate_params(wildcards):
+	if os.environ["MODE"] == "njtree":
+		return "results/phylogeny/quicktree/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.njtree.quicktree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+	elif os.environ["MODE"] == "mltree":
+		return "results/phylogeny/raxml/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.mltree.raxml-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
 
 rule concatenate:
 	input:
 		checkpoint = get_modeltest_checkpoint,
 		params = get_concatenate_params
 	output:
-		alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}/concat.fas",
-		phylip_alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}/concat.phy",
-		stockholm_alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}/concat.sto",
-		statistics = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}/statistics.txt"
+		alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
+		phylip_alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.phy",
+		stockholm_alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.sto",
+		statistics = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/statistics.txt"
 	benchmark:
 		"results/statistics/benchmarks/tree-{bootstrap}/concatenate_{aligner}_{alitrim}.{hash}txt"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
 		models = get_best_models,
-		target_dir = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}.{hash}",
+		target_dir = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}",
 		alidir = get_alignment_dir,
 		genes = get_input_genes
 	singularity:
