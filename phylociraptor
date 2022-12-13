@@ -1078,7 +1078,7 @@ elif args.command == "util":
 			lf = max(list_of_files, key=os.path.getctime)
 			print("No logfile specified. Will use the latest logfile:", lf)
 			qs_args.logfile = lf
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/biopython_plus:1.77", "python3", "bin/parse-log.py", "-f", qs_args.logfile, "-l"]
+		cmd = ["python3", "bin/parse-log.py", "-f", qs_args.logfile, "-l"]
 		if qs_args.cancel:
 			cmd += ["--cancel"] 
 		if qs_args.verbose:
