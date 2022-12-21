@@ -750,6 +750,7 @@ elif args.command=="report":
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
 	report_parser.add_argument("--figure", action="store_true", default=False)
+	report_parser.add_argument("--debug", action="store_true", default=False)
 	report_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	report_args = report_parser.parse_args(args.arguments)
 	debug = check_debug(report_args.debug) #check if debug is enabled
@@ -760,9 +761,9 @@ elif args.command=="report":
 		sys.exit(0)
 	check_required_software()
 
-	if check_required_files(args.command):
-		print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
-		sys.exit(0)
+	#if check_required_files(args.command):
+	#	print(now(), "ERROR: Some files are missing preventing this part to run.\nDid your run the required steps before? Missing file:", check_required_files(args.command))
+	#	sys.exit(0)
 
 	if report_args.figure:
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", 'bin/report_figure.R']
@@ -770,7 +771,7 @@ elif args.command=="report":
 			cmd += [report_args.config_file]
 	else:
 		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
-		cmd = ["singularity", "exec", "-B", os.getcwd(),  "docker://reslp/rmarkdown:4.0.3_DT", "Rscript", "-e", rcommand]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3","Rscript", "-e", rcommand, os.getcwd()]
 		if report_args.config_file:
 			cmd += [report_args.config_file]
 	#proc = subprocess.run(cmd)
@@ -781,6 +782,8 @@ elif args.command=="report":
 	if os.path.isfile("bin/report.html"):
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
 		print(now(), "Your phylociraptor report has been created in the results folder.")
+	else:
+		print(now(), "Report not found. Maybe something did go wrong?")
 	if os.path.isfile("bin/report-figure.pdf"):
 		subprocess.call(["mv", "bin/report-figure.pdf", "results/report-figure.pdf"])
 		print(now(), "Your phylociraptor report figure has been created in the results folder.")
@@ -809,7 +812,7 @@ elif args.command == "check":
 	if check_args.configfile:
 		print(now(), "Calculating analysis hashes, this may take a few seconds...")
 		for mode in steps_to_check:
-			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=check_args.debug)
+			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=check_args.debug, wd=os.getcwd())
 
 	step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}									
 	for mode in steps_to_check:

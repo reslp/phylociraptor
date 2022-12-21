@@ -25,6 +25,12 @@ div.main-container {
 ## {.tabset .tabset-fade}
 
 ```{r setup, echo=FALSE, message=FALSE}
+##IMPORTANT: This now takes into account hashing information. However there are still a few quirks which need to be fixed:
+# 1. There is a problem with trimmed and filtered alignment numbers. Something seems to be off with the stats files...
+# 2. njtree is not yet in the report. This will have to be written from scratch, as there is (currently) no statistics file which can be use.
+# 3. Further tests are necessary to see if the report script completes correctly if some files are missing
+# 4. Analyses hashes should be better represented in the report
+# 5. The logfile printing needs to be improved
 library(kableExtra)
 library(formattable)
 library(dplyr)
@@ -41,11 +47,14 @@ library(gridExtra)
 library(RColorBrewer)
 library(yaml)
 library(DT)
+library(reticulate)
+use_condaenv(condaenv="base", conda = "/usr/local/reticulateminiconda/bin/conda")
 
-args = commandArgs(trailingOnly=TRUE)
-config_data <- read_yaml(paste0("../",args[1]))
-
-pars_sites <-config_data$filtering$min_parsimony_sites
+args <- commandArgs(trailingOnly=TRUE)
+wd <- args[1] # get working directory
+config_file_path <- paste0("../",args[2])
+config_data <- read_yaml(config_file_path)
+pars_sites <-config_data$trimming$min_parsimony_sites
 pars_sites <- strtoi(pars_sites)
 
 parsimony_cutoff <- 3
@@ -72,6 +81,32 @@ dhms <- function(t){
 
 ```
 
+# Python
+
+```{python, echo=FALSE}
+import sys
+import yaml
+from libphylociraptor.hashing import *
+from libphylociraptor.check import *
+print("hello world")
+a = hello_from_hashing()
+all_hashes = {}
+
+def parse_config_file(cf):
+	with open(cf) as f:
+		data = yaml.load(f, Loader=yaml.FullLoader)
+	return data
+
+for mode in steps_to_check:
+	all_hashes[mode] = collect_hashes(mode, parse_config_file(r.config_file_path), r.config_file_path, debug=False, wd=r.wd)
+current_hash = all_hashes["orthology"]["orthology"]["global"]
+
+# save configfile data from yaml so we can use it later:
+config_data = parse_config_file(r.config_file_path)
+print(config_data)
+
+```
+
 `r version <- read.table("../.version", header=F)`
 `r ver <- " - version: "`
 
@@ -82,12 +117,6 @@ dhms <- function(t){
 
 busco_overview_image <- ""
 
-# orthology statistics file:
-busco_set_dir <- list.dirs("../results/orthology/busco/busco_set/",recursive=F)
-busco_overview_file <- paste0(busco_set_dir,"/dataset.cfg")
-busco_summary_file <- "../results/statistics/busco_summary.txt"
-orthology_filtering_genomes_file <- "../results/statistics/orthology_filtering_genomes_statistics.txt"
-orthology_filtering_genes_file <- "../results/statistics/orthology_filtering_gene_statistics.txt"
 
 
 #  alignment statistics information
@@ -135,7 +164,6 @@ if (file.exists(failed_genome_downloads_file))
 }
 
 if (file.exists(successfull_genome_downloads_file)){
-  #print(file.info(successfull_genome_downloads_file)$size)
   if (file.size(successfull_genome_downloads_file) > 0) {
     success_sp <- read.table(successfull_genome_downloads_file, header=F)
     success <- paste(success_sp$V1, sep="\n")
@@ -180,12 +208,9 @@ if (file.exists(downloaded_genomes_statistics_file))
   } else {
     info <- "*No information about downloaded genomes found. Maybe you only have local species?*"
   }
-  #data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") # %>% mutate(ftp_path = cell_spec("download", "html", link = ftp_path)) %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px")
-  # colum headers are off by one, this hack should fix it:
   colnames(data) <- c(colnames(data)[2:length(colnames(data))], " ")
   
   datatable(data, class="display" ,rownames=F, extensions = c('Buttons',"FixedColumns"), options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), scrollX=T, fixedColumns=list(leftColumns=1))
-  #datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = T, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=c("copy", "csv", "excel", "pdf", "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(5,10), `border-right` = "solid 2px")
 ) 
 } else {
   info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
@@ -195,9 +220,32 @@ if (file.exists(downloaded_genomes_statistics_file))
 `r info`
 
 
+
+```{python, echo=FALSE}
+busco_set = config_data["orthology"]["busco_options"]["set"]
+for mode in steps_to_check:
+	print(mode)
+	print(all_hashes[mode][mode]["global"])
+	print(all_hashes[mode][mode])
+	print(" ")
+
+orthology_hash = all_hashes["orthology"]["orthology"]["global"]
+forthology_hash = all_hashes["filter-orthology"]["filter-orthology"]["global"]
+```
+
 # Orthology
 
+Analysis hash for step orthology: `r py$orthology_hash`\
+Analysis hash for step filter-orthology: `r py$forthology_hash`
+
 ```{r, echo=FALSE, results="asis"}
+# orthology statistics file:
+#busco_set_dir <- list.dirs("../results/orthology/busco/busco_set/",recursive=F)
+busco_overview_file <- paste0("../results/orthology/busco/busco_set/",py$busco_set,"/dataset.cfg")
+busco_summary_file <- "../results/statistics/busco_summary.txt"
+orthology_filtering_genomes_file <- paste0("../results/statistics/orthology_filtering_genomes_statistics.", py$forthology_hash,".txt")
+orthology_filtering_genes_file <- paste0("../results/statistics/orthology_filtering_gene_statistics.",py$forthology_hash,".txt")
+
 
 if (file.exists(busco_overview_file)){
   busco_overview <- read.table(busco_overview_file, sep="=", header=F)
@@ -246,10 +294,10 @@ Orthologous genes were inferred using BUSCO.
 **Location of BUSCO results:** 
 
 ```
-results/orthology/busco
+results/orthology/busco/busco_runs/`r py$busco_set`.`r py$orthology_hash`
 ```
 
-**Used BUSCO set:** `r busco_set`
+**Used BUSCO set:** `r py$busco_set`
 
 **Total number of BUSCO genes in BUSCO set:** `r nbuscos`  
 **Number of BUSCO genes recovered in too few (`r cutoff_gene`) samples:** `r length(failed_genes)`  
@@ -276,12 +324,6 @@ if (file.exists(busco_summary_file))
   data$species <- spnames
   data$total <- NULL
   data$complete <- NULL
-  # old plotting:
-  #data$single_copy <- color_bar("#6198B8")(data$single_copy)
-  #data$duplicated <- color_bar("#E37332")(data$duplicated)
-  #data$fragmented <- color_bar("#C6E88B")(data$fragmented)
-  #data$missing <- color_bar("#BCB2CF")(data$missing)
-  #data %>% kbl(escape=F) %>% kable_styling("hover", full_width=F, fixed_thead = T) 
   rownames(data) <- data$species
   data$species <- NULL
   data2 <- mutate_all(data, function(x) as.numeric(as.character(x)))
@@ -303,11 +345,27 @@ if (file.exists(busco_summary_file))
 if (file.exists(busco_overview_image)) {
   include_graphics(busco_overview_image)
 } 
-#else {
-#  print("Plot file not found.")
-#}
-
 ```
+
+
+```{python, echo=FALSE}
+aligners = []
+taligners = []
+faligners = []
+for aligner in all_hashes["align"]["align"]["per"]:
+	f = "../results/statistics/align-" + aligner + "." + all_hashes["align"]["align"]["per"][aligner]
+	if os.path.exists(f):
+		aligners.append(f)
+for trimmer in all_hashes["filter-align"]["filter-align"]["per"]:
+	for aligner in all_hashes["filter-align"]["filter-align"]["per"][trimmer]:
+		tf = "../results/statistics/trim-" + aligner + "-" + trimmer + "." + all_hashes["filter-align"]["filter-align"]["per"][trimmer][aligner]
+		if os.path.exists(tf):
+			taligners.append(tf)
+		ff = "../results/statistics/filter-" + aligner + "-" + trimmer + "." + all_hashes["filter-align"]["filter-align"]["per"][trimmer][aligner]
+		if os.path.exists(ff):
+			faligners.append(ff)
+```
+
 
 # Alignments {.tabset .tabset-fade .tabset-pills}
 
@@ -320,9 +378,7 @@ results/alignments/full
 
 
 ```{r stats_alignments, echo=FALSE}
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("align-*", dirs, value = TRUE)
-
+dirs <- py$aligners
 read_my_overview <-function(dat) {
 	return(read.csv(dat,header=F,sep="\t"))
 }
@@ -343,11 +399,7 @@ if (length(dirs) != 0) {
 
 
 ```{r stats_alignments2, echo=F, results="asis"} 
-if (length(dirs)==0) {
-
-cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
-
-} else {
+if (length(dirs)==0) {cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")} else {
 	read_my_csv <-function(dat) {
 		return(read.csv(dat,header=T,sep="\t"))
 	}
@@ -355,8 +407,6 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
   	for (nalan in 1:length(data_combined_overview[1,])) {
   		aligner_info <- paste(head(strsplit(data_combined_overview[1,nalan], " ")[[1]], length(strsplit(data_combined_overview[1,nalan], " ")[[1]])-1), collapse= " ")
   		aligner_info <- gsub("None", "", aligner_info)
-  		#outstring <- c(outstring, aligner_info)
-		#outstring <- c(outstring, "   \n")
 		cat(paste0("<b>", as.character(nalan), ". </b>", aligner_info, "<br>"))
   	}
 	cat(paste0("<br><b>Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
@@ -366,7 +416,6 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
 		cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
-		#data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
 		if (i ==1) {
 			data <- data[,c(1,4:8)]
 		} else{
@@ -379,9 +428,6 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	}
 	
 	data_combined <- do.call(cbind, dat)
-	#rownames(data_combined) <- data_combined$alignment
-	#data_combined$alignment <- NULL
-	
 	get_headers <- function(dirs) {
 		names <- c()
 		for (dir in dirs) {
@@ -392,22 +438,6 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 	}
 	
 	cat("<br><br><b>Overview of individual full alignments:</b>\n")
-#	sketch = htmltools::withTags(table(
-#  	class = 'display',
-#  	thead(
-#    		tr(
-#			th(colspan = 1, ""),
-#      			th(colspan = 5, style = "border-right: solid 2px;", 'mafft'),
-#      			th(colspan = 5, style = "border-right: solid 2px;", 'clustalo'),
-#      			th(colspan = 5, 'muscle')
-#    		),
-#    		tr(
-#			th(colspan = 1, " "),
-#      			lapply(rep(c('length', 'nseqs', 'nparsimony', 'nvar', 'nfixed'), 3), th)
-#    		)
-#  		)		
-#	))
-
 	generate_table_html <- function(alitrim, coldata) {
 	
 		htmltable <- 
@@ -434,24 +464,6 @@ cat("<br><b> Alignment statistic files not found. Did you run phylociraptor alig
 
         datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Full alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(6,11), `border-right` = "solid 2px")
 }
-
-#if (length(dirs) > 0) {
-#cat(paste0("<br><b>Alignment statistics for ", dirs[1] ,"</b>"))
-#dat[[1]]
-#}
-#
-#if (length(dirs) > 1) {
-#cat(paste0("<br><b>Alignment statistics for ", dirs[2] ,"</b>"))
-#dat[[2]]
-#}
-#if (file.exists(alignment_statistics_file) == TRUE) {
-#    rows <- which(data$nparsimony < 10)
-#    data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
-#} else {
-#  print("Alignment statistics file not found. Did you run phylociraptor align?")
-#}
-#%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black")) 
-  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
 ## trimmed alignments
@@ -471,9 +483,7 @@ if (exists("pars_sites") == TRUE) {
 
 
 ```{r stats_trimmed2, echo=FALSE, warning=FALSE, results="asis"}
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("/trim-*", dirs, value = TRUE)
-
+dirs <- py$taligners
 
 if (length(dirs)==0) {
 cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filter-align?</b>\n")
@@ -486,10 +496,9 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 	dat <- list()
 	i <- 1
 	for (dir in dirs) {
-		files <- list.files(path=dir, pattern="*statistics*", full.names=T)
+		files <- list.files(path=dir, pattern="*stats*", full.names=T)
 		data <- do.call(rbind,lapply(files,read_my_csv))	
 		cat(paste0("<br><b>Number of trimmed alignments for ", strsplit(dir,split="trim-")[[1]][2],": </b>", nrow(data), "\n"))
-	        #data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < parsimony_cutoff, "red", ""))
 		data <- data[,c(1,4:8)]
 		data <- as.data.frame(data)
 		dat[[i]] <- data 
@@ -501,20 +510,13 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 		if (length(d) >= 2) {
 			for (i in 2:length(dat)) {
 				df <- merge(df, d[[i]], by="alignment", all=T, suffixes=c("",""))
-				#df <- full_join(df, d[[i]], by="alignment", suffix = c(".x", ".y"))
 			}
 		}
 		return(df)
 	}
 
-	#data_combined <- merge(dat[[1]], dat[[2]], all=T, by="alignment")
 	data_combined <- do.call(multi_merge, list(dat))
 	data_combined[is.na(data_combined)] = ""
-
-	#rownames(data_combined) <- data_combined$alignment
-	#data_combined$alignment <- NULL
-	#print(data_combined %>% kbl())	
-	
 	get_headers_trimmer <- function(dirs) {
 		names <- c()
 		for (dir in dirs) {
@@ -533,24 +535,7 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 
         datatable(data_combined, container=sketch, escape=FALSE, class = "cell-border stripe", rownames = F, filter="top", editable=TRUE, extensions = c("Buttons","FixedColumns"), options = list(dom="Bfrtip", buttons=list("copy", "csv", "excel", list(extend = "pdf",title = "Trimmed alignments overview", pageSize = "A4",orientation = "landscape"), "print"), scrollX=T, fixedColumns = list(leftColumns = 1))) %>% formatStyle(c(6,11), `border-right` = "solid 2px")
 	
-        #data_combined %>% kbl(escape=F) %>% add_header_above(get_headers_aligner(dirs)) %>% add_header_above(get_headers_trimmer(dirs)) %>% kable_paper("hover", full_width = F) %>% scroll_box(width = "100%", height = "600px") 
-	
 }
-
-#if (file.exists(trimmed_alignment_statistics_file) == TRUE) {
-#rows <- which(data$nparsimony < parsimony_cutoff)
-##data$nparsimony <- cell_spec(data$nparsimony, color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-##data$alignment <- cell_spec(data$alignment, color = ifelse(data$nparsimony[data$alignment] < parsimony_cutoff, "red", "black"))
-##print(rows)
-#data %>% kbl(escape=F) %>% kable_paper("hover", full_width = F) %>% row_spec(rows, bold = T, color="white", background="red") %>% scroll_box(width = "100%", height = "600px")
-#} else {
-#  print("Trimming statistics file not found. Did you run phylociraptor align?")
-#}
-##%>% row_spec(1:nrow(data), color = ifelse(data$nparsimony < parsimony_cutoff, "red", "black"))
-  
-  
-  
-  #column_spec(1, color = "white",background = spec_color(data$nparsimony < 10 ,begin=0, end = 0.6, option="B", direction=1))
 ```
 
 
@@ -569,8 +554,7 @@ if (exists("pars_sites") == TRUE) {
 ```
 
 ```{r stats_filtered2, echo=FALSE, warning=FALSE, results="asis"}
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("/filter-*", dirs, value = TRUE)
+dir <- py$faligners
 
 if (length(dirs)==0) {
 cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filter-align?</b>\n")
@@ -634,6 +618,17 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 
 # Modeltesting
 
+```{python, echo=FALSE}
+faligners = []
+gtfilter = []
+for trimmer in all_hashes["modeltest"]["modeltest"]["per"]["iqtree"]:
+	for aligner in all_hashes["modeltest"]["modeltest"]["per"]["iqtree"][trimmer]:
+		f = "../results/modeltest/best_models_" + aligner + "_" + trimmer + "." + all_hashes["modeltest"]["modeltest"]["per"]["iqtree"][trimmer][aligner] + ".txt"
+		if os.path.exists(f):
+			faligners.append(f)
+			gtfilter.append("../results/modeltest/genetree_filter_" + aligner + "_" + trimmer + "." + all_hashes["modeltest"]["modeltest"]["per"]["iqtree"][trimmer][aligner] + ".txt")
+```
+
 **Location of modeltesting files:** 
 ```
 results/modeltest
@@ -641,7 +636,8 @@ results/modeltest
 
 **Overview of individual modeltest results:**
 ```{r stats_modeltest, echo=FALSE, out.width="50%", warning=F, fig.align="center"}
-files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
+#files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
+files <- py$faligners
 multi_merge <- function(d) {
 	df <- d[[1]]
 	if (length(d) >= 2) {
@@ -668,7 +664,7 @@ if (length(files) > 0) {
 		title <- paste(title, collapse="-")
  		names <- c(names, title)
 		titles <- c(titles, title)
-		dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
+		dat[[i]] <- read.table(file, sep="\t", header=F)
   		colnames(dat[[i]]) <- c("alignment", "model")
   		all_genes <- c(all_genes,dat[[i]]$alignment)
 		models <- c(models, unique(dat[[i]]$model))
@@ -723,7 +719,8 @@ results/modeltest
 
 ```{r stats_genetrees, message=FALSE, echo=FALSE, warning=FALSE, results="asis"}
 p <- "" #have to do this so plotting does not fail when there is no data
-files <- list.files(path="../results/modeltest/", pattern ="genetree_filter_*", recursive=F)
+#files <- list.files(path="../results/modeltest/", pattern ="genetree_filter_*", recursive=F)
+files <- py$gtfilter
 multi_merge <- function(d) {
 	df <- d[[1]]
 	if (length(d) >= 2) {
@@ -753,7 +750,7 @@ if (length(files) > 0) {
 		title <- paste(title, collapse="-")
  		names <- c(names,  c("gene", "bootstrap_mean"))
 		titles <- c(titles, title)
-		dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
+		dat[[i]] <- read.table(file, sep="\t", header=F)
   		colnames(dat[[i]]) <- all_colnames 
   		#thresh <- dat[[i]]$bootstrap_cutoff[1]
 		dat[[i]] <- dat[[i]][,c("gene", "bootstrap_mean")]
@@ -825,18 +822,34 @@ function copytree(id) {
 
 **Location of phylogenetic results:** 
 ```
-results/phylogeny-*/
+results/phylogeny/
+```
+
+```{python, echo=FALSE}
+mltreestats = []
+for bscutoff in all_hashes["mltree"]["mltree"]["per"]:
+	for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"]:
+		for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"][trimmer]:
+			f = "../results/statistics/mltree/mltree_iqtree_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"][trimmer][aligner] + ".txt"
+			if os.path.exists(f):
+				mltreestats.append(f)
+
+	for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"]:
+		for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer]:
+			f = "../results/statistics/mltree/mltree_raxml_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer][aligner] + ".txt"
+			if os.path.exists(f):
+				mltreestats.append(f)
 ```
 
 ```{r stats_tree, echo=FALSE, results="asis"}
 
-files <- list.files(path="../results/statistics/mltree/", pattern ="mltree_*", recursive=F)
+files <- py$mltreestats
+#files <- list.files(path="../results/statistics/mltree/", pattern ="mltree_*", recursive=F)
 multi_merge <- function(d) {
 	df <- d[[1]]
 	if (length(d) >= 2) {
 		for (i in 2:length(dat)) {
 			df <- merge(df, d[[i]], by="gene", all=T, suffixes=c("",""))
-			#df <- full_join(df, d[[i]], by="gene", suffix = c("", ""))
 		}
 	}
 	return(df)
@@ -845,7 +858,7 @@ if (length(files) > 0) {
 	dat <- list()
 	i <- 1
 	for (file in files) {
-		dat[[i]] <- read.table(paste0("../results/statistics/mltree/", file), sep=" ", header=F)
+		dat[[i]] <- read.table(file, sep=" ", header=F)
 		i <- i + 1
 	}
 	data_combined <- do.call("rbind", dat)
@@ -881,13 +894,24 @@ function copyspeciestree(id) {
 
 # Speciestree
 
+```{python, echo=FALSE}
+sptreestats = []
+for bscutoff in all_hashes["speciestree"]["speciestree"]["per"]:
+	for trimmer in all_hashes["speciestree"]["speciestree"]["per"][bscutoff]["astral"]["iqtree"]:
+		for aligner in all_hashes["speciestree"]["speciestree"]["per"][bscutoff]["astral"]["iqtree"][trimmer]:
+			f = "../results/statistics/speciestree/astral_" + aligner + "-" + trimmer + "-" + bscutoff +"_statistics." + all_hashes["speciestree"]["speciestree"]["per"][bscutoff]["astral"]["iqtree"][trimmer][aligner] + ".txt"
+			if os.path.exists(f):
+				sptreestats.append(f)
+```
+
+
 **Location of phylogenetic results:** 
 ```
-results/phylogeny-*/
+results/phylogeny/
 ```
 
 ```{r stats_speciestree, echo=FALSE, results="asis"}
-files <- list.files(path="../results/statistics/speciestree/", pattern ="astral_*", recursive=F)
+files <- py$sptreestats
 multi_merge <- function(d) {
 	df <- d[[1]]
 	if (length(d) >= 2) {
@@ -902,7 +926,7 @@ if (length(files) > 0) {
 	dat <- list()
 	i <- 1
 	for (file in files) {
-		dat[[i]] <- read.table(paste0("../results/statistics/speciestree/", file), sep=" ", header=F)
+		dat[[i]] <- read.table(file, sep=" ", header=F)
 		i <- i + 1
 	}
 	data_combined <- do.call("rbind", dat)
@@ -916,7 +940,6 @@ if (length(files) > 0) {
 	data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = T)# %>% scroll_box(width = "100%", height = "600px") 
 }
 ```
-
 
 # Log
 

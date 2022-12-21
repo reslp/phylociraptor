@@ -4,16 +4,24 @@ import pandas as pd
 import hashlib
 import yaml
 
-def read_file_from_yaml(read, file, debug=False):
+def hello_from_hashing():
+	print("Hello from libphylociraptor hashing")
+	return "hello again: this was returned from calling a function in the hashing library."
+
+def read_file_from_yaml(read, file, debug=False, wd=""):
+	file = wd + "/" + file
 	import pandas as pd
-	if file == None:
-		print("File not found!")
+	if file == None or "None" in file:
+		if debug:
+			print("File not found! It is none.")
 		return []
 	if not os.path.exists(file):
+		if debug:
+			print("File not found! Does not exist:", file)
 		return []
 	if file:
 		if debug:
-			print("reading in file:", file, read )
+			print("reading in file:", file, read)
 		if len(read) > 0:
 			df = pd.read_csv(file)
 			lis = read.split(",")
@@ -25,7 +33,7 @@ def read_file_from_yaml(read, file, debug=False):
 			df = pd.read_csv(file, header=None)
 		return sorted(df.values.tolist())
 
-def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=False, debug=False):
+def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=False, debug=False, wd=""):
 	import collections
 	import pandas as pd
 	if not string_of_dict_paths and not yamlfile:
@@ -56,7 +64,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 			dict_to_hash[l[0]] = string
 			if read:
 				read = read.replace("<","")
-				dict_to_hash[l[0]] = {string: read_file_from_yaml(read, string)}
+				dict_to_hash[l[0]] = {string: read_file_from_yaml(read, string, wd=wd)}
 
 		if len(l) == 2:
 			if debug:
@@ -68,7 +76,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 				dict_to_hash[l[0]][l[1]] = string
 			if read:
 				read = read.replace("<","")
-				dict_to_hash[l[0]][l[1]] = {string: read_file_from_yaml(read, string)}
+				dict_to_hash[l[0]][l[1]] = {string: read_file_from_yaml(read, string, wd=wd)}
 
 		if len(l) == 3:
 			if debug:
@@ -89,23 +97,25 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 					dict_to_hash[l[0]][l[1]][l[2]] = string
 			if read:
 				read = read.replace("<","")
-				dict_to_hash[l[0]][l[1]][l[2]] = {string: read_file_from_yaml(read, string)}
+				dict_to_hash[l[0]][l[1]][l[2]] = {string: read_file_from_yaml(read, string, wd=wd)}
 	if returndict:
 		return dict_to_hash
 	ordered = collections.OrderedDict(dict_to_hash)
 	combined = str(previous+str(ordered))
 	hash = hashlib.shake_256(combined.encode()).hexdigest(5)
 	if debug:
-		print("FINAL: "+str(dict_to_hash))
+		print("\nFINAL: "+str(dict_to_hash))
+		print("Ordered string:")
 		print(str(ordered))
+		print("Combined:")
 		print(combined)
+		print("\nHash:")
 		print(hash)
 		print("### DONE HASH ###")
 	return hash
 
 
-
-def collect_hashes(mode, config, configfi, debug=False, check=True):
+def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 	hashes = {}
 	if mode == "setup":
 		hashes["setup"] = {"global": "", "per": {}}
@@ -113,7 +123,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 	#orthology
 	hashes['orthology'] = {"global": "", "per": {}}
 	if config["orthology"]["method"] == "busco":
-		hashes['orthology']["global"] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters", configfi, debug=debug)
+		hashes['orthology']["global"] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters", configfi, debug=debug, wd=wd)
 
 	if mode == "orthology":
 		if debug:
@@ -128,7 +138,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 			print("I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['filter-orthology']["global"] = get_hash(hashes['orthology']["global"], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi, debug=debug)
+		hashes['filter-orthology']["global"] = get_hash(hashes['orthology']["global"], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi, debug=debug, wd=wd)
 
 	if mode == "filter-orthology":
 		if debug:
@@ -144,9 +154,9 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 			print("I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['align']["global"] = get_hash(hashes['filter-orthology']["global"], "alignment,options alignment,method", configfi, debug=debug)
+		hashes['align']["global"] = get_hash(hashes['filter-orthology']["global"], "alignment,options alignment,method", configfi, debug=debug, wd=wd)
 		for a in config["alignment"]["method"]:
-			hashes['align']["per"][a] = get_hash(hashes['filter-orthology']["global"], "alignment,options,"+a, configfi, debug=debug)
+			hashes['align']["per"][a] = get_hash(hashes['filter-orthology']["global"], "alignment,options,"+a, configfi, debug=debug, wd=wd)
 
 	if mode == "align":
 		if debug:
@@ -162,11 +172,11 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 			print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites", configfi, debug=debug)
+		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites", configfi, debug=debug, wd=wd)
 		for t in config["trimming"]["method"]:
 			hashes['filter-align']["per"][t] = {}
 			for a in hashes['align']["per"].keys():
-				hashes['filter-align']["per"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t, configfi, debug=debug)
+				hashes['filter-align']["per"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t, configfi, debug=debug, wd=wd)
 
 	if mode == "filter-align":
 		if debug:
@@ -181,13 +191,13 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 			print("Please doublecheck if the stage 'filter-align' was run with the parameters currently specified in "+configfi, debug=debug)
 		sys.exit()
 	else:
-		hashes['modeltest']["global"] = get_hash(hashes['filter-align']["global"], "seed modeltest,method modeltest,options modeltest,bootstrap", configfi, debug=debug)
+		hashes['modeltest']["global"] = get_hash(hashes['filter-align']["global"], "seed modeltest,method modeltest,options modeltest,bootstrap", configfi, debug=debug, wd=wd)
 		for m in config["modeltest"]["method"]:
 			hashes['modeltest']["per"][m] = {}
 			for t in config["trimming"]["method"]:
 				hashes['modeltest']["per"][m][t] = {}
 				for a in hashes['align']["per"].keys():
-					hashes['modeltest']["per"][m][t][a] = get_hash(hashes['filter-align']["per"][t][a], "seed modeltest,options,"+m+" modeltest,bootstrap", configfi, debug=debug)
+					hashes['modeltest']["per"][m][t][a] = get_hash(hashes['filter-align']["per"][t][a], "seed modeltest,options,"+m+" modeltest,bootstrap", configfi, debug=debug, wd=wd)
 
 	if mode == "modeltest":
 		if debug:
@@ -203,7 +213,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['speciestree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include", configfi, debug=debug)
+			hashes['speciestree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include", configfi, debug=debug, wd=wd)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
 				hashes['speciestree']["per"][c] = {}
@@ -214,7 +224,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 						for t in hashes['filter-align']["per"].keys():
 							hashes['speciestree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed speciestree,options,"+i+" speciestree,include", configfi, debug=debug)
+								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed speciestree,options,"+i+" speciestree,include", configfi, debug=debug, wd=wd)
 		if debug:
 			print("Gathered hashes until 'speciestree'")
 			#print(hashes['tree_inference'])
@@ -230,7 +240,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['mltree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff mltree,method mltree,bootstrap mltree,options", configfi, debug=debug)
+			hashes['mltree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff mltree,method mltree,bootstrap mltree,options", configfi, debug=debug, wd=wd)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
 				hashes['mltree']["per"][c] = {}
@@ -241,7 +251,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 						for t in hashes['filter-align']["per"].keys():
 							hashes['mltree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['mltree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" mltree,bootstrap,"+i+" mltree,options,"+i, configfi, debug=debug)
+								hashes['mltree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" mltree,bootstrap,"+i+" mltree,options,"+i, configfi, debug=debug, wd=wd)
 		if debug:
 			print("Gathered hashes until 'mltree'")
 			print(hashes['mltree'])
@@ -255,7 +265,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
-			hashes['njtree']["global"] = get_hash(hashes['modeltest']["global"], "genetree_filtering,bootstrap_cutoff njtree,method njtree,options", configfi, debug=debug)
+			hashes['njtree']["global"] = get_hash(hashes['modeltest']["global"], "genetree_filtering,bootstrap_cutoff njtree,method njtree,options", configfi, debug=debug, wd=wd)
 			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
 				c = str(c)
 				hashes['njtree']["per"][c] = {}
@@ -266,7 +276,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True):
 						for t in hashes['filter-align']["per"].keys():
 							hashes['njtree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['njtree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "genetree_filtering,bootstrap_cutoff,"+c+" njtree,options,"+i, configfi, debug=debug)
+								hashes['njtree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "genetree_filtering,bootstrap_cutoff,"+c+" njtree,options,"+i, configfi, debug=debug, wd=wd)
 		if debug:
 			print("Gathered hashes until 'njtree'")
 			print(hashes['njtree'])
