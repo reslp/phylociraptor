@@ -12,7 +12,7 @@ summary_file = open(sys.argv[1], "r")
 outfilename = sys.argv[2]
 
 all_lineages = {}
-print("reformate_lineage.py: Reformatting all linegaes:")
+print("reformat_lineage.py: Reformatting all linegaes:")
 for line in summary_file:
 	line = line.rstrip()
 	if len(line.split("\t")) == 4:
@@ -25,7 +25,7 @@ for line in summary_file:
 			d[item[1]] = item[0]
 		all_lineages[sp] = d
 
-print("reformate_lineage.py: Creating output CSV file:", outfilename)
+print("reformat_lineage.py: Creating output CSV file:", outfilename)
 df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in all_lineages.items() ]))
 df1 = df.T
 df1.to_csv(outfilename, sep="\t",index=True, index_label="name")
