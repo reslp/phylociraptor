@@ -766,7 +766,7 @@ elif args.command=="report":
 	#	sys.exit(0)
 
 	if report_args.figure:
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", 'bin/report_figure.R']
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", "./bin/report_figure.R", report_args.config_file]
 		if report_args.config_file:
 			cmd += [report_args.config_file]
 	else:
@@ -779,14 +779,16 @@ elif args.command=="report":
                 print(line, end="\r")
 	if debug:
 		print(now(), "DEBUG:", cmd)
-	if os.path.isfile("bin/report.html"):
+
+	if os.path.isfile("bin/report.html") and report_args.figure == False:
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
-		print(now(), "Your phylociraptor report has been created in the results folder.")
+		print(now(), "Your phylociraptor report has been created in the results folder: results/report.html")
+	elif os.path.isfile("bin/report-figure.pdf"):
+		subprocess.call(["mv", "bin/report-figure.pdf", "results/report-figure.pdf"])
+		print(now(), "Your phylociraptor report figure has been created in the results folder: results/report-figure.pdf")
 	else:
 		print(now(), "Report not found. Maybe something did go wrong?")
-	if os.path.isfile("bin/report-figure.pdf"):
-		subprocess.call(["mv", "bin/report-figure.pdf", "results/report-figure.pdf"])
-		print(now(), "Your phylociraptor report figure has been created in the results folder.")
+
 elif args.command == "check":
 	print(now(), "Welcome to phylociraptor check v%s" % version)
 	check_parser = argparse.ArgumentParser(add_help=False)
