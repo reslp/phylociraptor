@@ -26,7 +26,7 @@ div.main-container {
 
 ```{r setup, echo=FALSE, message=FALSE}
 ##IMPORTANT: This now takes into account hashing information. However there are still a few quirks which need to be fixed:
-# 1. There is a problem with trimmed and filtered alignment numbers. Something seems to be off with the stats files...
+# SOLVED - 1. There is a problem with trimmed and filtered alignment numbers. Something seems to be off with the stats files...
 # 2. njtree is not yet in the report. This will have to be written from scratch, as there is (currently) no statistics file which can be use.
 # 3. Further tests are necessary to see if the report script completes correctly if some files are missing
 # 4. Analyses hashes should be better represented in the report
@@ -81,15 +81,11 @@ dhms <- function(t){
 
 ```
 
-# Python
-
 ```{python, echo=FALSE}
 import sys
 import yaml
 from libphylociraptor.hashing import *
 from libphylociraptor.check import *
-print("hello world")
-a = hello_from_hashing()
 all_hashes = {}
 
 def parse_config_file(cf):
