@@ -251,10 +251,13 @@ Required Arguments:
 	-i, --intrees		Relative paths to input trees in results folder, seperated by commas. (Default: all)
 	-o, --outprefix		Output file name prefix.
 	-n, --nquartets		Total number of quartets to be calculated. Use either this or --stopby.
+	OR
 	-b, --stopby		Stoping criterion. There are two options:
 					-b conflicts=100 stops as soon as 100 conflicts have been found.
 					--stopby tipcoverage=100 stops as soon as every tip is in at least 100 quartets.
+
 Optional Arguments:
+	--config-file           Relative custom config-file path. (Default: data/config.yaml)
 	-s, --seed		Random seed number for reproducibility. (Default: random)
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
 				Mandatory when using-a/--selecttaxa with a specific taxonomic level.
@@ -278,6 +281,7 @@ Required Arguments:
 				Use 'all' to plot all available trees.
 	
 Optional Arguments:
+	--config-file           Relative custom config-file path. (Default: data/config.yaml)
 	-o, --outprefix		Output file name prefix.
 	-l, --lineagefile	Lineagefile created with phylociraptor util get-lineage.
 	-e, --level		Taxonomic level in lineage file which should be plotted.

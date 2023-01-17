@@ -889,6 +889,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-l", "--lineagefile", action="store")
 		qs_parser.add_argument("-b", "--stopby", action="store", default=None)
 		qs_parser.add_argument("-a", "--selecttaxa", action="store", default="")
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
 		qs_parser.add_argument("--quiet", action="store_true", default=False) 
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help: 
@@ -904,10 +905,34 @@ elif args.command == "util":
 			sys.exit(1)
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
-			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
-			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/raxmlng.raxml.support")
-			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
-			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
+			print(now(), "Calculating analysis hashes for mltree, this may take a few seconds...")
+			hashes = {}
+			hashes["mltree"] = collect_hashes("mltree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+			print(now(), "Calculating analysis hashes for speciestree, this may take a few seconds...")
+			hashes["speciestree"] = collect_hashes("speciestree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())	
+			combinations = []
+			#first calculate all possible combinations:
+			for bs in hashes["mltree"]["mltree"]["per"]:
+				for treeprog in hashes["mltree"]["mltree"]["per"][bs]:
+					for trimmer in hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"]:
+						for aligner in hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"][trimmer]:
+							if treeprog == "iqtree":
+								filename = "concat.contree"
+							elif treeprog == "raxml":
+								filename = "raxmlng.raxml.support"
+							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/" + filename)
+			for bs in hashes["speciestree"]["speciestree"]["per"]:
+				for treeprog in hashes["speciestree"]["speciestree"]["per"][bs]:
+					for trimmer in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"]:
+						for aligner in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer]:
+							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/species_tree.tre")
+			# now check which files are there in the file system:
+			iqtree_trees = glob.glob("results/phylogeny/iqtree/bootstrap-cutoff-*/*/concat.contree")
+			raxml_trees =  glob.glob("results/phylogeny/raxml/bootstrap-cutoff-*/*/raxmlng.raxml.support")
+			astral_trees = glob.glob("results/phylogeny/astral/bootstrap-cutoff-*/*/species_tree.tre")
+			all_trees = iqtree_trees + raxml_trees + astral_trees
+			all_trees = [tree for tree in all_trees if tree in combinations] #keep only files which are specified in config file.
+			all_trees = ",".join(all_trees)
 		else:
 			all_trees = qs_args.intrees	
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/phylopy:2", "python", "bin/estimate_conflict.py", "-i", all_trees,  "-o", qs_args.outfile, "-s", qs_args.seed, "-t", qs_args.threads]
@@ -937,6 +962,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-l", "--lineagefile", action="store", default="none")
 		qs_parser.add_argument("-e", "--level", action="store", default="none")
 		qs_parser.add_argument("-s", "--seed", action="store", default="random") 
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
 		qs_parser.add_argument("--quiet", action="store_true", default=False) 
 		qs_parser.add_argument("--single", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
@@ -949,10 +975,34 @@ elif args.command == "util":
 			sys.exit(1)
 		elif qs_args.intrees == "all":
 			print(now(), "Will compare all trees, this expects phylociraptor mltree and/or speciestree to be finished.")
-			iqtree_trees = glob.glob("results/phylogeny-*/iqtree/*/concat.contree")
-			raxml_trees =  glob.glob("results/phylogeny-*/raxml/*/raxmlng.raxml.support")
-			astral_trees = glob.glob("results/phylogeny-*/astral/*/species_tree.tre")
-			all_trees = ",".join(iqtree_trees + raxml_trees + astral_trees)
+			print(now(), "Calculating analysis hashes for mltree, this may take a few seconds...")
+			hashes = {}
+			hashes["mltree"] = collect_hashes("mltree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+			print(now(), "Calculating analysis hashes for speciestree, this may take a few seconds...")
+			hashes["speciestree"] = collect_hashes("speciestree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())	
+			combinations = []
+			#first calculate all possible combinations:
+			for bs in hashes["mltree"]["mltree"]["per"]:
+				for treeprog in hashes["mltree"]["mltree"]["per"][bs]:
+					for trimmer in hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"]:
+						for aligner in hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"][trimmer]:
+							if treeprog == "iqtree":
+								filename = "concat.contree"
+							elif treeprog == "raxml":
+								filename = "raxmlng.raxml.support"
+							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["mltree"]["mltree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/" + filename)
+			for bs in hashes["speciestree"]["speciestree"]["per"]:
+				for treeprog in hashes["speciestree"]["speciestree"]["per"][bs]:
+					for trimmer in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"]:
+						for aligner in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer]:
+							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/species_tree.tre")
+			# now check which files are there in the file system:
+			iqtree_trees = glob.glob("results/phylogeny/iqtree/bootstrap-cutoff-*/*/concat.contree")
+			raxml_trees =  glob.glob("results/phylogeny/raxml/bootstrap-cutoff-*/*/raxmlng.raxml.support")
+			astral_trees = glob.glob("results/phylogeny/astral/bootstrap-cutoff-*/*/species_tree.tre")
+			all_trees = iqtree_trees + raxml_trees + astral_trees
+			all_trees = [tree for tree in all_trees if tree in combinations] #keep only files which are specified in config file.	
+			all_trees = ",".join(all_trees)
 		else:
 			all_trees = qs_args.intrees	
 		if qs_args.single:
