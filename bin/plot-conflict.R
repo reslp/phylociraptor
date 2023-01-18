@@ -239,20 +239,32 @@ get_pdf_height <- function(tree) {
 }
 
 cat("Plotting conflicts...\n")
-treepath1 <- treelist$path[treelist["tree"] == treenames[1]]
-bs_cutoff1 <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
-algorithm1 <- strsplit(treepath1,"/")[[1]][3]
-alitrim1 <- strsplit(treepath1,"/")[[1]][4]
+treename1 <- treelist$path[treelist["tree"] == treenames[1]]
+bs_cutoff1 <- strsplit(strsplit(treename1,"cutoff-")[[1]][2],"/")[[1]][1]
+algorithm1 <- strsplit(treename1,"/")[[1]][3]
+alitrim1 <- strsplit(strsplit(treename1,".",fixed=T)[[1]][1], "/")[[1]][5]
+hash1 <- strsplit(strsplit(treename1,".",fixed=T)[[1]][2], "/")[[1]][1]
 prefix1 <- paste( algorithm1, alitrim1, bs_cutoff1, sep="-")
 
-treepath2 <- treelist$path[treelist["tree"] == treenames[2]]
-bs_cutoff2 <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
-algorithm2 <- strsplit(treepath2,"/")[[1]][3]
-alitrim2 <- strsplit(treepath2,"/")[[1]][4]
+#bs_cutoff1 <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
+#algorithm1 <- strsplit(treepath1,"/")[[1]][3]
+#alitrim1 <- strsplit(treepath1,"/")[[1]][4]
+#prefix1 <- paste( algorithm1, alitrim1, bs_cutoff1, sep="-")
+
+treename2 <- treelist$path[treelist["tree"] == treenames[2]]
+bs_cutoff2 <- strsplit(strsplit(treename2,"cutoff-")[[1]][2],"/")[[1]][1]
+algorithm2 <- strsplit(treename2,"/")[[1]][3]
+alitrim2 <- strsplit(strsplit(treename2,".",fixed=T)[[1]][1], "/")[[1]][5]
+hash2 <- strsplit(strsplit(treename2,".",fixed=T)[[1]][2], "/")[[1]][1]
 prefix2 <- paste( algorithm2, alitrim2, bs_cutoff2, sep="-")
 
-tree1 <- read.tree(treepath1)
-tree2 <- read.tree(treepath2)
+#bs_cutoff2 <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
+#algorithm2 <- strsplit(treepath2,"/")[[1]][3]
+#alitrim2 <- strsplit(treepath2,"/")[[1]][4]
+#prefix2 <- paste( algorithm2, alitrim2, bs_cutoff2, sep="-")
+
+tree1 <- read.tree(treename1)
+tree2 <- read.tree(treename2)
 
 if (outgroup != "none") { #reroot tree in case an outgroup was specified
   tree1 <- reroot_my_tree(tree1,outgroup)
@@ -337,7 +349,7 @@ nconflicts <- as.character(length(names(conflicts_t[conflicts_t == 0])))
 nquartets <- as.character(length(names(conflicts_t)))
 cat(paste0("Output PDF: conflicts-", treenames[1], "-", treenames[2], "-", nconflicts, "-quartets.pdf\n")) 
 pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", nconflicts, "-quartets.pdf"), width=10, height=get_pdf_height(tree1))
-  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], "(",prefix1,"), ", treenames[2], "(", prefix2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], " (",prefix1,", hash: ", hash1, "), ", treenames[2], " (", prefix2, ", hash: ", hash2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
 garbage <- dev.off()
   
 
