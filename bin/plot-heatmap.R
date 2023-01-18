@@ -48,12 +48,6 @@ if (treelistfile == "none") {
   treelist <- read.csv(treelistfile, sep="\t", header=F)
   newtreenames <- c() 
   for (names in strsplit(treelist$V2,"/")){
-    #bs_cutoff <- strsplit(strsplit(treename,"cutoff-")[[1]][2],"/")[[1]][1]
-    #algorithm <- strsplit(treename,"/")[[1]][3]
-    #alitrim <- strsplit(strsplit(treename,".",fixed=T)[[1]][1], "/")[[1]][5]
-    #hash <- strsplit(strsplit(treename,".",fixed=T)[[1]][2], "/")[[1]][1]
-    #prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-    # results/phylogeny/astral/bootstrap-cutoff-0/muscle-bmge.60b8f78753/species_tree.tre
     newtreenames <-c(newtreenames, paste0(names[3], "-", names[5], "-", strsplit(names[4], "-")[[1]][3]))
   }
   treelist$V2 <- newtreenames
