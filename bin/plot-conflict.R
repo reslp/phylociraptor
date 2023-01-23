@@ -215,7 +215,7 @@ get_node_names_for_bars <- function(tree) {
 is_node_supported <- function(support) {
   bs_support <- 90
   pb_support <- 0.95
-  if (length(support) == 0) {return("no")}
+  if (length(support) == 0 || is.na(support) == TRUE) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
       return("no") # no support
@@ -297,12 +297,22 @@ if (lineage_file != "none") {
   cols["missing"] <- "black"
   #cols <- cols[names(cols) != "missing"]
   t1_clade_df <- get_node_names_for_bars(tree1)
+  t2_clade_df <- get_node_names_for_bars(tree2)
+  print("done")
   # sort colors so they match in the plot:
   cols2 <- c()
   for (n in t1_clade_df$name) {
      cols2 <- c(cols2, cols[n])
   }
   t1_clade_df$cols <- cols2
+  cols3 <- c()
+  for (n in t2_clade_df$name) {
+     cols3 <- c(cols3, cols[n])
+  }
+  print(t1_clade_df)
+  print(t2_clade_df)
+  t2_clade_df$cols <- cols3
+
   # first tree:
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
   t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$scaledconflict), size=1) + scale_color_continuous(low="black", high="red")
@@ -317,12 +327,17 @@ if (lineage_file != "none") {
   # second tree:
   cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
   t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$scaledconflict), size=1) +scale_color_continuous(low="black", high="red") 
+  t2 <- t2 + geom_cladelab(data=t2_clade_df, node=t2_clade_df$node, label=t2_clade_df$name, textcolor=t2_clade_df$cols, barcolor=t2_clade_df$cols, fontsize = 2, offset=70, offset.text=0.3)
   t2 <- t2 + new_scale("color") 
-  t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
+  #old plotting code for left facing tree:
+  #t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
+  t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-  t2 <- t2+xlim(maxx+40, minx+20) 
+  # old plotting code for left facing tree:
+  #t2 <- t2+xlim(maxx+40, minx+20) 
+  t2 <- t2+xlim(minx, maxx+40) 
 } else {
   cat("Plotting without lineage information...\n")
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
