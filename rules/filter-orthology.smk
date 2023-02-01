@@ -10,7 +10,7 @@ with open("data/containers.yaml", "r") as yaml_stream:
 
 
 #get hash for current
-hashes = collect_hashes("filter-orthology", config, configfi)
+hashes = collect_hashes("filter-orthology", config, configfi, wd=os.getcwd())
 current_hash = hashes["filter-orthology"]["global"]
 previous_hash = hashes["orthology"]["global"]
 

@@ -10,7 +10,7 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 #create new hashes for current stage 
-hashes = collect_hashes("modeltest", config, configfi)
+hashes = collect_hashes("modeltest", config, configfi, wd=os.getcwd())
 
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]

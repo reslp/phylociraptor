@@ -7,7 +7,7 @@ trimmers = get_trimmers()
 bscuts = get_bootstrap_cutoffs()
 
 #create new hashes for current stage 
-hashes = collect_hashes("speciestree", config, configfi)
+hashes = collect_hashes("speciestree", config, configfi, wd=os.getcwd())
 
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]

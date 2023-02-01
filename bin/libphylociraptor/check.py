@@ -153,7 +153,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 			missing = []
 			if "iqtree" in hashes[mode]["per"][bs].keys(): # this can be made more efficient!
 				if not os.path.isdir("results/phylogeny/iqtree/bootstrap-cutoff-"+bs):
-					print("\t IQ-Tree analysis for boostrap-cutoff "+bs+" not yet started.")
+					print("\tIQ-Tree analysis for boostrap-cutoff "+bs+" not yet started.")
 				else:
 					for trimmer in hashes[mode]["per"][bs]["iqtree"]["iqtree"].keys(): #not sure why iqtree is in this
 						for aligner in hashes[mode]["per"][bs]["iqtree"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this

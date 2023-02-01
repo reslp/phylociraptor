@@ -10,7 +10,7 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 #create new hashes for current stage (alignment) by combining the previuos hash with a newly generated
-hashes = collect_hashes("align", config, configfi)
+hashes = collect_hashes("align", config, configfi, wd=os.getcwd())
 current_hash = hashes["align"]["global"]
 mafft_hash = hashes["align"]["per"]["mafft"]
 muscle_hash = hashes["align"]["per"]["muscle"]

@@ -100,7 +100,7 @@ def get_flags(flags):
 def check_required_files(runmode, previous_runmode, args):
 	if args.debug:
 		print(now(), "DEBUG: Checking required files for:", runmode, "as they should be present")
-	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file) 
+	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file, wd=os.getcwd()) 
 	currenthash = hashes[previous_runmode]["global"]
 	for f in outfile_dict[runmode]:
 		if currenthash != "":

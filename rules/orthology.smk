@@ -96,7 +96,7 @@ print(species[1])
 	
 
 #get hash for current step
-hashes = collect_hashes("orthology", config, configfi)
+hashes = collect_hashes("orthology", config, configfi, wd=os.getcwd())
 current_hash = hashes["orthology"]["global"]
 
 ###############
@@ -342,3 +342,4 @@ rule orthology:
 		touch {output}
 		echo "$(date) - phylociraptor orthology done." >> results/statistics/runlog.txt
 		"""
+
