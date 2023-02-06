@@ -9,6 +9,7 @@ import argparse
 import tarfile
 from io import StringIO
 from io import TextIOWrapper
+import glob
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
@@ -37,7 +38,6 @@ else:
 
 
 busco_overview = pd.read_csv(args.busco_table, sep="\t")
-genomes = os.listdir(args.busco_results)
 #print(busco_overview)
 print("Settings:")
 print("cutoff: ", args.cutoff)
@@ -54,6 +54,7 @@ if args.exclude:
 		exclude_list.append(l.strip())
 
 species_list = busco_overview.species.tolist()
+#print(species_list)
 print("Original number of species:", len(species_list))
 #print(species_list)
 #first remove species with too low busco coverage
@@ -95,12 +96,14 @@ for i in range(len(buscos)):
 	numseqs = 0
 	outstring = ""
 	for species in species_list:
-		tar_file_content = open(args.busco_results + "/" + species + "/run_busco/single_copy_busco_sequences.txt", "r")
+		tar_file_content = glob.glob(args.busco_results + "/" + species + ".*/run_busco/single_copy_busco_sequences.txt")[0]
+		tar_file_content = open(tar_file_content, "r")
 		for line in tar_file_content:
 			line = line.strip()
 			if busco+extension in line:
 				path_to_busco_file = line.split(" ")[-1]	
-				tf = tarfile.open(args.busco_results + "/" + species + "/run_busco/single_copy_busco_sequences.tar", "r")
+				tf = glob.glob(args.busco_results + "/" + species + ".*/run_busco/single_copy_busco_sequences.tar")[0]
+				tf = tarfile.open(tf, "r")
 				#print(path_to_busco_file)
 				#print(tf.extractfile(path_to_busco_file))
 				tar_file_content = TextIOWrapper(tf.extractfile(path_to_busco_file))

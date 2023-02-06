@@ -29,7 +29,7 @@ cat("\nWill calculate tip 2 tip distances as a measure of tree similarity.\n")
 treelist <- read.csv(treelistfile, sep="\t", header=F)
 newtreenames <- c() 
 for (names in strsplit(treelist$V2,"/")){
-  newtreenames <-c(newtreenames, paste0(names[3], "-", names[4], "-", strsplit(names[2], "-")[[1]][2]))
+  newtreenames <-c(newtreenames, paste0(names[3], "-", strsplit(names[5], ".", fixed=T)[[1]][1], "-", strsplit(names[4], "-")[[1]][3]))
 }
 treelist$V2 <- newtreenames
 ### the melt_dist function is from: https://github.com/andersgs/harrietr/blob/master/R/melt_distance.R

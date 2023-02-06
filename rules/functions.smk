@@ -1,4 +1,31 @@
+import os
 import sys
+import glob
+sys.path.insert(0, os.getcwd()+"/bin") #needed so that phylociraptor module can be imported.
+import yaml
+from libphylociraptor.hashing import *
+
+# get list of containers to use:
+with open("data/containers.yaml", "r") as yaml_stream:
+    containers = yaml.safe_load(yaml_stream)
+
+#configfi=str(sys.argv[sys.argv.index("--configfile")+1])
+configfi=os.environ["CONFIG"]
+print("CONFIGFILE:", configfi)
+
+def get_modeltest_checkpoint(wildcards):
+	return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"
+
+def get_input_genes(wildcards):
+	bs_cutoff = int(wildcards.bootstrap)
+	list_of_genes = []
+	with open("results/modeltest/genetree_filter_" + wildcards.aligner + "_" + wildcards.alitrim + "."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt") as file:
+		for line in file:
+			gene = line.split("\t")[0]
+			bs_value = int(line.strip().split("\t")[-1])
+			if bs_value >= bs_cutoff:
+				list_of_genes.append(gene)
+	return list_of_genes		
 
 def get_aligners():
 	aligners = config["alignment"]["method"]
@@ -39,7 +66,7 @@ def get_trimmers():
 		sys.exit(1)
 
 def get_treemethods():
-	trees = config["tree"]["method"]
+	trees = config["mltree"]["method"]
 	if isinstance(trees, str):
 		if ", " in trees:
 			return trees.split(", ")
@@ -58,7 +85,7 @@ def get_treemethods():
 		sys.exit(1)
 
 def get_bootstrap_cutoffs():
-	bscut = config["filtering"]["bootstrap_cutoff"]
+	bscut = config["genetree_filtering"]["bootstrap_cutoff"]
 	if isinstance(bscut, str):
 		if ", " in bscut:
 			return bscut.split(", ")

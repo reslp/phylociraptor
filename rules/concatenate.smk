@@ -1,48 +1,59 @@
-def get_input_genes(wildcards):
-	bs_cutoff = int(wildcards.bootstrap)
-	list_of_genes = []
-	with open("results/modeltest/genetree_filter_" + wildcards.aligner + "_" + wildcards.alitrim + ".txt") as file:
-		for line in file:
-			gene = line.split("\t")[0]
-			bs_value = int(line.strip().split("\t")[-1])
-			if bs_value >= bs_cutoff:
-				list_of_genes.append(gene)
-	return list_of_genes		
+#include: "functions.smk"
+import yaml
+
+def get_alignment_dir(wildcards):
+	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]
+
+def get_best_models(wildcards):
+	return "results/modeltest/best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt"
+
+def get_genetree_stats(wildcards):
+	return "results/modeltest/genetree_filter_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt"
+
+def previous_params_per(wildcards):
+	return "results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"
+
+def previous_params_global(wildcards):
+	return "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
+
+def get_concatenate_params(wildcards):
+	if os.environ["MODE"] == "njtree":
+		return "results/phylogeny/quicktree/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.njtree.quicktree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+	elif os.environ["MODE"] == "mltree":
+		return "results/phylogeny/raxml/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.mltree.raxml-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
 
 rule concatenate:
 	input:
-		checkpoint = "results/checkpoints/modeltest/aggregate_best_models_{aligner}_{alitrim}.done"
-#		checkpoint = "results/checkpoints/filter_alignments_{alitrim}_{aligner}.done"
-#		checkpoint = "results/statistics/filter-{aligner}-{alitrim}/alignment_filter_information_{alitrim}_{aligner}.txt"
-#		checkpoint = "results/checkpoints/modes/modeltest.done"
+		checkpoint = get_modeltest_checkpoint,
+		params = get_concatenate_params
 	output:
-		alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/concat.fas",
-		phylip_alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/concat.phy",
-		stockholm_alignment = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/concat.sto",
-		statistics = "results/phylogeny-{bootstrap}/concatenate/{aligner}-{alitrim}/statistics.txt"
+		alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
+		phylip_alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.phy",
+		stockholm_alignment = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.sto",
+		statistics = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/statistics.txt"
 	benchmark:
-		"results/statistics/benchmarks/tree-{bootstrap}/concatenate_{aligner}_{alitrim}.txt"
+		"results/statistics/benchmarks/tree-{bootstrap}/concatenate_{aligner}_{alitrim}.{hash}txt"
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
-		datatype = config["filtering"]["seq_type"],
-		models = "results/modeltest/best_models_{aligner}_{alitrim}.txt",
-#		bootstrap_cutoff_file = "results/statistics/genetree_filter_{aligner}_{alitrim}.txt",
+		models = get_best_models,
+		target_dir = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}",
+		alidir = get_alignment_dir,
 		genes = get_input_genes
 	singularity:
 		containers["concatnew"]	
 	log:
-		"log/mltree/concatenate-{aligner}-{alitrim}-{bootstrap}.txt"
+		"log/mltree/concatenate-{aligner}-{alitrim}-{bootstrap}.{hash}.txt"
 	shell:
 		"""
 		echo "$(date) - concatenate {wildcards.aligner}-{wildcards.alitrim}: Will use bootstrap cutoff {wildcards.bootstrap} before creating concatenated alignment" >> results/statistics/runlog.txt
-		mkdir -p results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn
+		mkdir -p {params.target_dir}/algn
 		for gene in $(echo "{params.genes}") 
 		do
-			cp {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}/"$gene"_aligned_trimmed.fas results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn
+			cp {params.wd}/{params.alidir}/"$gene"_aligned_trimmed.fas {params.target_dir}/algn
 		done
 		# Now run concat:
-		concat.py -d results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim}/algn --runmode concat -o results/phylogeny-{wildcards.bootstrap}/concatenate/{wildcards.aligner}-{wildcards.alitrim} --biopython --statistics 2>&1 | tee {log}
+		concat.py -d {params.target_dir}/algn --runmode concat -o {params.target_dir} --biopython --statistics 2>&1 | tee {log}
 		
 		# Now convert alignment to phylip:
 		python -c "from Bio import AlignIO; alignment = AlignIO.read(open('{output.alignment}'), 'fasta'); print(' '+str(len(alignment))+' '+str(alignment.get_alignment_length())); print(''.join([str(seq.id)+'   '+str(seq.seq)+'\\n' for seq in alignment]));" > {output.phylip_alignment}

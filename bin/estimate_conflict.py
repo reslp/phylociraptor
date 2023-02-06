@@ -86,8 +86,6 @@ def quats_in_trees(tree, quat):
 			if second_element == 0:
 				tips += ","
 				second_element = 1
-			
-						
 	sorted_trees.append("-".join(sorted(sorted_tree)))
 	quat_formated = quat[0] + "," +quat[1]+"-"+quat[2]+","+quat[3]
 	print(quat_formated)
@@ -108,6 +106,7 @@ def compute_single_quat(tl,i, quat, combinations):
 	#print("Computing quat:", i, end="\r")
 	tl2 = reduce_trees(tl, quat)
 	if tl2 == 0:
+		print("Treelist is empty.", i, tl2)
 		return 0
 	result = compare_trees(tl2, combinations)
 	return (tl2[0], result)
@@ -195,19 +194,29 @@ if __name__ == '__main__':
 		input_list=[]
 		nquartets = int(args.nquartets)
 		total_quartets = math.factorial(len(taxon_list)) / (math.factorial(len(taxon_list) - 4) * math.factorial(4))
-		if total_quartets < nquartets:
-			print("WARNING: The total number of possible quartets (",total_quartets,") is smaller than the specified nquartets.")
-			#nquartets = int(total_quartets)
+		print("Total number of quartets:", total_quartets)
+		if total_quartets <= nquartets:
+			print("ERROR: The specified number of quartets (" + str(nquartets) + ") must be smaller than the total number of quartets (" + str(total_quartets) + ").")
+			sys.exit(1)
 			
 		print("No. of quartets to be calculated:", nquartets)
-		for i in range(nquartets):
-			quartet = next(random_combination(taxon_list, 4))
-			quartet_list += quartet
-			input_list.append([tl, i, quartet, combinations])
-		pool = multiprocessing.Pool(ncpus)
-		results = pool.starmap_async(compute_single_quat, input_list)
-		final_results = results.get()
-		pool.close()
+		final_results = []
+		dedup_list = []
+		while len(final_results) < nquartets:
+			for i in range(nquartets-len(final_results)):
+				quartet = next(random_combination(taxon_list, 4))
+				quartet_list += quartet
+				input_list.append([tl, i, quartet, combinations])
+			pool = multiprocessing.Pool(ncpus)
+			results = pool.starmap_async(compute_single_quat, input_list)
+			step_results = results.get()
+			pool.close()
+			for result in step_results:
+				which = result[0]
+				if which not in dedup_list:
+					dedup_list.append(which)
+					final_results.append(result)
+			print("Calculated quartets:", len(final_results))
 	elif args.stopby: # 2. by stopping criterion (can still be extended)
 		which, num = args.stopby.split("=")
 		num = int(num)
@@ -270,17 +279,25 @@ if __name__ == '__main__':
 	print("Number of results:", len(final_results))
 	results_dict = {}
 	i = 1
+	j = 0
 	for result in final_results:
+		if result[0] in results_dict.keys():
+			print(result[0], "already present")
+			j += 1
 		if result != 0:
 			results_dict[result[0]] = result[1]
 			i += 1
+		else:
+			print("Result is 0")
+	print("Total number of quartets which have been sampled multiple times:", j)
 	df = pd.DataFrame.from_dict(results_dict)	
-	print("Calculating sampling coverage of tips:")
+	print("Calculating sampling coverage of tips and saving to file", outfile + ".tip_sampling_coverage.tsv")
 	with open(outfile +".tip_sampling_coverage.tsv", "w") as f:
 		for tip in taxon_list:
 			print(tip, quartet_list.count(tip), file=f)
 
 	print("Saving results. Prefix:", outfile)
+	print("Raw quartets will be saved to:", outfile + ".quartets.csv")
 	df.transpose().to_csv(outfile + ".quartets.csv", index_label="quartet", quoting=False) 
 	
 	print("Calculating pairwise comparison of trees (% similarity based on quartetts)...")
@@ -300,8 +317,9 @@ if __name__ == '__main__':
 			if "-".join([tr1, tr2]) in df_comp.index.to_list():
 				df.loc[tr1, tr2] = df_comp.transpose()[tr1+"-"+tr2]
 				df.loc[tr2, tr1] = df_comp.transpose()[tr1+"-"+tr2]
+	print("Similarity matrix will be written to:", outfile+"similarity_matrix.csv")
 	df.to_csv(outfile + ".similarity_matrix.csv")
-	print("Writing list of trees...")
+	print("Writing list of trees to", outfile+".treelist.csv")
 	with open(outfile + ".treelist.tsv", "w") as f:
 		i = 1
 		for tree in treenames:

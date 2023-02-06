@@ -215,7 +215,7 @@ get_node_names_for_bars <- function(tree) {
 is_node_supported <- function(support) {
   bs_support <- 90
   pb_support <- 0.95
-  if (length(support) == 0) {return("no")}
+  if (length(support) == 0 || is.na(support) == TRUE) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
       return("no") # no support
@@ -239,20 +239,32 @@ get_pdf_height <- function(tree) {
 }
 
 cat("Plotting conflicts...\n")
-treepath1 <- treelist$path[treelist["tree"] == treenames[1]]
-bs_cutoff1 <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
-algorithm1 <- strsplit(treepath1,"/")[[1]][3]
-alitrim1 <- strsplit(treepath1,"/")[[1]][4]
+treename1 <- treelist$path[treelist["tree"] == treenames[1]]
+bs_cutoff1 <- strsplit(strsplit(treename1,"cutoff-")[[1]][2],"/")[[1]][1]
+algorithm1 <- strsplit(treename1,"/")[[1]][3]
+alitrim1 <- strsplit(strsplit(treename1,".",fixed=T)[[1]][1], "/")[[1]][5]
+hash1 <- strsplit(strsplit(treename1,".",fixed=T)[[1]][2], "/")[[1]][1]
 prefix1 <- paste( algorithm1, alitrim1, bs_cutoff1, sep="-")
 
-treepath2 <- treelist$path[treelist["tree"] == treenames[2]]
-bs_cutoff2 <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
-algorithm2 <- strsplit(treepath2,"/")[[1]][3]
-alitrim2 <- strsplit(treepath2,"/")[[1]][4]
+#bs_cutoff1 <- strsplit(strsplit(treepath1,"/")[[1]][2],"-")[[1]][2]
+#algorithm1 <- strsplit(treepath1,"/")[[1]][3]
+#alitrim1 <- strsplit(treepath1,"/")[[1]][4]
+#prefix1 <- paste( algorithm1, alitrim1, bs_cutoff1, sep="-")
+
+treename2 <- treelist$path[treelist["tree"] == treenames[2]]
+bs_cutoff2 <- strsplit(strsplit(treename2,"cutoff-")[[1]][2],"/")[[1]][1]
+algorithm2 <- strsplit(treename2,"/")[[1]][3]
+alitrim2 <- strsplit(strsplit(treename2,".",fixed=T)[[1]][1], "/")[[1]][5]
+hash2 <- strsplit(strsplit(treename2,".",fixed=T)[[1]][2], "/")[[1]][1]
 prefix2 <- paste( algorithm2, alitrim2, bs_cutoff2, sep="-")
 
-tree1 <- read.tree(treepath1)
-tree2 <- read.tree(treepath2)
+#bs_cutoff2 <- strsplit(strsplit(treepath2,"/")[[1]][2],"-")[[1]][2]
+#algorithm2 <- strsplit(treepath2,"/")[[1]][3]
+#alitrim2 <- strsplit(treepath2,"/")[[1]][4]
+#prefix2 <- paste( algorithm2, alitrim2, bs_cutoff2, sep="-")
+
+tree1 <- read.tree(treename1)
+tree2 <- read.tree(treename2)
 
 if (outgroup != "none") { #reroot tree in case an outgroup was specified
   tree1 <- reroot_my_tree(tree1,outgroup)
@@ -285,12 +297,22 @@ if (lineage_file != "none") {
   cols["missing"] <- "black"
   #cols <- cols[names(cols) != "missing"]
   t1_clade_df <- get_node_names_for_bars(tree1)
+  t2_clade_df <- get_node_names_for_bars(tree2)
+  print("done")
   # sort colors so they match in the plot:
   cols2 <- c()
   for (n in t1_clade_df$name) {
      cols2 <- c(cols2, cols[n])
   }
   t1_clade_df$cols <- cols2
+  cols3 <- c()
+  for (n in t2_clade_df$name) {
+     cols3 <- c(cols3, cols[n])
+  }
+  print(t1_clade_df)
+  print(t2_clade_df)
+  t2_clade_df$cols <- cols3
+
   # first tree:
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
   t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$scaledconflict), size=1) + scale_color_continuous(low="black", high="red")
@@ -305,12 +327,17 @@ if (lineage_file != "none") {
   # second tree:
   cat(paste0("Tree 2: ", treenames[2], "-", prefix2, "\n"))
   t2 <- ggtree(tree2, branch.length='none', aes(color=conflicts_info2$scaledconflict), size=1) +scale_color_continuous(low="black", high="red") 
+  t2 <- t2 + geom_cladelab(data=t2_clade_df, node=t2_clade_df$node, label=t2_clade_df$name, textcolor=t2_clade_df$cols, barcolor=t2_clade_df$cols, fontsize = 2, offset=70, offset.text=0.3)
   t2 <- t2 + new_scale("color") 
-  t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
+  #old plotting code for left facing tree:
+  #t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, offset=-40, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
+  t2 <- t2 %<+% simpdf + geom_tiplab(aes(color = factor(lineage)),size=4, hjust=0, geom="text") + scale_color_manual(values=cols) + theme(legend.position = c("none")) + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
   #reverse coordinates and create space for labels
   minx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t2)$layout$panel_params[[1]]$x.range[2]
-  t2 <- t2+xlim(maxx+40, minx+20) 
+  # old plotting code for left facing tree:
+  #t2 <- t2+xlim(maxx+40, minx+20) 
+  t2 <- t2+xlim(minx, maxx+40) 
 } else {
   cat("Plotting without lineage information...\n")
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
@@ -337,7 +364,7 @@ nconflicts <- as.character(length(names(conflicts_t[conflicts_t == 0])))
 nquartets <- as.character(length(names(conflicts_t)))
 cat(paste0("Output PDF: conflicts-", treenames[1], "-", treenames[2], "-", nconflicts, "-quartets.pdf\n")) 
 pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", nconflicts, "-quartets.pdf"), width=10, height=get_pdf_height(tree1))
-  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], "(",prefix1,"), ", treenames[2], "(", prefix2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+  print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], " (",prefix1,", hash: ", hash1, "), ", treenames[2], " (", prefix2, ", hash: ", hash2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
 garbage <- dev.off()
   
 

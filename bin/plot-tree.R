@@ -133,6 +133,7 @@ get_triangle_coordinates <- function(phylo, nodes, mode = c("max", "min", "mixed
 # till here
 
 is_node_supported <- function(support) {
+  if (is.na(support) == TRUE) {return("no")} #treat nodes without support values as unsupported
   if (length(support) == 0) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
@@ -282,11 +283,13 @@ if (level == "none" || lineage_file == "none") {
   for (ntree in 1:length(treenames)) {
     #extract filename information:
     treename <- treenames[ntree]
-    bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
+
+    bs_cutoff <- strsplit(strsplit(treename,"cutoff-")[[1]][2],"/")[[1]][1]
     algorithm <- strsplit(treename,"/")[[1]][3]
-    alitrim <- strsplit(treename,"/")[[1]][4]
+    alitrim <- strsplit(strsplit(treename,".",fixed=T)[[1]][1], "/")[[1]][5]
+    hash <- strsplit(strsplit(treename,".",fixed=T)[[1]][2], "/")[[1]][1]
     prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
-    
+
     #reroot tree
     tree <- read.tree(treename)
     if (outgroup != "none") { #reroot tree in case an outgroup was specified
@@ -307,7 +310,7 @@ if (level == "none" || lineage_file == "none") {
     # extract legend then remove it
     cat(paste0("    Write PDF: ",prefix,"-",level,"-tree.pdf\n"))
     pdf(file = paste0(prefix,"-",level,"-tree.pdf"), width = 10, height=get_pdf_height(tree))
-    print(t2 + theme(legend.position="none") +  plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+    print(t2 + theme(legend.position="none") +  plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed: ", seed,".\nOutgroup: ", outgroups, "\nHash: ", hash), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
     garbage <- dev.off()
     if (singlet == TRUE) {break}
   }
@@ -336,9 +339,10 @@ if (level == "none" || lineage_file == "none") {
   for (ntree in 1:length(treenames)) {
     #extract filename information:
     treename <- treenames[ntree]
-    bs_cutoff <- strsplit(strsplit(treename,"/")[[1]][2],"-")[[1]][2]
+    bs_cutoff <- strsplit(strsplit(treename,"cutoff-")[[1]][2],"/")[[1]][1]
     algorithm <- strsplit(treename,"/")[[1]][3]
-    alitrim <- strsplit(treename,"/")[[1]][4]
+    alitrim <- strsplit(strsplit(treename,".",fixed=T)[[1]][1], "/")[[1]][5]
+    hash <- strsplit(strsplit(treename,".",fixed=T)[[1]][2], "/")[[1]][1]
     prefix <- paste( algorithm, alitrim, bs_cutoff, sep="-")
     cat(paste0("Plot tree: ", prefix, "\n"))
     #reroot tree
@@ -468,7 +472,7 @@ if (level == "none" || lineage_file == "none") {
     if (single == "yes") {
         print(t2 + theme(legend.position="none") + plot_annotation(title = prefix, caption=paste0("Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
     } else {
-        print(t2 + t1 + theme(legend.position="none") +  plot_annotation(tag_levels = 'A', title = prefix, caption=paste0("A) Topology without branch lengths. B) Topology with branch lengths and collapsed taxonomic groups. Taxonomy: ", level,". Random seed:", seed,".\nOutgroup: ", outgroups), theme=theme(plot.title=element_text(hjust=0.5, size=16))) + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
+        print(t2 + t1 + theme(legend.position="none") +  plot_annotation(tag_levels = 'A', title = prefix, caption=paste0("A) Topology without branch lengths. B) Topology with branch lengths and collapsed taxonomic groups. Taxonomy: ", level,". Random seed: ", seed,".\nOutgroup: ", outgroups, "\nHash: ", hash), theme=theme(plot.title=element_text(hjust=0.5, size=16))) + plot_layout(design = layout))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
     } 
     garbage <- dev.off()
     if (single == TRUE) {break}

@@ -20,6 +20,7 @@ genes=$(echo $1 | cut -d "=" -f 2)
 
 if [[ $which == "ngenes" ]]; then
 	echo "Will select $genes genes."
+	ng=$genes
 	if [[ $3 != "random" ]]; then
 		seed=$3
 	else
@@ -28,6 +29,7 @@ if [[ $which == "ngenes" ]]; then
 	echo "Used random seed is: $seed"
 	buscos="$(shuf --random-source=<(yes $seed) $buscodir/lengths_cutoff | awk '{print $1}' | head -n $genes | tr "\n" " ")"
 elif [[ $which == "genes" ]]; then
+	ng=$(echo $genes | awk -F ',' '{print NF}')
 	buscos=$(echo $genes | tr "," " ")
 else
 	echo "Something was misspecified for -n or -g"
@@ -72,10 +74,19 @@ echo "Modify dataset.cfg"
 
 cat $buscodir/dataset.cfg | sed -e "s/number_of_BUSCOs=.*/number_of_BUSCOs=$(for i in $buscos; do echo $i; done | wc -l)/" > $buscotmp/dataset.cfg
 
-echo "Replace busco directory with modified version"
-echo "A Backup of the original BUSCO set directory will be kept in results/orthology/busco/busco_set/$2_backup"
+echo "Creating a new directory for the modified BUSCO set:"
+echo "$buscodir-seed-$seed-genes-$ng"
+mv $buscotmp "$buscodir-seed-$seed-genes-$ng"
 
-mv $buscodir results/orthology/busco/busco_set/$2_backup
-mv $buscotmp $buscodir
+echo "A Backup of the original BUSCO set directory will be kept in results/orthology/busco/busco_set/$2"
+
+echo "IMPORTANT: To use the modified BUSCO set make sure to change your config.yaml file:"
+echo "Change line in section busco_options:"
+echo '		set: "fungi_odb9"'	
+echo "to"
+echo "		set: \"$2-seed-$seed-genes-$ng\""
+echo
+
+
 
 echo "Modifying BUSCO set done."

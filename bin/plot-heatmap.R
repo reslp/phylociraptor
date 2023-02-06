@@ -32,7 +32,7 @@ if (nrow(data) <= 10) { # more sensitive plot size, this is still a bit hit or m
 	pheight <- 0.3 * nrow(data)
 } else {
 	pwidth <- 0.38 * nrow(data)
-	pheight <- 0.2 * nrow(data)
+	pheight <- 0.25 * nrow(data)
 }
 roundb <- 2 # rounding bounds
 if (treelistfile == "none") {
@@ -48,7 +48,7 @@ if (treelistfile == "none") {
   treelist <- read.csv(treelistfile, sep="\t", header=F)
   newtreenames <- c() 
   for (names in strsplit(treelist$V2,"/")){
-    newtreenames <-c(newtreenames, paste0(names[3], "-", names[4], "-", strsplit(names[2], "-")[[1]][2]))
+    newtreenames <-c(newtreenames, paste0(names[3], "-", names[5], "-", strsplit(names[4], "-")[[1]][3]))
   }
   treelist$V2 <- newtreenames
   #data$First <- treelist$V2[match(data$First, treelist$V1)]

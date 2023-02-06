@@ -4,6 +4,7 @@ wd <- getwd()
 setwd(paste0(wd,"/bin"))
 
 library(yaml)
+config_file_path <- paste0("../",args[1])
 config_data <- read_yaml(paste0("../",args[1]))
 
 library(patchwork)
@@ -11,14 +12,35 @@ library(RColorBrewer)
 library(ggpubr)
 library(stringr)
 library(reshape2)
+library(reticulate)
+use_condaenv(condaenv="base", conda = "/usr/local/reticulateminiconda/bin/conda")
+
+cat("Calculating hashes for report figure...\n")
+py_run_string("
+import sys
+import yaml
+from libphylociraptor.hashing import *
+from libphylociraptor.check import *
+
+def parse_config_file(cf):
+	with open(cf) as f:
+		data = yaml.load(f, Loader=yaml.FullLoader)
+	return data
+
+all_hashes = {}
+for mode in steps_to_check:
+	all_hashes[mode] = collect_hashes(mode, parse_config_file(r.config_file_path), r.config_file_path, debug=False, wd=r.wd)
+	
+")
 
 downloaded_genomes_statistics_file <- "../results/statistics/downloaded_genomes_statistics.txt"
 failed_genome_downloads_file <- "../results/downloaded_genomes/not_downloaded.txt"
 successfull_genome_downloads_file <- "../results/downloaded_genomes/successfully_downloaded.txt"
 local_species_file <- "../results/statistics/local_species.txt"
 
-pars_sites <-config_data$filtering$min_parsimony_sites
+pars_sites <-config_data$trimming$min_parsimony_sites
 pars_sites <- strtoi(pars_sites)
+
 
 # check if seed was specified or not:
 if (is.null(config_data$seed) || config_data$seed == "") {
@@ -107,20 +129,23 @@ BB
 BB
 "
 
-#plotsetup <- setup_plot_annotations + setup_plot + plot_layout(design=layout_setup) 
-#plotsetup <- plotsetup + theme(text = element_text(size = 8))
 plotsetup <- setup_plot +plot_annotation(title="setup", theme = theme(plot.title = element_text(hjust = 0.5)))
-#plotsetup
 
 #### ORTHOLOGY
 
-busco_set_dir <- list.dirs("../results/orthology/busco/busco_set/",recursive=F)
-busco_overview_file <- paste0(busco_set_dir,"/dataset.cfg")
+cat("Gather orthology data...")
+bset <- config_data$orthology$busco_options$set
+busco_overview_file <- paste0("../results/orthology/busco/busco_set/", bset, "/dataset.cfg")
 print(busco_overview_file)
 busco_summary_file <- "../results/statistics/busco_summary.txt"
-orthology_filtering_genomes_file <- "../results/statistics/orthology_filtering_genomes_statistics.txt"
-orthology_filtering_genes_file <- "../results/statistics/orthology_filtering_gene_statistics.txt"
 
+
+py_run_string("
+forthology_hash = all_hashes['filter-orthology']['filter-orthology']['global']
+")
+
+orthology_filtering_genomes_file <- paste0("../results/statistics/orthology_filtering_genomes_statistics.", py$forthology_hash , ".txt")
+orthology_filtering_genes_file <- paste0("../results/statistics/orthology_filtering_gene_statistics.", py$forthology_hash, ".txt")
 
 if (file.exists(busco_overview_file)){
   busco_overview <- read.table(busco_overview_file, sep="=", header=F)
@@ -194,9 +219,15 @@ plotortho <- plotortho + plot_annotation(title="orthology", theme = theme(plot.t
 plotortho
 ########## alignments
 
+cat("Gather alignment data...\n")
 
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("align-*", dirs, value = TRUE)
+py_run_string("
+
+dirs = []
+for aligner in all_hashes['align']['align']['per']:
+	dirs.append('../results/statistics/align-'+aligner+'.'+all_hashes['align']['align']['per'][aligner])
+")
+dirs <- py$dirs
 
 if (length(dirs) != 0) {
   dat <- list()
@@ -215,9 +246,6 @@ if (length(dirs) != 0) {
 if (length(dirs)==0) {
   cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
 } else {
-  #cat("<br><b>Used aligner(s) and settings:</b>")
-  #pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
-  #pars_sites <- strtoi(pars_sites)
   dat <- list()
   i <- 1
   alignment_statistics <- data.frame(aligner=c(), total=numeric(), pass=numeric(),fail=numeric())
@@ -227,9 +255,8 @@ if (length(dirs)==0) {
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     aligner_name <- strsplit(dir,split="align-")[[1]][2]
+    aligner_name <- strsplit(aligner_name, split=".", fixed=T)[[1]][1]
     aligner_names <- c(aligner_names, aligner_name)
-    #cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
-    #data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
     if (i ==1) {
       data <- data[,c(1,4:8)]
     } else{
@@ -243,9 +270,7 @@ if (length(dirs)==0) {
 
 colnames(alignment_statistics) <- c("aligner", "total", "pass", "fail")
 maxtotal <- strtoi(max(alignment_statistics$total))
-#rownames(alignment_statistics) <- alignment_statistics$aligner
 
-#alignment_statistics$total <- NULL
 alignment_statistics_melted <- melt(alignment_statistics, id="aligner")
 alignment_statistics_melted$value <- as.numeric(alignment_statistics_melted$value)
 colnames(alignment_statistics_melted) <- c("aligner", "status", "no. of alignments")
@@ -258,23 +283,19 @@ full_alignments_plot <- full_alignments_plot + scale_y_continuous(limits = c(0, 
 alignment_legend <- get_legend(full_alignments_plot) #extract legend
 full_alignments_plot <- full_alignments_plot+ theme(legend.position = "none") #now remove
 full_alignments_plot
-#trimmed
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("/trim-*", dirs, value = TRUE)
-dirs
 
-#if (length(dirs) != 0) {
-#  dat <- list()
-#  i <- 1
-#  for (dir in dirs) { # this code needs to be expanded and the dataframe integrated into the one created in the next chunk
-#    files <- list.files(path=dir, pattern="*overview*", full.names=T)
-#    data <- do.call(rbind,lapply(files,read_my_overview))	
-#    dat[[i]] <- data
-#    i <- i + 1
-#  }
-#  
-#  alignment_data_combined_overview <- do.call(cbind, dat)
-#}
+
+
+#trimmed
+cat("Gather trimmed alignment data...\n")
+py_run_string("
+#print(all_hashes['filter-align']['filter-align']['per'])
+dirs = []
+for trimmer in all_hashes['filter-align']['filter-align']['per']:
+	for aligner in all_hashes['filter-align']['filter-align']['per'][trimmer]:
+		dirs.append('../results/statistics/trim-' + aligner + '-' + trimmer + '.' + all_hashes['filter-align']['filter-align']['per'][trimmer][aligner])
+")
+dirs <- py$dirs
 
 
 if (length(dirs)==0) {
@@ -283,31 +304,16 @@ if (length(dirs)==0) {
   read_my_csv <-function(dat) {
     return(read.csv(dat,header=T,sep="\t"))
   }
-  #cat("<br><b>Used aligner(s) and settings:</b>")
-  #pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
-  #pars_sites <- strtoi(pars_sites)
-  #first_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
-  #first_aligner <- gsub("None", "", first_aligner)
-  #cat(paste0("<br><b>1. </b>", first_aligner,"<br>"))	
-  #if (length(alignment_data_combined_overview[1,]) == 2) {
-  #  second_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,2], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,2], " ")[[1]])-1), collapse= " ")
-  #  second_aligner <- gsub("None", "", second_aligner)
-  #  cat(paste0("<b>2. </b>", second_aligner,"<br>"))	
-  #}
-  #cat(paste0("<b>Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
   dat <- list()
   i <- 1
   trimmed_alignment_statistics <- data.frame(aligner=c(),trimmer=c(), total=numeric(), pass=numeric(), fail=numeric())
   trimmer_names <- c()
   for (dir in dirs) {
-    print(dir)
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     combination <- strsplit(dir,split="trim-")[[1]][2]
-    #aligner_name <- strsplit(combination,split="-")[[1]][1]
+    combination <- strsplit(combination,split=".", fixed=T)[[1]][1]
     trimmer_names <- c(trimmer_names, strsplit(combination,split="-")[[1]][2])
-    #cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
-    #data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
     if (i ==1) {
       data <- data[,c(1,4:8)]
     } else{
@@ -338,9 +344,14 @@ trimmed_alignments_plot <- trimmed_alignments_plot + scale_y_continuous(limits =
 trimmed_alignments_plot <- trimmed_alignments_plot + theme(legend.position = "none")
 
 #filtered
-dirs <- list.dirs("../results/statistics/", recursive=F)
-dirs <- grep("/filter-*", dirs, value = TRUE)
-dirs
+cat("Gather filtered alignment data...\n")
+py_run_string("
+dirs = []
+for trimmer in all_hashes['filter-align']['filter-align']['per']:
+	for aligner in all_hashes['filter-align']['filter-align']['per'][trimmer]:
+		dirs.append('../results/statistics/filter-' + aligner + '-' + trimmer + '.' + all_hashes['filter-align']['filter-align']['per'][trimmer][aligner])
+")
+dirs <- py$dirs
 
 if (length(dirs)==0) {
   cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
@@ -348,18 +359,6 @@ if (length(dirs)==0) {
   read_my_csv <-function(dat) {
     return(read.csv(dat,header=T,sep="\t"))
   }
-  #cat("<br><b>Used aligner(s) and settings:</b>")
-  #pars_sites <- tail(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], 1)
-  #pars_sites <- strtoi(pars_sites)
-  #first_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,1], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,1], " ")[[1]])-1), collapse= " ")
-  #first_aligner <- gsub("None", "", first_aligner)
-  #cat(paste0("<br><b>1. </b>", first_aligner,"<br>"))	
-  #if (length(alignment_data_combined_overview[1,]) == 2) {
-  #  second_aligner <- paste(head(strsplit(alignment_data_combined_overview[1,2], " ")[[1]], length(strsplit(alignment_data_combined_overview[1,2], " ")[[1]])-1), collapse= " ")
-  #  second_aligner <- gsub("None", "", second_aligner)
-  #  cat(paste0("<b>2. </b>", second_aligner,"<br>"))	
-  #}
-  #cat(paste0("<b>Parsimony informative sites cutoff: </b>", pars_sites, "<br>"))
   dat <- list()
   i <- 1
   filtered_alignment_statistics <- data.frame(aligner=c(),trimmer=c(), total=numeric(), pass=numeric(), fail=numeric())
@@ -368,10 +367,7 @@ if (length(dirs)==0) {
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     combination <- strsplit(dir,split="filter-")[[1]][2]
-    #aligner_name <- strsplit(combination,split="-")[[1]][1]
-    #trimmer_name <- strsplit(combination,split="-")[[1]][2]
-    #cat(paste0("<br><b>Number of alignments for ", strsplit(dir,split="align-")[[1]][2],": </b>", nrow(data), "\n"))
-    #data[,6] <- cell_spec(data[,6], background = ifelse(data[,6] < pars_sites, "red", ""))
+    combination <- strsplit(combination,split=".", fixed=T)[[1]][1]
     if (i ==1) {
       data <- data[,c(1,4:8)]
     } else{
@@ -384,7 +380,6 @@ if (length(dirs)==0) {
 }
 
 colnames(filtered_alignment_statistics) <- c("combination", "total", "pass", "fail")
-#filtered_alignment_statistics
 filtered_alignment_statistics$total <- NULL
 filtered_alignment_statistics_melted <- melt(filtered_alignment_statistics, id="combination")
 filtered_alignment_statistics_melted$combination <- gsub("-", "\n",filtered_alignment_statistics_melted$combination)
@@ -428,13 +423,19 @@ DDDDDDD
 "
 combined_alignment_plot <- full_alignments_plot + trimmed_alignments_plot + filtered_alignments_plot + alignment_legend + plot_layout(design=layout)# + theme(legend.position="bottom",legend.title = element_blank())
 combined_alignment_plot 
-#combined_alignment_plot <- combined_alignment_plot & theme(legend.position="bottom",legend.title = element_blank())
 combined_alignment_plot <- combined_alignment_plot + plot_annotation(title="alignments", theme = theme(plot.title = element_text(hjust = 0.5)))
-#combined_alignment_plot
 
 
 ############### Modeltest
-files <- list.files(path="../results/modeltest/", pattern ="best_models_*", recursive=F)
+cat("Gather modeltest data...\n")
+py_run_string("
+files = []
+for trimmer in all_hashes['modeltest']['modeltest']['per']['iqtree']:
+	for aligner in all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer]:
+		files.append('../results/modeltest/best_models_' + aligner + '_' + trimmer + '.' + all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer][aligner] + '.txt')
+")
+files <- py$files
+
 if (length(files) > 0) {
   i <- 1
   dat <- list()
@@ -451,7 +452,7 @@ if (length(files) > 0) {
     title <- paste(title, collapse="-")
     names <- c(names, title)
     titles <- c(titles, title)
-    dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
+    dat[[i]] <- read.table(file, sep="\t", header=F)
     colnames(dat[[i]]) <- c("alignment", "model")
     all_genes <- c(all_genes,dat[[i]]$alignment)
     models <- c(models, unique(dat[[i]]$model))
@@ -476,34 +477,22 @@ if (length(files) > 0) {
     plots[[i]] <- p
   }
     modeltest_plots <- ggarrange(plotlist=plots, common.legend = TRUE, legend="bottom")
-#  if (length(plots) == 6) { # the numbers below are hardcoded atm which is not very elegant
-#    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], plots[[6]], common.legend = TRUE, legend="bottom")
-#  }
-#  if (length(plots) == 5) {
-#    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], plots[[5]], common.legend = TRUE, legend="bottom")
-#  }
-#  if (length(plots) == 4) {
-#    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], common.legend = TRUE, legend="bottom")
-#  }
-#  if (length(plots) == 3) {	
-#    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], plots[[3]], common.legend = TRUE, legend="bottom")
-#  }
-#  if (length(plots) == 2) {	
-#    modeltest_plots <- ggarrange(plots[[1]], plots[[2]], common.legend = TRUE, legend="bottom")
-#  }
-#  if (length(plots) == 1) {	
-#    modeltest_plots <- ggarrange(plots[[1]], common.legend = TRUE, legend="right")
-#  }
-  #data_combined <- do.call(multi_merge, list(dat))
-  #colnames(data_combined) <- names
-  #data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 }
 modeltest_plots <- annotate_figure(modeltest_plots, top="modeltest")
 modeltest_plots <- modeltest_plots + theme(legend.title = element_blank())
-modeltest_plots
+
 ##### Gene Trees
-files <- list.files(path="../results/modeltest/", pattern ="genetree_filter_*", recursive=F)
-files
+cat("Gather genetree data...\n")
+py_run_string("
+print(all_hashes['modeltest']['modeltest'])
+files = []
+for trimmer in all_hashes['modeltest']['modeltest']['per']['iqtree']:
+	for aligner in all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer]:
+		files.append('../results/modeltest/genetree_filter_' + aligner + '_' + trimmer + '.' + all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer][aligner] + '.txt')
+")
+print(py$files)
+files <- py$files
+
 if (length(files) > 0) {
   i <- 1
   dat <- list()
@@ -523,25 +512,15 @@ if (length(files) > 0) {
     title <- paste(title, collapse="-")
     names <- c(names,  c("gene", "bootstrap_mean"))
     titles <- c(titles, title)
-    dat[[i]] <- read.table(paste0("../results/modeltest/", file), sep="\t", header=F)
+    dat[[i]] <- read.table(file, sep="\t", header=F)
     colnames(dat[[i]]) <- all_colnames 
-    #thresh <- dat[[i]]$bootstrap_cutoff[1]
     dat[[i]] <- dat[[i]][,c("gene", "bootstrap_mean")]
     
-    #genes_above_thresh_outstring <- c(genes_above_thresh_outstring, paste0("<b>Number of ", title, " trees above bootstrap threshold (",thresh,"): ", nrow(dat[[i]][dat[[i]]$check == "OK", ]), "</b><br>\n"))
-    #all_genes <- c(all_genes,dat[[i]]$gene)
     i <- i + 1
     
   }
   genetree_data_combined <- do.call(multi_merge2, list(dat))
-  #plot_data <- genetree_data_combined[, grepl("bootstrap_mean", names(data_combined))]
-  #plot_data <- as.data.frame(plot_data) #make sure data structure is dataframe, this is necessary because this will be a vector for a single parameter combination
-  #colnames(plot_data) <- titles
-  #p <- p %>% layout(hovermode = "y unified") #unfortunately this does not work together with custom text.
-  #print(htmltools::tagList(list(ggplotly(p)))) # this works only when the plot is being shown outside the if statement below! weird!!
   colnames(genetree_data_combined) <- c("gene", titles)		
-  #options(knitr.kable.NA = '') # do not display NA values
-  #data_combined %>% kbl(escape=F) %>% kable_paper("hover", full_width = F)%>% scroll_box(width = "100%", height = "600px")	
 }
 
 genetree_data_combined_melted <- melt(genetree_data_combined)
@@ -550,11 +529,6 @@ genetree_data_combined_melted$combination <- gsub("-", "\n", genetree_data_combi
 genetree_plot <- ggplot(data=genetree_data_combined_melted, aes(x=combination, y=`mean bootstrap support per tree`, fill=combination)) + geom_violin() + theme_minimal() + theme(legend.position="none")  + scale_fill_brewer(palette="Spectral")
 genetree_plot <- genetree_plot + theme(axis.title.x = element_blank(), text=element_text(size=7))
 genetree_plot <- annotate_figure(genetree_plot, top="genetrees")
-#genetree_plot
-#if (p != "") {
-# p <- p  %>% layout(autosize = F, width = 10, height = 10, showlegend=FALSE) %>% config(displayModeBar=FALSE)# this works only in combination with the print statement above
-#} else { p <- "gene tree result statistics not found" }
-#p
 
 
 #additional information plot
@@ -572,7 +546,7 @@ get_aligner_settings_string <- function(){
   return(paste(outstring, collapse=""))
 }
 
-
+cat("Gather overview text...\n")
 setup_text <- paste0(
 "Total samples: ", toString(total),
 "\nSuccessfully downloaded: ", toString(length(success)),
@@ -585,7 +559,6 @@ orthology_text <- paste0(
   "\nNo. of BUSCO genes: ", toString(nbuscos),
   "\nMinimum BUSCO completeness: ", config_data$filtering$cutoff
 )
-config_data
 align_text <- paste0(
   "\n\nAligners and settings:\n", get_aligner_settings_string(),
   "Sequence type: ", config_data$filtering$seq_type,
@@ -609,11 +582,8 @@ additional_info <- ggplot() +theme_void() +
   annotate("text", x = 0.2, y = 0.3, label = reprod_text, hjust = 0, size=3, fontface="bold")+
   coord_cartesian(ylim = c(0, 10), xlim=c(0,10), clip = "off") #+ theme(text = element_text(size = 5)) 
 additional_info <- annotate_figure(additional_info, top="overview")
-additional_info
-#additional_info <- ggparagraph(size=7, text=paste0("Total samples: ",toString(total),"\nSuccessfully downloaded: ", toString(length(success)),"\nFailed download: ", toString(length(failed)),"\nLocally provided: ", toString(length(local))))
 
-
-
+cat("Save report file...\n")
 pdf(file="report-figure.pdf", width=11.3, height=8.7)
 p <- ggarrange(plotsetup, plotortho,combined_alignment_plot,modeltest_plots,genetree_plot,additional_info, ncol=3, nrow=2,labels="AUTO")
 p
