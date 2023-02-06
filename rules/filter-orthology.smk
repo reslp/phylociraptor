@@ -29,6 +29,7 @@ def determine_concurrency_limit():
 
 batches = determine_concurrency_limit()
 
+
 rule read_params_global:
 	input:
 		trigger = compare("results/orthology/busco/parameters.filter-orthology."+current_hash+".yaml", configfi),
@@ -73,6 +74,7 @@ rule create_sequence_files:
 		python bin/create_sequence_files.py --type {params.seqtype} --busco_table {input.table} --busco_results {params.busco_dir} --cutoff {params.cutoff} --outdir {output.sequence_dir} --minsp {params.minsp} --genome_statistics {output.genome_statistics} --gene_statistics {output.gene_statistics} --batchID {wildcards.batch} --nbatches {params.nbatches} --fix_aa_codes $exclude &> {log}
 		touch {output.checkpoint}   
 		"""
+
 
 rule remove_duplicated_sequence_files:
 	input:
