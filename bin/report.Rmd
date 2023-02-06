@@ -99,7 +99,7 @@ current_hash = all_hashes["orthology"]["orthology"]["global"]
 
 # save configfile data from yaml so we can use it later:
 config_data = parse_config_file(r.config_file_path)
-print(config_data)
+#print(config_data)
 
 ```
 
@@ -219,11 +219,12 @@ if (file.exists(downloaded_genomes_statistics_file))
 
 ```{python, echo=FALSE}
 busco_set = config_data["orthology"]["busco_options"]["set"]
-for mode in steps_to_check:
-	print(mode)
-	print(all_hashes[mode][mode]["global"])
-	print(all_hashes[mode][mode])
-	print(" ")
+#enable this for debugging hash related problems
+#for mode in steps_to_check:
+#	print(mode)
+#	print(all_hashes[mode][mode]["global"])
+#	print(all_hashes[mode][mode])
+#	print(" ")
 
 orthology_hash = all_hashes["orthology"]["orthology"]["global"]
 forthology_hash = all_hashes["filter-orthology"]["filter-orthology"]["global"]
