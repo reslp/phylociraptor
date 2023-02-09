@@ -53,10 +53,10 @@ rule read_params_per:
 
 rule read_params_global:
 	input:
-		trigger = compare("results/parameters.speciestree."+current_hash+".yaml", configfi),
+		trigger = compare("results/phylogeny/parameters.speciestree."+current_hash+".yaml", configfi),
 		previous = "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
 	output:
-		"results/parameters.speciestree."+current_hash+".yaml"
+		"results/phylogeny/parameters.speciestree."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include
