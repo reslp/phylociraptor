@@ -33,9 +33,12 @@ cat(paste0("Trees to plot: ", treenames, "\n"))
 treenames <- strsplit(treenames,",")[[1]]
 
 #set seed if specified
-cat(paste0("Random seed: ", seed,"\n"))
 if (seed != "random") {
   set.seed(seed)
+  cat(paste0("Random seed: ", seed,"\n"))
+} else {
+  seed <- sample(0:100000, 1)
+  cat(paste0("Random seed: ", seed, "\n"))
 }
 
 if (single == "yes") {

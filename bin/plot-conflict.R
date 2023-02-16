@@ -42,7 +42,12 @@ if (strtoi(strsplit(treenames[1], "T")[[1]][2]) > strtoi(strsplit(treenames[2], 
 #set seed if specified
 if (seed != "random") {
   set.seed(seed)
+  cat(paste0("Random seed: ", seed, "\n"))
+} else {
+  seed <- sample(0:100000, 1)
+  cat(paste0("Random seed: ", seed, "\n"))
 }
+
 
 #load and check quartelistt and treelist
 if (conflictfile != "none") {
