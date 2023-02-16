@@ -130,6 +130,10 @@ if __name__ == '__main__':
 #		seed = 111123 # here for testing
 		random.seed(seed)
 		print("Random seed:", seed)
+	else: #random seed not explicitly specified. will be created randomly
+		seed = random.randint(0, 100000)
+		random.seed(seed)
+		print("Random seed:", seed)
 	outfile = args.outfile
 	if not args.threads:
 		ncpus = multiprocessing.cpu_count()
