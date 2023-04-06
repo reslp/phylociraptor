@@ -1,8 +1,13 @@
 import os
 import sys
-import pandas as pd
-import hashlib
-import yaml
+try: 
+	import pandas as pd
+	import hashlib
+	import yaml
+except ModuleNotFoundError:
+	print("One or more required python modules could not be found.")
+	print("Make sure you have snakemake, pandas, hashlib and yaml available.")
+	sys.exit(1)
 
 def hello_from_hashing():
 	print("Hello from libphylociraptor hashing")
