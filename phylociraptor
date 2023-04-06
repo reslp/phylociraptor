@@ -447,7 +447,7 @@ if args.command == "setup":
 	for line in execute_command(cmd, setup_args.verbose, config=setup_args.config_file):
 		print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 
 elif args.command=="orthology":
 	print(now(), "Welcome to phylociraptor orthology v%s" % version)
@@ -546,7 +546,7 @@ elif args.command=="filter-orthology":
 	for line in execute_command(cmd, forthology_args.verbose, config=forthology_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="align":
 	print(now(), "Welcome to phylociraptor align v%s" % version)
 	align_parser = PhyloParser(usage=help_message(align_help), add_help=False)
@@ -633,7 +633,7 @@ elif args.command=="filter-align":
 	for line in execute_command(cmd, falign_args.verbose, config=falign_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="speciestree":
 	print(now(), "Welcome to phylociraptor speciestree v%s" % version)
 	sptree_parser = PhyloParser(add_help=False)
@@ -660,7 +660,7 @@ elif args.command=="speciestree":
 	for line in execute_command(cmd, sptree_args.verbose, config=sptree_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="njtree":
 	print(now(), "Welcome to phylociraptor njtree %s" % version)
 	njtree_parser = PhyloParser(add_help=False)
@@ -688,7 +688,7 @@ elif args.command=="njtree":
 	for line in execute_command(cmd, njtree_args.verbose, njtree_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="mltree":
 	print(now(), "Welcome to phylociraptor mltree v%s" % version)
 	tree_parser = PhyloParser(add_help=False)
@@ -716,7 +716,7 @@ elif args.command=="mltree":
 	for line in execute_command(cmd, tree_args.verbose, config=tree_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="modeltest":
 	print(now(), "Welcome to phylociraptor modeltest v%s" % version)
 	model_parser = PhyloParser(add_help=False)
@@ -743,7 +743,7 @@ elif args.command=="modeltest":
 	for line in execute_command(cmd, model_args.verbose, config=model_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(),"DEBUG:", cmd)	
+		print(now(),"DEBUG:", " ".join(cmd))	
 elif args.command=="report":
 	print(now(), "Welcome to phylociraptor report v%s" % version)
 	report_parser = argparse.ArgumentParser(add_help=False)
@@ -778,7 +778,7 @@ elif args.command=="report":
 	for line in execute_command(cmd, report_args.verbose, config=report_args.config_file):
                 print(line, end="\r")
 	if debug:
-		print(now(), "DEBUG:", cmd)
+		print(now(), "DEBUG:", " ".join(cmd))
 
 	if os.path.isfile("bin/report.html") and report_args.figure == False:
 		subprocess.call(["mv", "bin/report.html", "results/report.html"])
