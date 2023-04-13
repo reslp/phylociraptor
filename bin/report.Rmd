@@ -612,6 +612,16 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 }
 ```
 
+<details><summary>Show additional figures</summary>
+
+```{r ext-figures, results="asis"}
+print("hi")
+```
+</details>
+
+
+
+
 # Modeltesting
 
 ```{python, echo=FALSE}
@@ -829,12 +839,12 @@ for bscutoff in all_hashes["mltree"]["mltree"]["per"]:
 			f = "../results/statistics/mltree/mltree_iqtree_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"][trimmer][aligner] + ".txt"
 			if os.path.exists(f):
 				mltreestats.append(f)
-
-	for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"]:
-		for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer]:
-			f = "../results/statistics/mltree/mltree_raxml_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer][aligner] + ".txt"
-			if os.path.exists(f):
-				mltreestats.append(f)
+	if "raxml" in all_hashes["mltree"]["mltree"]["per"][bscutoff].keys():
+		for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"]:
+			for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer]:
+				f = "../results/statistics/mltree/mltree_raxml_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer][aligner] + ".txt"
+				if os.path.exists(f):
+					mltreestats.append(f)
 ```
 
 ```{r stats_tree, echo=FALSE, results="asis"}
