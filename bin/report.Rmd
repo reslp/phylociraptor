@@ -48,6 +48,7 @@ library(RColorBrewer)
 library(yaml)
 library(DT)
 library(reticulate)
+library(patchwork)
 use_condaenv(condaenv="base", conda = "/usr/local/reticulateminiconda/bin/conda")
 
 args <- commandArgs(trailingOnly=TRUE)
@@ -614,8 +615,106 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 
 <details><summary>Show additional figures</summary>
 
-```{r ext-figures, results="asis"}
-print("hi")
+```{r ext-figures, echo=FALSE, fig.width = 11.7}
+f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats-*", full.names=T)
+
+#filter-mafft-trimal.250586f87f
+if (identical(f, character(0)) == FALSE) {
+	data <- read.csv(f, sep='\t', row.names=NULL)
+	data$alignment <- NULL  # this is wrongly formatted in the csv. needs to be corrected
+	colnames(data) <- c("combination", "alignment", "length", "nseqs", "nparsimony", "nvariable", "nfixed")	
+	plotlist <- list()
+	i <- 1
+	cols <- c("#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf")
+	for (col in colnames(data))
+	{
+	  if (col == "combination" || col == "alignment") {next}
+	
+	  p <- ggplot(data,aes(x=.data[[col]]))+ geom_density(aes(color = combination), show.legend = FALSE)+stat_density(aes(x=.data[[col]], color=combination), geom="line",position="identity") + scale_color_manual(values=cols)
+	  p <- p + ggtitle(paste0(col)) 
+	  plotlist[[i]] <- p
+	  i <- i + 1
+	}
+	p #+ theme(legend.key = element_rect(fill = cols))
+	pp <- ggarrange(plotlist=plotlist, common.legend = TRUE, legend = "bottom")
+	pp <- annotate_figure(pp, top = text_grob(paste0("Statistics of filtered alignments"), color = "black", face = "bold", size = 14))
+	print(pp)
+}
+# this is the code for plotting pairwise combinations of different features of the alignments
+# it is currently commented out but kept here for the future when this will be added properly.
+# currently this code is very slow and displaying the resulting graph in the HTML is trick because there are many subplots.
+#
+#all_combs <- expand.grid(unique(data$combination), unique(data$combination))
+#
+#for (what in colnames(data))
+#{
+#  if (what == "combination" || what == "alignment") {next}
+#  print(paste0("Working on: ", what))
+#  plotlist_single <- list()
+#  j <- 1
+#  previous_y <- ""
+#  for (n in 1:nrow(all_combs)){
+#    
+#    combs <- c(as.character(all_combs[n,1]), as.character(all_combs[n,2]))
+#    if (combs[1] == combs[2]){
+#      p <- ggplot() + theme_void()
+#      plotlist_single[[j]] <- p
+#      j <- j + 1
+#      next
+#    }
+#    smalld <- data[data$combination == combs,]
+#    
+#    coln <- c("alignment", combs)
+#    refdata <- data.frame("alignment" = character(), comb1 = numeric(0), comb2 = numeric(0))
+#    
+#    i <- 1
+#    for (al in unique(smalld$alignment)) {
+#      row <- c(al)
+#      for (comb in combs) {
+#        #print(data[data$combination == comb & data$alignment == al, "nvariable"] )
+#        if (identical(data[data$combination == comb & data$alignment == al, what], integer(0))) {
+#          row <- c(row, NA)
+#        } else {row <- c(row, as.numeric(data[data$combination == comb & data$alignment == al, what]))}
+#        
+#      }
+#      #print(row)
+#      refdata[i, ] <- row
+#      i <- i + 1
+#    }
+#    # needs to be converted to numeric again:
+#    refdata[,2] <- as.numeric(refdata[,2])
+#    refdata[,3] <- as.numeric(refdata[,3])
+#    refdata <- na.omit(refdata)
+#    p <- ggplot(refdata, aes(x=comb1, y=comb2)) + geom_point() + xlab(combs[1]) 
+#    if (previous_y != combs[2]) {
+#      p <- p + ylab(combs[2])
+#    } else {
+#      p <- p + theme(axis.title.y=element_blank())
+#    }
+#    previous_y <- combs[2]
+#    plotlist_single[[j]] <- p
+#    j <- j + 1
+#    
+#  }
+#  
+#  # get common axis ranges: (does not yet work)
+#  p_ranges_x <- c()
+#  p_ranges_y <- c()
+#  for (x in 1:length(plotlist)){
+#    if (is.null(ggplot_build(plotlist[[x]])$layout$panel_scales_x[[1]]$range$range) == F & is.null(ggplot_build(plotlist[[x]])$layout$panel_scales_y[[1]]$range$range) == F) {
+#      p_ranges_x <- c(p_ranges_x, ggplot_build(plotlist[[1]])$layout$panel_scales_x[[1]]$range$range)
+#      p_ranges_y <- c(p_ranges_y, ggplot_build(plotlist[[1]])$layout$panel_scales_y[[1]]$range$range)    
+#    }
+#  }
+#  finalp <- ggpubr::ggarrange(plotlist = plotlist_single, ncol= 9, nrow=9) + plot_annotation(title = paste0("Pairwise comparison of ", what))
+#  
+#  finalp <- finalp + xlim(0, max(p_ranges_x)) + ylim(0, max(p_ranges_y))
+#  
+#  #pdf(file=paste0("pairwise-", what, ".pdf"), width=20, height=20)
+#  print(finalp)
+#  #dev.off()
+#}
+
 ```
 </details>
 
