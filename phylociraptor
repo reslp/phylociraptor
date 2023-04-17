@@ -292,6 +292,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield "\tParameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+				if line.startswith("  |"):
+					yield now() + " Progress" + line.strip("\n") + "\r"
 			else:
 				result = line
 				if check_for_errors(result):
@@ -312,6 +314,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+				if line.startswith("  |"):
+					yield now() + " Progress" + line.strip("\n") + "\r"
 				line=""
 
 def get_additional_snakemake_flags(flags, rerun, unlock):
