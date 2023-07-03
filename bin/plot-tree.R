@@ -401,11 +401,12 @@ if (level == "none" || lineage_file == "none") {
     
     #gather support values
     cat("    Gather support values...\n")
-    names(node_supports) <- node_names
+    names(node_supports) <- node_names_support
     node_supports <- node_supports[!is.na(names(node_supports))] # get rid of missing values from NAs when taxon level is missing
+    node_supports <- node_supports[names(node_supports) != "missing"]
     all_supports_list[[ntree]] <- node_supports
     all_names <- c(all_names, prefix)
-    
+ 
     cat("    Collapse tree...\n")
     names(nodes_to_collapse) <- node_names
 
@@ -491,7 +492,7 @@ if (level == "none" || lineage_file == "none") {
     names(support_cols) <- c("no", "notmono", "yes")
     sdf <- melt(t(support_df))
     colnames(sdf) <- c("tree", "group", "supported")
-    mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
+    mywidth <- round(((0.1*length(sdf$tree)) + 5)/2, digits=0)
     pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
       print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
     garbage <- dev.off()
