@@ -38,6 +38,17 @@ def read_file_from_yaml(read, file, debug=False, wd=""):
 			df = pd.read_csv(file, header=None)
 		return sorted(df.values.tolist())
 
+
+def check_parameters(d): #this functions will test parameters to make sure all empty strings are set to None. Otherwise different hashes will be calculated
+	for k, v in d.items():
+		if v == "":
+			d[k] = None
+			continue
+		if isinstance(v, dict):
+			v = check_parameters(v)		
+	return d	
+
+
 def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=False, debug=False, wd=""):
 	import collections
 	import pandas as pd
@@ -51,6 +62,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	dict_to_hash = {}
 	with open(yamlfile) as f:
 		my_dict = yaml.safe_load(f)
+	my_dict = check_parameters(my_dict)	
 	dic_list = string_of_dict_paths.split(" ")
 	for d in dic_list:
 		if debug:
