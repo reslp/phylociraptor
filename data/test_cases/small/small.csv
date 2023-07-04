@@ -1,0 +1,21 @@
+species,Organism Groups,Size(Mb),Chromosomes,Organelles,Plasmids,Assemblies,web_local
+Amanita muscaria,Eukaryota;Fungi;Basidiomycetes,40.6998,0,0,0,2,web=GCA_000827485.1
+Hygrocybe conica,Eukaryota;Fungi;Basidiomycetes,67.9582,0,0,0,1,web=GCA_900068975.1
+Fistulina hepatica,Eukaryota;Fungi;Basidiomycetes,33.8478,0,0,0,1,web=GCA_000934395.1
+Calocera cornea,Eukaryota;Fungi;Basidiomycetes,33.2449,0,0,0,1,web=GCA_001632435.1
+Tremella fuciformis,Eukaryota;Fungi;Basidiomycetes,23.6356,0,0,0,1,web=GCA_000987905.1
+Bullera alba,Eukaryota;Fungi;Basidiomycetes,19.4173,0,0,0,1,web=GCA_001600095.1
+Phaeotremella skinneri,Eukaryota;Fungi;Basidiomycetes,20.7883,0,0,0,1,web=GCA_001599695.1
+Puccinia graminis,Eukaryota;Fungi;Basidiomycetes,88.7244,0,0,0,5,web=GCA_000149925.1
+Uromyces transversalis,Eukaryota;Fungi;Basidiomycetes,237.275,0,0,0,3,web=GCA_002994555.1
+Hemileia vastatrix,Eukaryota;Fungi;Basidiomycetes,543.605,0,0,0,2,web=GCA_003057935.1
+Capronia coronata,Eukaryota;Fungi;Ascomycetes,25.8076,0,0,0,1,web=GCA_000585585.1
+Aspergillus nidulans,Eukaryota;Fungi;Ascomycetes,30.276,0,1,0,4,web=GCA_000011425.1
+Taphrina betulina,Eukaryota;Fungi;Ascomycetes,12.5267,0,1,0,1,web=GCA_008802775.1
+Protomyces gravidus,Eukaryota;Fungi;Ascomycetes,11.5312,0,0,0,1,web=GCA_003717255.1
+Usnea hakonensis,Eukaryota;Fungi;Ascomycetes,41.1984,0,0,0,1,web=GCA_013423325.1
+Umbilicaria muehlenbergii,Eukaryota;Fungi;Ascomycetes,34.8124,0,0,0,1,web=GCA_000611775.1
+Pichia fermentans,Eukaryota;Fungi;Ascomycetes,10.5686,0,0,0,1,web=GCA_003339355.1
+Glomus cerebriforme,Eukaryota;Fungi;Other Fungi,136.821,0,0,0,2,web=GCA_003550305.1
+Smittium simulii,Eukaryota;Fungi;Other Fungi,43.8966,0,0,0,1,web=GCA_003086735.1
+Mucor racemosus,Eukaryota;Fungi;Other Fungi,65.533,0,0,0,1,web=GCA_000697255.1
