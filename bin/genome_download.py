@@ -39,9 +39,10 @@ if not os.path.isfile(args.outdir+"assembly_summary_genbank.txt"):
 			with open(args.outdir+"assembly_summary_genbank.txt","r") as handle: # this needs to be done because this file contains two comment head lines.
 				handle.readline() # read first line so that pointer is at second line
 				for line in handle:
-					if line.startswith("#"):
-						line = line[2:]
-					output += line
+					if line.startswith("##"):
+						continue
+						#line = line[2:]
+					output += line.lstrip("#")
 			outfile = open(args.outdir+"assembly_summary_genbank.txt","w")
 			outfile.write(output) 
 			outfile.close()
