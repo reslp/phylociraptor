@@ -41,8 +41,8 @@ def read_file_from_yaml(read, file, debug=False, wd=""):
 
 def check_parameters(d): #this functions will test parameters to make sure all empty strings are set to None. Otherwise different hashes will be calculated
 	for k, v in d.items():
-		if v == "":
-			d[k] = None
+		if v == None: # check if value is None (it is not specified in the yaml file)
+			d[k] = ""
 			continue
 		if isinstance(v, dict):
 			v = check_parameters(v)		
