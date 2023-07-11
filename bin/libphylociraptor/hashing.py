@@ -14,12 +14,12 @@ def hello_from_hashing():
 	return "hello again: this was returned from calling a function in the hashing library."
 
 def read_file_from_yaml(read, file, debug=False, wd=""):
-	file = wd + "/" + file
 	import pandas as pd
-	if file == None or "None" in file:
+	if file == None or file == "":
 		if debug:
 			print("File not found! It is none.")
 		return []
+	file = wd + "/" + file
 	if not os.path.exists(file):
 		if debug:
 			print("File not found! Does not exist:", file)
