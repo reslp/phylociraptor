@@ -65,7 +65,7 @@ rule read_params_per:
 		"results/alignments/trimmed/{aligner}-{alitrim}.{hash}/parameters.filter-align.{aligner}-{alitrim}.{hash}.yaml"
 	shell:
 		"""
-		bin/read_write_yaml.py {input.trigger} {output} trimming,options,{wildcards.alitrim}
+		bin/read_write_yaml.py {input.trigger} {output} trimming,options,{wildcards.alitrim} trimming,min_parsimony_sites
 		cat {input.previous} >> {output}
 		"""
 
