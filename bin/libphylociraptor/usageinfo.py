@@ -204,6 +204,7 @@ Usage: phylociraptor check <arguments>
 
 Argumemts:
 	--verbose               Display more output.
+	--config-file           Relative custom config-file path. (Default: data/config.yaml)
 	-h, --help              Display help.
 
 """
