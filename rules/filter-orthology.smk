@@ -67,7 +67,7 @@ rule create_sequence_files:
 		""" 
 		if [[ ! -d {output.sequence_dir} ]]; then mkdir -p {output.sequence_dir}; fi
 		exclude=""
-		if [[ "{params.exclude}" != "None" ]]
+		if [[ "{params.exclude}" != "None" && "{params.exclude}" != "" ]]
 		then
 			exclude="--exclude {params.exclude}"
 		fi
