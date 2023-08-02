@@ -148,12 +148,12 @@ def check_config_file(f):
 		sys.exit(1)
 
 def check_for_errors(result):
-	if result.startswith("WorkflowError"):
-		return now()+" ERROR: phylociraptor encountered an error. Use --debug and --verbose to diagnose.\n"
+	if result.startswith("WorkflowError") or "WorkflowError" in result:
+		return now()+" ERROR: phylociraptor encountered an error. Use --debug to diagnose.\n"
 	if result.startswith("The singularity command"):
 		return result
 	if result.startswith("Error") or result.startswith("error"):
-		return now()+" ERROR: There was an error. Use --debug and --verbose to diagnose. The error occurred here: %s " % result	
+		return now()+" ERROR: There was an error. Use --debug to diagnose. The error occurred here: %s " % result	
 	if result.startswith("Directory cannot be locked."):
 		return now()+" ERROR: "+result	
 	if result.startswith("IncompleteFilesException"):
@@ -198,22 +198,19 @@ def execute_command(cmd, verbose, config, isutil=False):
 		print(now(), "INFO: --dry specified, will only perform a dry run of the analysis")
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
+			if check_for_errors(line):
+				yield check_for_errors(line)
 			if debug:
 				yield line
 			elif verbose:
-				if check_for_errors(line):
-					yield check_for_errors(line)
-				else:
-					if line.startswith("rule") and not debug:
-						yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
-					if line.lstrip().startswith("wildcards:"):
-						yield "\tParameters: %s\n" % line.split(":")[1]
-					if line.startswith("Nothing to be done"):
-						yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+				if line.startswith("rule") and not debug:
+					yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+				if line.lstrip().startswith("wildcards:"):
+					yield "\tParameters: %s\n" % line.split(":")[1]
+				if line.startswith("Nothing to be done"):
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 			else:
 				result = line
-				if check_for_errors(result):
-					yield check_for_errors(result)
 				if result.startswith("Nothing"):
 					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if result.startswith("Job counts"):
@@ -232,27 +229,24 @@ def execute_command(cmd, verbose, config, isutil=False):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
+			if check_for_errors(line):
+				yield check_for_errors(line)
 			if debug:
 				yield line
 			elif verbose:
-				if check_for_errors(line):
-					yield check_for_errors(line)
-				else:
-					if line.startswith("Pulling singularity"):
-						container = line.rstrip().split(" ")[-1].strip(".")
-						yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-					if line.startswith("rule") and not debug:
-						yield now() + " Will submit task: %s\n" % line.strip().split(" ")[1].rstrip(":")
-					if line.lstrip().startswith("wildcards:") and not debug:
-						yield "\tParameters:" + line.split(":")[1]
-					if line.startswith("sbatch") or line.startswith("qsub"):
-						yield "\t%s\n" % line
-					if line.startswith("Nothing to be done"):
-						yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+				if line.startswith("Pulling singularity"):
+					container = line.rstrip().split(" ")[-1].strip(".")
+					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
+				if line.startswith("rule") and not debug:
+					yield now() + " Will submit task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+				if line.lstrip().startswith("wildcards:") and not debug:
+					yield "\tParameters:" + line.split(":")[1]
+				if line.startswith("sbatch") or line.startswith("qsub"):
+					yield "\t%s\n" % line
+				if line.startswith("Nothing to be done"):
+					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 			else:
 				result = line
-				if check_for_errors(result):
-					yield check_for_errors(result)
 				if result.startswith("Singularity"):
 					yield result
 				if result.startswith("Job counts"):
@@ -272,7 +266,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
-	else:
+	else: # serial mode
 		if not isutil:
 			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
 			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
@@ -280,6 +274,9 @@ def execute_command(cmd, verbose, config, isutil=False):
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
+			result = line
+			if check_for_errors(result):
+				yield check_for_errors(result)
 			if debug:
 				yield line
 			elif verbose:
@@ -295,9 +292,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
 			else:
-				result = line
-				if check_for_errors(result):
-					yield check_for_errors(result)
+				#if check_for_errors(result):
+				#	yield check_for_errors(result)
 				if result.startswith("Job counts"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
