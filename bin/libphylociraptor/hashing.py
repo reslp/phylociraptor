@@ -189,7 +189,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 			print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites", configfi, debug=debug, wd=wd)
+		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites trimming,max_rcv_score", configfi, debug=debug, wd=wd)
 		for t in config["trimming"]["method"]:
 			hashes['filter-align']["per"][t] = {}
 			for a in hashes['align']["per"].keys():

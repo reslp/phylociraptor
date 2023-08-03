@@ -22,6 +22,7 @@ BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."
 
 def previous_params_global(wildcards):
 	return "results/alignments/full/parameters.align."+previous_hash+".yaml"
+
 def previous_params_per(wildcards):
 	return "results/alignments/full/"+wildcards.aligner+"."+aligner_hashes[wildcards.aligner]+"/parameters.align."+wildcards.aligner+"."+aligner_hashes[wildcards.aligner]+".yaml"
 
@@ -77,7 +78,7 @@ rule read_params_global:
 		"results/alignments/trimmed/parameters.filter-align."+current_hash+".yaml"
 	shell:
 		"""
-		bin/read_write_yaml.py {input.trigger} {output} trimming,method trimming,options trimming,min_parsimony_sites
+		bin/read_write_yaml.py {input.trigger} {output} trimming,method trimming,options trimming,min_parsimony_sites trimming,max_rcv_score
 		cat {input.previous} >> {output}
 		"""
 def return_aligner_checkpoint(wildcards):
@@ -241,6 +242,7 @@ rule filter_alignments:
 		minsp=config["filtering"]["minsp"],
 		trimming_method = config["trimming"]["method"],
 		min_pars_sites = config["trimming"]["min_parsimony_sites"],
+		max_rcv_score = config["trimming"]["max_rcv_score"],
 		aligner_hash = get_aligner_hash,
 		target_dir = "results/alignments/filtered/{aligner}-{alitrim}.{hash}"
 	shell:
@@ -265,16 +267,23 @@ rule filter_alignments:
 				if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt {params.minsp} ]]; then
 					echo -e "$file\tTOO_FEW_SEQUENCES" 2>&1 | tee -a {output.filter_info}
                                 	echo "$(date) - File $file contains less than {params.minsp} sequences after trimming with {params.trimming_method}. This file will not be used for tree reconstruction." >> {params.wd}/results/statistics/runlog.txt
-                                        	continue
-                        	fi
-				if [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 6) -ge {params.min_pars_sites} ]]
-				then
+                                        continue
+				fi
+				if [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 6) -ge {params.min_pars_sites} && $(grep "$(basename $file)" {output.trim_info} | cut -f 9 | awk '{{ if ($1 <= {params.max_rcv_score}) {{print "OK"}} }}') == "OK" ]]; then
 					echo -e "$file\tPASS" 2>&1 | tee -a {output.filter_info}
 					ln -s {params.wd}/$file {params.wd}/{params.target_dir}/
-				else
+					continue
+				elif [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 6) -lt {params.min_pars_sites} ]]; then # case if alignment has too few pars inf sites
 					echo -e "$file\tNOT_INFORMATIVE" 2>&1 | tee -a {output.filter_info}
+					continue
+				elif [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 9 | awk '{{ if ($1 <= {params.max_rcv_score}) {{print "OK"}} }}') != "OK" ]]; then # case if rcv is too high
+					echo -e "$file\tRCV_TOO_HIGH" 2>&1 | tee -a {output.filter_info}
+					continue
+				else # should not happen!
+					echo -e "$file\tINVALID" 2>&1 | tee -a {output.filter_info}
+					continue
 				fi
-
+				
 #                                python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/{params.target_dir}" --statistics-file results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt --min-parsimony {params.min_pars_sites} --minsp {params.minsp} >> {output.filter_info}
                         else #do nothing if file is empty (happens rarely when ALICUT fails)
                                 continue
