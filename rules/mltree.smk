@@ -21,6 +21,7 @@ tinference_hashes = hashes['mltree']["per"]
 current_hash = hashes['mltree']["global"]
 previous_hash = hashes['modeltest']["global"]
 
+print(hashes["modeltest"])
 
 
 ############ functions specifically for this step
@@ -55,6 +56,10 @@ rule read_params_global:
 		"""
 
 
+def get_best_models_filename(wildcards):
+	hash = hashes["modeltest"]["per"]["iqtree"][wildcards.alitrim][wildcards.aligner]
+	return "results/modeltest/best_models_" + wildcards.aligner + "_" + wildcards.alitrim + "." + hash + ".txt"
+
 rule partition_alignment:
 	input:
 		rules.concatenate.output.statistics
@@ -62,19 +67,19 @@ rule partition_alignment:
 		partitions = "results/phylogeny/concatenate/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt"
 	params:
 		wd = os.getcwd(),
-		models = "results/modeltest/best_models_{aligner}_{alitrim}.{hash}.txt",
+		models = get_best_models_filename,
 		datatype = config["filtering"]["seq_type"]
 	shell:
 		"""
 		if [[ -f {params.wd}/{params.models} && {params.wd}/checkpoints/modeltest.done ]]; then
-			echo "$(date) - 'phylociraptor model' finished successfully before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
-			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+			echo "$(date) - 'phylociraptor modeltest' finished successfully before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
+			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $10", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 		else
-			echo "$(date) - 'phylociraptor model' was NOT run before. Will run raxml with GTR or PROTGTR depending on input data type." >> {params.wd}/results/statistics/runlog.txt
+			echo "$(date) - 'phylociraptor modeltest' was NOT run before. Will run raxml with GTR or PROTGTR depending on input data type." >> {params.wd}/results/statistics/runlog.txt
 			if [[ {params.datatype} == "aa" ]]; then
-				awk '{{print $0"\\tPROTGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+				awk '{{print $0"\\tPROTGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $10", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 			else
-				awk '{{print $0"\\tGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $9", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
+				awk '{{print $0"\\tGTR"}}' {input} | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $10", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 			fi
 		fi
 		# correct some model names to make them raxml compatible:
@@ -90,7 +95,7 @@ rule raxmlng:
 		output:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.{hash}.done",
 			alignment = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
-			partitions = "results/phylogeny/raxml/boostrap-cutoff--{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
+			partitions = "results/phylogeny/raxml/boostrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
 			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.{hash}.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.{hash}.txt"

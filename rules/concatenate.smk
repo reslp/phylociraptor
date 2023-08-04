@@ -41,7 +41,7 @@ rule concatenate:
 		alidir = get_alignment_dir,
 		genes = get_input_genes
 	singularity:
-		containers["concatnew"]	
+		containers["concat"]	
 	log:
 		"log/mltree/concatenate-{aligner}-{alitrim}-{bootstrap}.{hash}.txt"
 	shell:
