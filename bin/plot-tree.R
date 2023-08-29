@@ -133,6 +133,7 @@ get_triangle_coordinates <- function(phylo, nodes, mode = c("max", "min", "mixed
 # till here
 
 is_node_supported <- function(support) {
+  if (is.na(support) == TRUE) {return("no")} #treat nodes without support values as unsupported
   if (length(support) == 0) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
@@ -374,7 +375,7 @@ if (level == "none" || lineage_file == "none") {
           node_names_support <- c(node_names_support, name)
         } else {
       	if (name != "missing") { # do not print this if taxononmy level is "missing"
-          	cat(paste0("    ", name, " appear to be PARAPHYLETIC. Tips in the tree will be colored but group will not be collapsed or otherwise highlighted.\n"))
+          	cat(paste0("    ", name, " appear to be NOT MONOPHYLETIC. Tips of ", name, " will be colored but the group will not be collapsed or otherwise highlighted.\n"))
           }
           node_supports <-c(node_supports, "notmono")
           node_names_support <- c(node_names_support, name)
@@ -394,8 +395,9 @@ if (level == "none" || lineage_file == "none") {
     
     #gather support values
     cat("    Gather support values...\n")
-    names(node_supports) <- node_names
+    names(node_supports) <- node_names_support
     node_supports <- node_supports[!is.na(names(node_supports))] # get rid of missing values from NAs when taxon level is missing
+    node_supports <- node_supports[names(node_supports) != "missing"]
     all_supports_list[[ntree]] <- node_supports
     all_names <- c(all_names, prefix)
     
@@ -484,7 +486,7 @@ if (level == "none" || lineage_file == "none") {
     names(support_cols) <- c("no", "notmono", "yes")
     sdf <- melt(t(support_df))
     colnames(sdf) <- c("tree", "group", "supported")
-    mywidth <- round((0.3*length(sdf$tree)) + 5, digits=0)
+    mywidth <- round(((0.1*length(sdf$tree)) + 5)/2, digits=0)
     pdf(file=paste0("compare-", level, ".pdf"), width=mywidth, height=10)
       print(ggplot(sdf, aes(x = tree, y = group)) + geom_tile(aes(fill=supported),colour = "white") + scale_fill_manual(values=support_cols) +theme_minimal()+theme(axis.title.x=element_blank(),axis.title.y=element_blank(),axis.text.x = element_text(angle = 45, vjust = 0, hjust=0))+scale_x_discrete(position = "top"))
     garbage <- dev.off()
