@@ -731,6 +731,7 @@ elif args.command=="report":
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
 	report_parser.add_argument("--figure", action="store_true", default=False)
+	report_parser.add_argument("--debug", action="store_true", default=False)
 	report_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	report_args = report_parser.parse_args(args.arguments)
 	debug = check_debug(report_args.debug) #check if debug is enabled
