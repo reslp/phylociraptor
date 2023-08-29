@@ -99,6 +99,7 @@ def random_combination(iterable, r):
 	alltips = tuple(iterable)
 	ntips = len(alltips)
 	tipsrange = range(ntips)
+	#random.seed(seed)
 	while i < r:
 		i += 1
 		yield [alltips[j] for j in random.sample(tipsrange, r)]
@@ -129,8 +130,11 @@ if __name__ == '__main__':
 	if args.seed != "random":
 		seed = int(args.seed)
 #		seed = 111123 # here for testing
-		random.seed(seed)
-		print("Random seed:", seed)
+	else:
+		seed = random.randint()
+	
+	random.seed(seed)
+	
 	outfile = args.outfile
 	if not args.threads:
 		ncpus = multiprocessing.cpu_count()
@@ -163,6 +167,7 @@ if __name__ == '__main__':
 	if args.selecttaxa:
 		if args.selecttaxa.startswith("tips"):
 			taxon_list = args.selecttaxa.split("=")[1].split(",")
+			taxon_list.sort()
 		else:
 			if not args.lineagefile:
 				print("Taxon selection requires a lineage file, except when tips= is used.")
@@ -173,12 +178,15 @@ if __name__ == '__main__':
 					rank, taxa = args.selecttaxa.split("=")
 					selected_tips = lineage_df.loc[lineage_df[rank].isin(taxa.split(",")), 'name'].to_list()
 					taxon_list = [tip for tip in selected_tips if all_tips.count(tip)]
+					taxon_list.sort()
 				else:
 					print("Lineage file does not exist")
 					sys.exit(0)
 	else:
-		taxon_list = [taxon for taxon in set(all_tips)]
-	
+		taxon_list = [taxon for taxon in set(all_tips)] #this produces a different order every time; unaffacted by the used random seed
+		taxon_list.sort()
+
+	print("Random seed:", seed)
 	random.shuffle(taxon_list)
 
 	print("No. of trees:", len(tl))
@@ -200,6 +208,7 @@ if __name__ == '__main__':
 			#nquartets = int(total_quartets)
 			
 		print("No. of quartets to be calculated:", nquartets)
+		
 		for i in range(nquartets):
 			quartet = next(random_combination(taxon_list, 4))
 			quartet_list += quartet
