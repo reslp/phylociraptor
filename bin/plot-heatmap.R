@@ -39,7 +39,7 @@ if (treelistfile == "none") {
   cat("Plotting without detailed tree name information.\n")
   pdf(file=paste0("quartet-similarity-heatmap-", nrow(data), "-trees.pdf"), width=pwidth, height=pheight)
   #colnames(data) <- rownames(data)
-  p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("% similarity of pairs of trees based on the\noccurence of ", nrow(data), " quartets of tips in each tree"), angle_col=0)
+  p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"), angle_col=0)
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))
   print(p)
   garbage <- dev.off()
@@ -56,7 +56,7 @@ if (treelistfile == "none") {
   colnames(data) <- treelist$V2[match(colnames(data), treelist$V1)]
   rownames(data) <- treelist$V2[match(rownames(data), treelist$V1)]
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-  p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("% similarity of pairs of trees based on the\noccurence of ", nrow(data), " quartets of tips in each tree"))
+  p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
   pdf(file=paste0("quartet-similarity-heatmap-",nrow(data),"-trees.pdf"), width=pwidth, height=pheight)
   print(p)
   garbage <- dev.off()
