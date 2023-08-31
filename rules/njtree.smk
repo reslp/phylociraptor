@@ -13,6 +13,7 @@ hashes = collect_hashes("njtree", config, configfi, wd=os.getcwd())
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 trimmer_hashes = hashes['filter-align']["per"]
+filter_align_hash = hashes['filter-align']['global']
 modeltest_hashes = hashes['modeltest']["per"]
 tinference_hashes = hashes['njtree']["per"]
 current_hash = hashes['njtree']["global"]

@@ -214,7 +214,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 			for t in config["trimming"]["method"]:
 				hashes['modeltest']["per"][m][t] = {}
 				for a in hashes['align']["per"].keys():
-					hashes['modeltest']["per"][m][t][a] = get_hash(hashes['filter-align']["per"][t][a], "seed modeltest,options,"+m+" modeltest,bootstrap", configfi, debug=debug, wd=wd)
+					hashes['modeltest']["per"][m][t][a] = get_hash(hashes['filter-align']["global"], "seed modeltest,options,"+m+" modeltest,bootstrap", configfi, debug=debug, wd=wd)
 
 	if mode == "modeltest":
 		if debug:

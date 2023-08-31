@@ -16,6 +16,7 @@ hashes = collect_hashes("mltree", config, configfi, wd=os.getcwd())
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
 trimmer_hashes = hashes['filter-align']["per"]
+filter_align_hash = hashes['filter-align']['global']
 modeltest_hashes = hashes['modeltest']["per"]
 tinference_hashes = hashes['mltree']["per"]
 current_hash = hashes['mltree']["global"]
@@ -71,7 +72,7 @@ rule partition_alignment:
 		datatype = config["filtering"]["seq_type"]
 	shell:
 		"""
-		if [[ -f {params.wd}/{params.models} && {params.wd}/checkpoints/modeltest.done ]]; then
+		if [[ -f {params.wd}/{params.models} ]]; then
 			echo "$(date) - 'phylociraptor modeltest' finished successfully before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
 			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $10", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 		else
@@ -95,7 +96,7 @@ rule raxmlng:
 		output:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.{hash}.done",
 			alignment = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
-			partitions = "results/phylogeny/raxml/boostrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
+			partitions = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
 			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.{hash}.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.{hash}.txt"
