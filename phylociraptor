@@ -803,24 +803,28 @@ elif args.command == "check":
 		print(help_message(check_help))
 		sys.exit(0)
 
-	print(now(), "Checking the status of the pipeline:")
-	if check_args.configfile:
+	print(now(), "Will check the status of the pipeline:")
+	if os.path.exists(check_args.configfile):
 		print(now(), "A configfile was provided. Will only look for analyses matching:", check_args.configfile)
-	
+	else:
+		print(now(), "The provided configfile", check_args.configfile, "could not be found. Please check.")
+		sys.exit(1)
 	check_rest = True
 	filter_align_done = False
 	currenthash = ""
 	all_hashes = {}
 	if check_args.configfile:
-		print(now(), "Calculating analysis hashes, this may take a few seconds...")
+		print(now(), "Will now calculate analysis hashes, this may take a few seconds...")
 		for mode in steps_to_check:
 			all_hashes[mode] = collect_hashes(mode, parse_config_file(check_args.configfile), check_args.configfile, debug=check_args.debug, wd=os.getcwd())
 
 	step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}									
 	for mode in steps_to_check:
-		print("\n Checking runmode:", mode)
+		print("\n phylociraptor", mode, end = "")
 		if has_outfile(mode=mode, previous_mode=previous_steps[mode], hashes = all_hashes[mode], previous_hashes=all_hashes[previous_steps[mode]], debug=check_args.debug, verbose=check_args.verbose):
-			print(" ", mode," ...", '\033[92m', "DONE", '\033[0m')
+			print(" ...", '\033[92m', "DONE", '\033[0m')
+			print("  Results:")
+			print(return_results_location(mode=mode, hashes=all_hashes[mode], debug=check_args.debug, verbose=check_args.verbose))
 			step_status[mode] = 1
 		else:
 			if step_status[previous_steps[mode]] == 1:
