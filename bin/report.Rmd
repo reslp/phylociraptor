@@ -348,11 +348,13 @@ for aligner in all_hashes["align"]["align"]["per"]:
 	f = "../results/statistics/align-" + aligner + "." + all_hashes["align"]["align"]["per"][aligner]
 	if os.path.exists(f):
 		aligners.append(f)
-for trimmer in all_hashes["filter-align"]["filter-align"]["per"]:
-	for aligner in all_hashes["filter-align"]["filter-align"]["per"][trimmer]:
-		tf = "../results/statistics/trim-" + aligner + "-" + trimmer + "." + all_hashes["filter-align"]["filter-align"]["per"][trimmer][aligner]
+for trimmer in all_hashes["filter-align"]["filter-align"]["per-trimming"]:
+	for aligner in all_hashes["filter-align"]["filter-align"]["per-trimming"][trimmer]:
+		tf = "../results/statistics/trim-" + aligner + "-" + trimmer + "." + all_hashes["filter-align"]["filter-align"]["per-trimming"][trimmer][aligner]
 		if os.path.exists(tf):
 			taligners.append(tf)
+for trimmer in all_hashes["filter-align"]["filter-align"]["per"]:
+	for aligner in all_hashes["filter-align"]["filter-align"]["per"][trimmer]:
 		ff = "../results/statistics/filter-" + aligner + "-" + trimmer + "." + all_hashes["filter-align"]["filter-align"]["per"][trimmer][aligner]
 		if os.path.exists(ff):
 			faligners.append(ff)
@@ -481,6 +483,17 @@ if (exists("rcv_cutoff") == TRUE) {
 ```{r stats_trimmed2, echo=FALSE, warning=FALSE, results="asis"}
 dirs <- py$taligners
 
+get_headers_trimmer <- function(dirs) {
+	names <- c()
+	for (dir in dirs) {
+		vec <- str_split(dir, "-")[[1]]
+		aligner <- vec[length(vec)-1]	
+		trimmer <- tail(str_split(dir, "-")[[1]], n=1)
+		names <- c(names, paste0(aligner,"-",trimmer))
+	
+	}
+	return(names)
+}
 if (length(dirs)==0) {
 cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filter-align?</b>\n")
 } else {
@@ -512,17 +525,6 @@ cat("<br><b> Trimming statistic files not found. Did you run phylociraptor filte
 
 	data_combined <- do.call(multi_merge, list(dat))
 	data_combined[is.na(data_combined)] = ""
-	get_headers_trimmer <- function(dirs) {
-		names <- c()
-		for (dir in dirs) {
-			vec <- str_split(dir, "-")[[1]]
-			aligner <- vec[length(vec)-1]	
-			trimmer <- tail(str_split(dir, "-")[[1]], n=1)
-			names <- c(names, paste0(aligner,"-",trimmer))
-		
-		}
-		return(names)
-	}
 		
 	cat("<br><br><b>Overview of individual trimmed alignments:</b>\n")
 
@@ -617,9 +619,14 @@ cat("<br><b> Filtering statistic files not found. Did you run phylociraptor filt
 
 <details><summary>Show additional figures</summary>
 
-```{r ext-figures, echo=FALSE, fig.width = 11.7, message=FALSE, warning=FALSE}
-f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats-*", full.names=T)
+```{python get_filter_hash, echo=FALSE}
 
+filterhash = all_hashes["filter-align"]["filter-align"]["global"]
+```
+
+```{r ext-figures, echo=FALSE, fig.width = 11.7, message=FALSE, warning=FALSE}
+#f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats.7451266150", full.names=T)
+f <- paste0("../results/statistics/filtered-alignments-stats.",py$filterhash,".txt")
 #filter-mafft-trimal.250586f87f
 if (identical(f, character(0)) == FALSE) {
 	data <- read.csv(f, sep='\t', row.names=NULL)
