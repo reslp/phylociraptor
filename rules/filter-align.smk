@@ -17,6 +17,7 @@ aligner_hashes = hashes['align']["per"]
 previous_hash = hashes['align']["global"]
 current_hash = hashes['filter-align']["global"]
 trimmer_hashes = hashes['filter-align']["per"]
+
 BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
 
 def previous_params_global(wildcards):
@@ -65,7 +66,7 @@ rule read_params_per:
 		"results/alignments/trimmed/{aligner}-{alitrim}.{hash}/parameters.filter-align.{aligner}-{alitrim}.{hash}.yaml"
 	shell:
 		"""
-		bin/read_write_yaml.py {input.trigger} {output} trimming,options,{wildcards.alitrim} trimming,min_parsimony_sites trimming,max_rcv_score
+		bin/read_write_yaml.py {input.trigger} {output} trimming,options,{wildcards.alitrim} trimming,min_parsimony_sites
 		cat {input.previous} >> {output}
 		"""
 
@@ -225,16 +226,15 @@ def pull_trimmer(wildcards):
 def get_aligner_hash(wildcards):
 	return aligner_hashes[wildcards.aligner]
 
-def get_alitrim_hash(wildcards):
-	return trimmer_hashes[wildcards.alitrim][wildcards.aligner]
-
 rule filter_alignments:
 	input:
+#		expand("results/statistics/trim-{{aligner}}-{{alitrim}}/stats_trimmed_{{alitrim}}_{{aligner}}-{batch}-"+str(config["concurrency"])+".txt", aligner=config["alignment"]["method"], alitrim=config["trimming"]["method"], batch=batches)
 		pull_trimmer
 	output:
-		filter_info = "results/statistics/filter-{aligner}-{alitrim}.{hash}/alignment_filter_information_{alitrim}_{aligner}_{hash}.txt",
-		trim_info = "results/statistics/trim-{aligner}-{alitrim}.{hash}/statistics_trimmed_{alitrim}_{aligner}_{hash}.txt",
-		target_dir = directory("results/alignments/filtered/{aligner}-{alitrim}.{hash}")
+		filter_info = "results/statistics/filter-{aligner}-{alitrim}.{hash}/alignment_filter_information_{alitrim}_{aligner}.txt",
+		trim_info = "results/statistics/trim-{aligner}-{alitrim}.{hash}/statistics_trimmed_{alitrim}_{aligner}.txt"
+	benchmark:
+		"results/statistics/benchmarks/align/filter_alignments_{alitrim}_{aligner}.{hash}.txt"
 	singularity:
 		containers["biopython"]	
 	params:
@@ -244,16 +244,16 @@ rule filter_alignments:
 		min_pars_sites = config["trimming"]["min_parsimony_sites"],
 		max_rcv_score = config["trimming"]["max_rcv_score"],
 		aligner_hash = get_aligner_hash,
-		alitrim_hash = get_alitrim_hash,
+		target_dir = "results/alignments/filtered/{aligner}-{alitrim}.{hash}"
 	shell:
 		"""
-		if [[ -d {output.target_dir} ]]; then
-			rm -rf {output.target_dir}
+		if [[ -d {params.target_dir} ]]; then
+			rm -rf {params.target_dir}
 		fi
-		mkdir -p {output.target_dir}
+		mkdir -p {params.target_dir}
 
 		# concatenate the statistics files from the individual batches (for some reason snakemake complained if I did it all in one step, so this looks a bit ugly now, but it runs)
-		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{params.alitrim_hash}/stats_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
+		cat results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/stats_trimmed_{wildcards.alitrim}_{wildcards.aligner}-* > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
 		head -n 1 results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt > results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
 		
 
@@ -261,7 +261,7 @@ rule filter_alignments:
 		grep -v "^alignment" results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt >> {output.trim_info}
 		echo "\\n ######## AFTER #######"
 		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_temp-{wildcards.alitrim}_{wildcards.aligner}.txt
-		for file in results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{params.alitrim_hash}/*.fas;
+		for file in results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas;
 		do
                         if [[ -s {params.wd}/$file ]]; then
 				if [[ "$(cat {params.wd}/$file | grep ">" -c)" -lt {params.minsp} ]]; then
@@ -271,7 +271,7 @@ rule filter_alignments:
 				fi
 				if [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 6) -ge {params.min_pars_sites} && $(grep "$(basename $file)" {output.trim_info} | cut -f 9 | awk '{{ if ($1 <= {params.max_rcv_score}) {{print "OK"}} }}') == "OK" ]]; then
 					echo -e "$file\tPASS" 2>&1 | tee -a {output.filter_info}
-					ln -s {params.wd}/$file {params.wd}/{output.target_dir}/
+					ln -s {params.wd}/$file {params.wd}/{params.target_dir}/
 					continue
 				elif [[ $(grep "$(basename $file)" {output.trim_info} | cut -f 6) -lt {params.min_pars_sites} ]]; then # case if alignment has too few pars inf sites
 					echo -e "$file\tNOT_INFORMATIVE" 2>&1 | tee -a {output.filter_info}
@@ -284,7 +284,7 @@ rule filter_alignments:
 					continue
 				fi
 				
-#                                python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/{output.target_dir}" --statistics-file results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt --min-parsimony {params.min_pars_sites} --minsp {params.minsp} >> {output.filter_info}
+#                                python bin/filter_alignments.py --alignments {params.wd}/$file --outdir "{params.wd}/{params.target_dir}" --statistics-file results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt --min-parsimony {params.min_pars_sites} --minsp {params.minsp} >> {output.filter_info}
                         else #do nothing if file is empty (happens rarely when ALICUT fails)
                                 continue
                         fi
@@ -293,15 +293,15 @@ rule filter_alignments:
 #		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
 
 		echo "$(date) - Number of alignments ({wildcards.aligner}): $(ls results/alignments/full/{wildcards.aligner}.{params.aligner_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
-		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{params.alitrim_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
-		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls {output.target_dir}/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls {params.target_dir}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		"""
 
 rule get_filter_statistics:
 	input:
 		rules.filter_alignments.output.filter_info
 	output:
-		statistics_filtered = "results/statistics/filter-{aligner}-{alitrim}.{hash}/statistics_filtered_{alitrim}_{aligner}-{hash}-{batch}-"+str(config["concurrency"])+".txt",	
+		statistics_filtered = "results/statistics/filter-{aligner}-{alitrim}.{hash}/statistics_filtered_{alitrim}_{aligner}-{batch}-"+str(config["concurrency"])+".txt",	
 	params:
 		wd = os.getcwd(),
 		ids = config["species"],
@@ -323,7 +323,7 @@ def pull_filtered_stats(wildcards):
 	for t in trimmer_hashes.keys():
 		for a in trimmer_hashes[t].keys():
 			for i in range(1, config["concurrency"] + 1):
-				lis.append("results/statistics/filter-"+a+"-"+t+"."+current_hash+"/statistics_filtered_"+t+"_"+a+"-"+current_hash+"-"+str(i)+"-"+str(config["concurrency"])+".txt")
+				lis.append("results/statistics/filter-"+a+"-"+t+"."+trimmer_hashes[t][a]+"/statistics_filtered_"+t+"_"+a+"-"+str(i)+"-"+str(config["concurrency"])+".txt")
 	return lis
 
 def pull_algn_info(wildcards):
@@ -331,7 +331,7 @@ def pull_algn_info(wildcards):
 	for t in trimmer_hashes.keys():
 		for a in trimmer_hashes[t].keys():
 			for i in range(1, config["concurrency"] + 1):
-				lis.append("results/statistics/filter-" + a + "-" + t + "." + current_hash + "/alignment_filter_information_" + t + "_" + a + "_" + current_hash + ".txt")
+				lis.append("results/statistics/filter-"+a+"-"+t+"."+trimmer_hashes[t][a]+"/alignment_filter_information_"+t+"_"+a+".txt")
 	return lis
 
 rule filter_align:
@@ -351,9 +351,7 @@ rule filter_align:
 		algn_trim = expand("{al}__{tr}", al=config["alignment"]["method"], tr=config["trimming"]["method"]),
 		trimal_params = config["trimming"]["options"]["trimal"],
 		aliscore_params = config["trimming"]["options"]["aliscore"],
-		bmge_params = config["trimming"]["options"]["bmge"],
-		rcv = config["trimming"]["max_rcv_score"],
-		hash = current_hash
+		bmge_params = config["trimming"]["options"]["bmge"]
 	shell:
 		"""
 		echo "combo\t$(head -n 1 {input.filtered[0]} | cut -f 1,4-)" > {output.stats}
@@ -361,7 +359,7 @@ rule filter_align:
 
 		# gather aligner and trimming combinations and corresponding settings for statistics:	
 		combs="{params.algn_trim}"
-		echo "aligner\ttrimmer\ttrimming_params\tdupseq\tcutoff\tminsp\tseq_type\tmin_parsimony_sites\trcv" > results/statistics/trim-filter-overview-{params.hash}.txt
+		echo "aligner\ttrimmer\ttrimming_params\tdupseq\tcutoff\tminsp\tseq_type\tmin_parsimony_sites" > results/statistics/trim-filter-overview.txt
 		for combination in ${{combs}}; do
 			if [[ $combination == *"trimal"* ]]; then
 				out=$combination"__{params.trimal_params}"
@@ -372,8 +370,8 @@ rule filter_align:
 			else
 				out=$combination"__no parameters"
 			fi
-			out=$out"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}__{params.rcv}"
-			echo $out | sed 's/__/\t/g' >> results/statistics/trim-filter-overview-{params.hash}.txt
+			out=$out"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}"
+			echo $out | sed 's/__/\t/g' >> results/statistics/trim-filter-overview.txt
 		done  
 		echo "$(date) - phylociraptor filter-align done." >> results/statistics/runlog.txt
 		touch {output.checkpoint}

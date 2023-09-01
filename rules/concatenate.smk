@@ -2,7 +2,7 @@
 import yaml
 
 def get_alignment_dir(wildcards):
-	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+filter_align_hash
+	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]
 
 def get_best_models(wildcards):
 	return "results/modeltest/best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt"
