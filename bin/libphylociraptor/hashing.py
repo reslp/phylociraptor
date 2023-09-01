@@ -6,7 +6,7 @@ try:
 	import yaml
 except ModuleNotFoundError:
 	print("One or more required python modules could not be found.")
-	print("Make sure you have snakemake, pandas, hashlib and yaml available.")
+	print("Usually this is solved by installing snakemake.")
 	sys.exit(1)
 
 def hello_from_hashing():
