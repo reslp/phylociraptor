@@ -95,7 +95,7 @@ rule raxmlng:
 		output:
 			checkpoint = "results/checkpoints/raxml_{aligner}_{alitrim}_{bootstrap}.{hash}.done",
 			alignment = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/concat.fas",
-			partitions = "results/phylogeny/raxml/boostrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
+			partitions = "results/phylogeny/raxml/bootstrap-cutoff-{bootstrap}/{aligner}-{alitrim}.{hash}/partitions.txt",
 			statistics = "results/statistics/mltree/mltree_raxml_{aligner}_{alitrim}_{bootstrap}_statistics.{hash}.txt"
 		benchmark:
 			"results/statistics/benchmarks/tree/raxmlng_{aligner}_{alitrim}_{bootstrap}.{hash}.txt"
