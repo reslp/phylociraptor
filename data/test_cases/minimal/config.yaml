@@ -5,13 +5,16 @@ concurrency: 1 # Parallelization level
 seed: #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
 
 # settings realted to busco
-busco:
-    set: "fungi_odb9" # the download URL for the BUSCO set which should be used
-    version: "3.0.2"
+orthology:
+    method: busco
     threads: 8
-    augustus_species: saccharomyces
-    additional_parameters: ""
-    mode: "genome"
+    exclude: 
+    busco_options:
+        set: "fungi_odb9" # the download URL for the BUSCO set which should be used
+        version: "3.0.2"
+        mode: "genome"
+        augustus_species: saccharomyces
+        additional_parameters: ""
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----
@@ -21,68 +24,76 @@ busco:
 # dupseq = occasionally BUSCO will find more than one sequence for a single-copy BUSCO gene. With dupseq you can decide how this is handeled. dupseq="persample" for each busco filter out the samples with duplicated sequences. dubseq="perfile" filters out the BUSCO sequence file for that gene.
 # min_parsimony_sites = the minimum number of parsiomony informative sites a trimmed alignment needs to have for it to be included in tree calculation.
 
-#file with species names to exclude from orthology/filter-orthology rules
-exclude_orthology: ""
-
 filtering:
     dupseq: "persample"
     cutoff: 0.5
     minsp: 3
     seq_type: "aa"
-    min_parsimony_sites: 2
-    bootstrap_cutoff: [50, 60, 70]
+    exclude_orthology: ""
+
+genetree_filtering:
+    bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
 # settings related to alignment and trimming
 alignment:
-    method: ["mafft", "clustalo"] # currently supported methods: mafft, clustalo
-    threads: 8
-    mafft_parameters: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
-    clustalo_parameters: 
-    muscle_parameters:
+    method: ["mafft"] #, "clustalo"] # currently supported methods: mafft, clustalo, muscle
+    threads: 1
+    options:
+        mafft: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
+        clustalo: 
+        muscle: 
+
 # possible trimming options: trimal, aliscore, bmge
 trimming: 
-    method: ["trimal", "aliscore"] 
-    trimal_parameters: "-gappyout"
-    aliscore_parameters: 
-    bmge_parameters:
-modeltest:
-    threads: 16
+    method: ["aliscore", "bmge"] #, "aliscore", "bmge"] 
+    options:
+        trimal: "-gappyout"
+        aliscore: ""
+        bmge: ""
+    min_parsimony_sites: 4
+    max_rcv_score: 0.3
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
 
-tree:
-    method: ["iqtree", "raxml"]
+modeltest:
+    method: ["iqtree"]
+    threads: 5
+    bootstrap: 1000
+    options:
+         iqtree: ""
 
 speciestree:
-    method: "astral"
-    include: #"data/trees_to_include.txt"
-    bootstrap_cutoff: 75 # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: No cutoff (all trees will be included).
+    method: ["astral"]
+    include: "" #"data/trees_to_include.txt"
+    options:
+        astral: ""
 
-genetree:
-    method: ["iqtree"]
-    bootstrap: 1000
-    threads: 16
+mltree:
+    method: ["iqtree", "raxml"] #["iqtree", "raxml"]
+    threads:
+        iqtree: 20
+        raxml: 20
+    bootstrap:
+        iqtree: 1000
+        raxml: 100
+    options:
+        iqtree: "-redo"
+        raxml: ""
 
-# specific settings for individual tree reconstruction methods
-iqtree:
-    threads: 90 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
-    bootstrap: 1000
-    model: MFP
-    additional_params: ""
+njtree:
+    method: ["quicktree"]
+    threads:
+        quicktree: 10
+    options:
+        quicktree: ""
 
-raxmlng:
-    threads: 90
-    bootstrap: 100
-    additional_params: ""
+bayesian:
+    method: [] #["phylobayes"]
+
 phylobayes:
     threads: 30
     model: ""
     ngens: 100
     additional_params: "-f"
     nchains: 4
-
-# setting realted to the analysis report
-report:
-    width: 80
-    height: 10
