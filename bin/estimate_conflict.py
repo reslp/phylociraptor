@@ -131,7 +131,7 @@ if __name__ == '__main__':
 		seed = int(args.seed)
 #		seed = 111123 # here for testing
 	else:
-		seed = random.randint()
+		seed = random.randint(0, 100000)
 	
 	random.seed(seed)
 	
