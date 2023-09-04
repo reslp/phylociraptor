@@ -38,6 +38,8 @@ if (strtoi(strsplit(treenames[1], "T")[[1]][2]) > strtoi(strsplit(treenames[2], 
    treenames[2] <- treenames[1]
    treenames[1] <- tn2
 }
+print(treenames[1])
+print(treenames[2])
 
 #set seed if specified
 if (seed != "random") {
@@ -314,7 +316,7 @@ if (lineage_file != "none") {
 } else {
   cat("Plotting without lineage information...\n")
   cat(paste0("Tree 1: ", treenames[1], "-", prefix1, "\n"))
-  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red") + ggtitle(prefix2) + theme(plot.title = element_text(hjust=0.5))
+  t1 <- ggtree(tree1, branch.length='none', aes(color=conflicts_info1$conflict), size=1) +theme(legend.position = c("none")) + scale_color_continuous(low="black", high="red") + ggtitle(prefix1) + theme(plot.title = element_text(hjust=0.5))
   minx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[1]
   maxx <- ggplot_build(t1)$layout$panel_params[[1]]$x.range[2]
   t1 <- t1 + new_scale("color")
