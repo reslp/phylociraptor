@@ -324,9 +324,9 @@ Optional Arguments:
 
 """
 util_plot_similarity_help = """
-phylociraptor util plot-similarity - Create similarity heatmap for trees based on quartet similarity.
+phylociraptor util plot-heatmap - Create similarity heatmap for trees based on quartet similarity.
 
-Usage: phylociraptor util plot-similarity <arguments>
+Usage: phylociraptor util plot-heatmap <arguments>
 
 Required Arguments:
 	-m, --simmatrix		*.similarity_matrix.csv file from phylociraptor util estimate-conflict.
@@ -335,6 +335,8 @@ Optional Arguments:
 	-r, --treelist		*.treelist.tsv file from phylociraptor util estimate-conflict.
 				When this file is provided, elements in heatmap will have 
 				more informative names. (Default: none)
+	-d, --decimalplaces	The number of decimal places which should be displayed in the
+				heatmap. default: 2. Possible values: 0 to 14.
 	--quiet			Suppress on-screen output.
 
 """

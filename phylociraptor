@@ -1062,6 +1062,7 @@ elif args.command == "util":
 		qs_parser = UtilParser(add_help=False)
 		qs_parser.add_argument("-m","--simmatrix", action="store", default=None)
 		qs_parser.add_argument("-r", "--treelist", action="store", default="none")
+		qs_parser.add_argument("-d", "--decimalplaces", action="store", type=int, default=2, choices=range(0,15))
 		qs_parser.add_argument("--quiet", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help: 
@@ -1071,7 +1072,7 @@ elif args.command == "util":
 			print(now(), "Hint: You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, str(qs_args.decimalplaces)]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):
