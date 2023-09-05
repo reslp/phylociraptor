@@ -11,7 +11,6 @@ args <- commandArgs(trailingOnly=TRUE)
 wd <- args[1]
 matrix_file <- args[2]
 treelistfile <- args[3]
-
 verbose <- FALSE
 
 setwd(wd)
@@ -24,6 +23,7 @@ data$X <- NULL
 rownames(data) <- colnames(data)
 data <- as.matrix(t(data))
 mode(data) <- "numeric"
+data <- trunc(data*100)/100 #make sure rounding does not cause same numbers with different colors, here (and below) this is hardcoded two 2 decimal places
 #data <- melt(data)
 #colnames(data) <- c("First", "Second", "Similarity")
 #data$First <- factor(data$First, levels=levels(data$Second))
@@ -55,6 +55,7 @@ if (treelistfile == "none") {
   #data$Second <- treelist$V2[match(data$Second, treelist$V1)]
   colnames(data) <- treelist$V2[match(colnames(data), treelist$V1)]
   rownames(data) <- treelist$V2[match(rownames(data), treelist$V1)]
+  if (data > 1) {print("Value too large")}
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   p <- pheatmap(data, display_numbers=TRUE, number_format = "%.2f", treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
   pdf(file=paste0("quartet-similarity-heatmap-",nrow(data),"-trees.pdf"), width=pwidth, height=pheight)
