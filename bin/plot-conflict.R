@@ -217,6 +217,7 @@ get_node_names_for_bars <- function(tree) {
 is_node_supported <- function(support) {
   bs_support <- 90
   pb_support <- 0.95
+  if (is.na(support) == TRUE) {return("no")} # treat nodes without support values as unsupported
   if (length(support) == 0) {return("no")}
   if (support <= 1) { #we are dealing with posterior probabilities
     if (support <= pb_support){
