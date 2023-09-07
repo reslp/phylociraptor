@@ -51,6 +51,7 @@ trimming:
         aliscore: ""
         bmge: ""
     min_parsimony_sites: 50
+    max_rcv_score: 1
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
