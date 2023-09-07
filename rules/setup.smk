@@ -139,7 +139,7 @@ rule get_genome_download_statistics:
 		"""
 		if [[ -z "{input}" ]]; then
 			echo "All genomes local. Will touch empty output files."
-			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
+			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
 			touch {output.success}
 			touch {output.failed}
 			touch {output.overview}
@@ -147,7 +147,7 @@ rule get_genome_download_statistics:
 			cat {params.success} > {output.success}
 			cat {params.failed} > {output.failed}	
 			cat {params.overview} > {output.overview}
-			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path\texcluded_from_refseq\trelation_to_type_material" > {output.statistics}
+			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
 			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
 				do
 					echo "---- Adding info ----"
@@ -156,7 +156,7 @@ rule get_genome_download_statistics:
 					
 					echo "species: "$species
 					if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna.gz" ]]; then 
-						output=$(sed -n 2p $file)
+						output=$(sed -n 2p $file | awk -F '\t' '{{ for (i=1;i<=20;i++) {{printf $i"\t";}} print $21}}')
 						echo $species"\t""$output" >> {output.statistics}
 					fi
 				done

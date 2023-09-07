@@ -6,7 +6,7 @@ try:
 	import yaml
 except ModuleNotFoundError:
 	print("One or more required python modules could not be found.")
-	print("Make sure you have snakemake, pandas, hashlib and yaml available.")
+	print("Usually this is solved by installing snakemake.")
 	sys.exit(1)
 
 def hello_from_hashing():
@@ -182,18 +182,20 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 		return hashes
 
 	#filter-alignment
-	hashes['filter-align'] = {"global": "", "per": {}}
+	hashes['filter-align'] = {"global": "", "per-trimming": {}, "per": {}}
 	if not os.path.isfile("results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml") and not check:
 		if debug:
 			print("Please doublecheck if the stage 'align' was run with the parameters currently specified in "+configfi)
 			print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
 		sys.exit()
 	else:
-		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites", configfi, debug=debug, wd=wd)
+		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites trimming,max_rcv_score", configfi, debug=debug, wd=wd)
 		for t in config["trimming"]["method"]:
 			hashes['filter-align']["per"][t] = {}
+			hashes['filter-align']["per-trimming"][t] = {}
 			for a in hashes['align']["per"].keys():
-				hashes['filter-align']["per"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t, configfi, debug=debug, wd=wd)
+				hashes['filter-align']["per-trimming"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t, configfi, debug=debug, wd=wd)
+				hashes['filter-align']["per"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t+" trimming,min_parsimony_sites trimming,max_rcv_score", configfi, debug=debug, wd=wd)
 
 	if mode == "filter-align":
 		if debug:

@@ -14,7 +14,7 @@ hashes = collect_hashes("modeltest", config, configfi, wd=os.getcwd())
 
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
-trimmer_hashes = hashes['filter-align']["per"]
+filtered_hashes = hashes['filter-align']["per"]
 previous_hash = hashes['filter-align']["global"]
 
 modeltest_hashes = hashes['modeltest']["per"]
@@ -25,7 +25,7 @@ BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."
 def previous_params_global(wildcards):
 	return "results/alignments/trimmed/parameters.filter-align."+previous_hash+".yaml"
 def previous_params_per(wildcards):
-	return "results/alignments/trimmed/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+".yaml"
+	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+".yaml"
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
@@ -69,7 +69,7 @@ bscuts = get_bootstrap_cutoffs()
 def return_target_modeltest_check(wildcards):
 	lis = []
         for busco in BUSCOS:
-		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
 #			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+busco+"/"+busco+".log")
 			lis.append("results/checkpoints/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_modeltest_"+wildcards.aligner+"_"+wildcards.alitrim+".done")
 	return lis
@@ -77,7 +77,7 @@ def return_target_modeltest_check(wildcards):
 def return_genes(wildcards):
 	lis = []
         for busco in BUSCOS:
-		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
+		if os.path.isfile("results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+"/"+str(busco)+"_aligned_trimmed.fas"):
 #			lis.append("results/modeltest/"+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+"/"+busco+"/"+busco+".log")
 			lis.append(busco)
 	return lis
@@ -109,10 +109,10 @@ rule read_params_global:
 		"""
 
 def alignments_in(wildcards):
-	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/"+wildcards.busco+"_aligned_trimmed.fas"
+	return "results/alignments/filtered/"+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+"/"+wildcards.busco+"_aligned_trimmed.fas"
 
 def return_trimmer_checkpoint(wildcards):
-	return "results/statistics/filter-"+wildcards.aligner+"-"+wildcards.alitrim+"."+trimmer_hashes[wildcards.alitrim][wildcards.aligner]+"/alignment_filter_information_"+wildcards.alitrim+"_"+wildcards.aligner+".txt"
+	return "results/statistics/filter-"+wildcards.aligner+"-"+wildcards.alitrim+"."+filtered_hashes[wildcards.alitrim][wildcards.aligner]+"/alignment_filter_information_"+wildcards.alitrim+"_"+wildcards.aligner+".txt"
 
 rule iqtree_mt:
 	input:

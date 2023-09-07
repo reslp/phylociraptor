@@ -39,6 +39,12 @@ To reduce the busco set to only 10 genes run this command in the phylocirpator d
 ./modify_busco.sh
 ```
 
+Alternatively you can also run the respective command directly from phylociraptor:
+
+```
+./phylociraptor util modify-busco -b fungi_odb9 -g EOG092C5OAL,EOG092C5OPO,EOG092C5Q82,EOG092C5S4U,EOG092C5T6H,EOG092C5U93,EOG092C5UXM,EOG092C5V3D,EOG092C5Z2K,EOG092C608K
+```
+
 This should take only a few seconds. After the script is finished (no errors should show up), we can continue with the next step:
 
 ### Run orthology to indentify single-copy orthologs:

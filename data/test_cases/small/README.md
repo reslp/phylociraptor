@@ -1,4 +1,6 @@
-## This is the small example dataset to test phylociraptor mentioned in the phylociraptor manuscript
+## This is the small example dataset to test phylociraptor
+
+Results from this example are also displayed and discussed in the the phylociraptor manuscript.
 
 Run these commands from inside the phylociraptor directory in the given order to reproduce the example.
 

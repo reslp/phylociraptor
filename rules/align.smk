@@ -12,9 +12,8 @@ with open("data/containers.yaml", "r") as yaml_stream:
 #create new hashes for current stage (alignment) by combining the previuos hash with a newly generated
 hashes = collect_hashes("align", config, configfi, wd=os.getcwd())
 current_hash = hashes["align"]["global"]
-mafft_hash = hashes["align"]["per"]["mafft"]
-muscle_hash = hashes["align"]["per"]["muscle"]
-clustalo_hash = hashes["align"]["per"]["clustalo"]
+aligner_hash = hashes["align"]["per"]
+print(aligner_hash)
 #previous hash
 previous_hash = hashes['filter-orthology']["global"]
 
@@ -65,14 +64,14 @@ rule read_params_global:
 
 rule clustalo:
 		input:
-			"results/alignments/full/clustalo."+clustalo_hash+"/parameters.align.clustalo."+clustalo_hash+".yaml",
+			"results/alignments/full/clustalo.{hash}/parameters.align.clustalo.{hash}.yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
-			alignment = "results/alignments/full/clustalo."+clustalo_hash+"/{busco}_aligned.fas",
+			alignment = "results/alignments/full/clustalo.{hash}/{busco}_aligned.fas",
 		benchmark:
-			"results/statistics/benchmarks/align/clustalo_align_{busco}."+clustalo_hash+".txt"
+			"results/statistics/benchmarks/align/clustalo_align_{busco}.{hash}.txt"
 		log:
-			"log/align/clustalo/clustalo_align_{busco}."+clustalo_hash+".log.txt"
+			"log/align/clustalo/clustalo_align_{busco}.{hash}.log.txt"
 		singularity:
 			containers["clustalo"]
 		threads:
@@ -86,14 +85,14 @@ rule clustalo:
 
 rule mafft:
 		input:
-			"results/alignments/full/mafft."+mafft_hash+"/parameters.align.mafft."+mafft_hash+".yaml",
+			"results/alignments/full/mafft.{hash}/parameters.align.mafft.{hash}.yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
-			alignment = "results/alignments/full/mafft."+mafft_hash+"/{busco}_aligned.fas",
+			alignment = "results/alignments/full/mafft.{hash}/{busco}_aligned.fas",
 		benchmark:
-			"results/statistics/benchmarks/align/mafft_align_{busco}."+mafft_hash+".txt"
+			"results/statistics/benchmarks/align/mafft_align_{busco}.{hash}.txt"
 		log:
-			"log/align/mafft/mafft_align_{busco}.log.txt"
+			"log/align/mafft/mafft_align_{busco}.{hash}.log.txt"
 		singularity:
 			containers["mafft"]
 		threads:
@@ -106,14 +105,14 @@ rule mafft:
 			"""
 rule muscle:
 		input:
-			"results/alignments/full/muscle."+muscle_hash+"/parameters.align.muscle."+muscle_hash+".yaml",
+			"results/alignments/full/muscle.{hash}/parameters.align.muscle.{hash}.yaml",
 			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
 		output:
-			alignment = "results/alignments/full/muscle."+muscle_hash+"/{busco}_aligned.fas",
+			alignment = "results/alignments/full/muscle.{hash}/{busco}_aligned.fas",
 		benchmark:
-			"results/statistics/benchmarks/align/muscle_align_{busco}."+muscle_hash+".txt"
+			"results/statistics/benchmarks/align/muscle_align_{busco}.{hash}.txt"
 		log:
-			"log/align/muscle/muscle_align_{busco}."+muscle_hash+".log.txt"
+			"log/align/muscle/muscle_align_{busco}.{hash}.log.txt"
 		singularity:
 			containers["muscle"]
 		threads:
@@ -127,10 +126,8 @@ rule muscle:
 
 def per_aligner(wildcards):
 	lis = []
-#	print(wildcards)
-	dict = {"muscle": muscle_hash, "mafft": mafft_hash, "clustalo": clustalo_hash}
 	for b in BUSCOS:
-		lis.append("results/alignments/full/"+wildcards.aligner+"."+dict[wildcards.aligner]+"/"+str(b)+"_aligned.fas")
+		lis.append("results/alignments/full/"+wildcards.aligner+"."+aligner_hash[wildcards.aligner]+"/"+str(b)+"_aligned.fas")
 	return lis
 
 rule aggregate_alignments:
@@ -186,18 +183,18 @@ rule get_alignment_statistics:
 
 def pull(wildcards):
 	lis = []
-	dict = {"muscle": muscle_hash, "mafft": mafft_hash, "clustalo": clustalo_hash}
 	for ali in config["alignment"]["method"]:
 		for i in range(1, config["concurrency"] + 1):
-			lis.append("results/statistics/align-"+str(ali)+"."+str(dict[ali])+"/"+str(ali)+"_statistics_alignments-"+str(i)+"-"+str(config["concurrency"])+".txt")
-		lis.append("results/alignments/full/"+str(ali)+"."+str(dict[ali])+"/parameters.align."+str(ali)+"."+str(dict[ali])+".yaml")
+			lis.append("results/statistics/align-" + str(ali) + "." + str(aligner_hash[ali]) + "/" + str(ali) + "_statistics_alignments-" + str(i) + "-" + str(config["concurrency"]) + ".txt")
+		lis.append("results/alignments/full/" + str(ali) + "." + str(aligner_hash[ali]) + "/parameters.align." + str(ali) + "." + str(aligner_hash[ali]) + ".yaml")
+	print(lis, file=sys.stderr)
 	return lis	
 
 rule align:
 	input:
 		pull,
 		rules.read_params_global.output,
-		checkpoint = "results/checkpoints/modes/filter_orthology."+previous_hash+".done",
+		checkpoint = "results/checkpoints/modes/filter_orthology."+previous_hash+".done"
 	output:
 		"results/checkpoints/modes/align."+current_hash+".done"
 	shell:

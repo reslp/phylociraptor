@@ -27,6 +27,75 @@ def has_outfile(mode="", previous_mode = "", hashes={}, previous_hashes={}, debu
 			return False
 	return True
 
+def return_results_location(mode = "", hashes={}, debug=False, verbose=False):
+	if mode == "setup":
+		return "  ./results/assemblies"
+	if mode == "orthology":
+		return "  ./results/orthology/orthology_table." + hashes[mode]["global"] + ".txt"
+	if mode == "filter-orthology":
+		out = "  ./results/orthology/busco/busco_sequences_deduplicated." + hashes[mode]["global"] + "\n"
+		return out.rstrip()
+	if mode == "align":
+		out = ""
+		for aligner in hashes[mode]["per"]:
+			out += "  ./results/alignments/full/" + aligner + "." + hashes[mode]["per"][aligner] + "\n"
+		return out.rstrip()
+	if mode == "filter-align":
+		out = ""
+		for trimmer in hashes[mode]["per"]:
+			for aligner in hashes[mode]["per"][trimmer]:
+				out += "  ./results/alignments/filtered/" + aligner + "-" + trimmer + "." + hashes[mode]["per"][trimmer][aligner] + "\n"
+		return out.rstrip()
+	if mode == "modeltest":
+		out = ""
+		for genetree in hashes[mode]["per"]:
+			for trimmer in hashes[mode]["per"][genetree]:
+				for aligner in hashes[mode]["per"][genetree][trimmer]:
+					out += "  ./results/modeltest/" + aligner + "-" + trimmer + "." + hashes[mode]["per"]["iqtree"][trimmer][aligner] + "\n"
+		return out.rstrip()
+	if mode == "njtree":
+		out = ""
+		if verbose:
+			for bscutoff in hashes[mode]["per"]:
+				for njtree in hashes[mode]["per"][bscutoff]:
+					for genetree in hashes[mode]["per"][bscutoff][njtree]:
+						for trimmer in hashes[mode]["per"][bscutoff][njtree][genetree]:
+							for aligner in hashes[mode]["per"][bscutoff][njtree][genetree][trimmer]:
+								out += "  ./results/phylogeny/" + njtree + "/bootstrap-cutoff-" + bscutoff + "/" +  aligner + "-" + trimmer + "." + hashes[mode]["per"][bscutoff][njtree][genetree][trimmer][aligner] + "\n"
+		else:
+			for bscutoff in hashes[mode]["per"]:
+				for njtree in hashes[mode]["per"][bscutoff]:
+					out += "  ./results/phylogeny/" + njtree + "/bootstrap-cutoff-" + bscutoff + "\n"
+		return out.rstrip()
+	if mode == "mltree":
+		out = ""
+		if verbose:
+			for bscutoff in hashes[mode]["per"]:
+				for mltree in hashes[mode]["per"][bscutoff]:
+					for genetree in hashes[mode]["per"][bscutoff][mltree]:
+						for trimmer in hashes[mode]["per"][bscutoff][mltree][genetree]:
+							for aligner in hashes[mode]["per"][bscutoff][mltree][genetree][trimmer]:
+								out += "  ./results/phylogeny/" + mltree + "/bootstrap-cutoff-" + bscutoff + "/" +  aligner + "-" + trimmer + "." + hashes[mode]["per"][bscutoff][mltree][genetree][trimmer][aligner] + "\n"
+		else:
+			for bscutoff in hashes[mode]["per"]:
+				for mltree in hashes[mode]["per"][bscutoff]:
+					out += "  ./results/phylogeny/" + mltree + "/bootstrap-cutoff-" + bscutoff + "\n"
+		return out.rstrip()
+	if mode == "speciestree":
+		out = ""
+		if verbose:
+			for bscutoff in hashes[mode]["per"]:
+				for sptree in hashes[mode]["per"][bscutoff]:
+					for genetree in hashes[mode]["per"][bscutoff][sptree]:
+						for trimmer in hashes[mode]["per"][bscutoff][sptree][genetree]:
+							for aligner in hashes[mode]["per"][bscutoff][sptree][genetree][trimmer]:
+								out += "  ./results/phylogeny/" + sptree + "/bootstrap-cutoff-" + bscutoff + "/" +  aligner + "-" + trimmer + "." + hashes[mode]["per"][bscutoff][sptree][genetree][trimmer][aligner] + "\n"
+		else:
+			for bscutoff in hashes[mode]["per"]:
+				for sptree in hashes[mode]["per"][bscutoff]:
+					out += "  ./results/phylogeny/" + sptree + "/bootstrap-cutoff-" + bscutoff + "\n"
+		return out.rstrip()
+
 def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, debug=False, verbose=False):
 	#print(hashes[mode])
 	#print("   ")

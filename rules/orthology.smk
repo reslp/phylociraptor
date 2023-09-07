@@ -150,9 +150,20 @@ if config["orthology"]["busco_options"]["version"] == "3.0.2":
 			cp -R {params.augustus_config_in_container}/profile augustus
 			mkdir augustus/species
 			
-			if [ -d {params.augustus_config_in_container}/species/{params.sp} ]
+			if [ -z "{params.sp}" ] #check if augustus training species parameter is provided correctly
+			then
+				echo "ERROR: augustus_species field in config YAML appears to be empty. Please check and provide a correct name."
+				exit 1
+			elif [ "{params.sp}" == "None" ]
+			then	
+				echo "ERROR: augustus_species field in config YAML appears to be empty. Please check and provide a correct name."
+				exit 1
+			elif [ -d {params.augustus_config_in_container}/species/{params.sp} ] # now check if directory is present
 			then
 				cp -R {params.augustus_config_in_container}/species/{params.sp} augustus/species
+			else
+				echo "ERROR: Species {params.sp} as set in yaml config file could not be found within pretrained Augustus species. Please recheck that the name is correct!"
+				exit 1
 			fi		
 
 			export AUGUSTUS_CONFIG_PATH=$(pwd)/augustus
