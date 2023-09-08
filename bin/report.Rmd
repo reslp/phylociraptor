@@ -628,7 +628,7 @@ filterhash = all_hashes["filter-align"]["filter-align"]["global"]
 #f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats.7451266150", full.names=T)
 f <- paste0("../results/statistics/filtered-alignments-stats.",py$filterhash,".txt")
 #filter-mafft-trimal.250586f87f
-if (identical(f, character(0)) == FALSE) {
+if (identical(f, character(0)) == FALSE && file.exists(f) == TRUE) {
 	data <- read.csv(f, sep='\t', row.names=NULL)
 	data$alignment <- NULL  # this is wrongly formatted in the csv. needs to be corrected
 	colnames(data) <- c("combination", "alignment", "length", "nseqs", "nparsimony", "nvariable", "nfixed", "rcv")	
