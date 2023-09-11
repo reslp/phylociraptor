@@ -249,7 +249,7 @@ Let's recap what the nine phylociraptor commands that we've executed above have 
 - 1 comprehensive report of our analyses in HTML format
 
 
-__Kudos!__
+**Kudos!**
 
 .. note::
         
@@ -328,9 +328,24 @@ Rerun the alignment (add *MUSCLE*), filter-align (trim/filter for all new combin
         $ ./phylociraptor mltree --verbose -t local=4
         $ ./phylociraptor speciestree --verbose -t local=4
 
+.. note::
+        
+        While this is running, or at any time, really, you can get a quick overview of the current progress of you analyses by running the following command (open a new terminal window and navigate to your working directory first, in case you want to check while a step is in progress):
 
 
-Let's also infer phylogenomic trees with *RAxML-NG* - we'll just need to enable it in the *settings file*. Open ``data/config.yaml`` in your favourite text editor and search the section ``mltree:``, and change:
+.. code-block:: bash
+
+        	$ ./phylociraptor check --verbose
+
+
+We could also infer phylogenomic trees with *RAxML-NG* - we'd just need to enable it in the *settings file* and (re-)run ``phylociraptor mltree``.
+
+.. note::
+
+	Running *RAxML-NG* for all datasets would actually take about 3 hours (if you stick to the 4 computational threads) and this is entirely optional. You can skip this step, and move straight to the next section, unless you have the time.
+
+
+Open ``data/config.yaml`` in your favourite text editor and search the section ``mltree:``, and change:
 
 .. code-block:: bash
 
@@ -350,7 +365,7 @@ Now, let's see what would happen if you reran the mltree inference of phylocirap
 
         $ ./phylociraptor mltree --verbose -t local=4 --dry
 
-As expected, phylociraptor would prepare the data and run raxml for the 27 aligner/trimmer/bootstrap cutoff combinations that we have already completed with *IQ-Tree*. Doing this would actually take about 3 hours and you can skip this step unless you have the time. Otherwise, move on the post-processing. 
+As expected, phylociraptor would prepare the data and run raxml for the 27 aligner/trimmer/bootstrap cutoff combinations that we have already completed with *IQ-Tree*. 
 
 If you are happy to get into this, let's do this (runtime: 180 minutes):
 
@@ -359,14 +374,6 @@ If you are happy to get into this, let's do this (runtime: 180 minutes):
         $ ./phylociraptor mltree --verbose -t local=4
 
 
-.. note::
-        
-        While this is running, or at any time, really, you can get a quick overview of the current progress of you analyses by running the following command (open a new terminal window and navigate to your working directory first, in case you want to check while a step is in progress):
-
-
-.. code-block:: bash
-
-        	$ ./phylociraptor check --verbose
 
 ----------------------------------------
 Exploration of results and post-processing
