@@ -7,7 +7,7 @@ Tutorial - A minimal example
 
 This document guides you through a first example on how to run phylociraptor. We'll analyse a minimal dataset consists of 6 fungal genomes, three belonging to the Ascomycota and three to
 Basidiomycota which will be downloaded during the first step of the run. Downstream analyses are carried out on 10 single-copy orthologous genes which will be identified in each genome.
-Data for all genes will be aligned and trimmed and we will calculate single-gene trees for each gene. After this, we will perform a Maximum-Likelihood analyses on the full dataset and infer species trees.
+Data for all genes will be aligned and trimmed and we will calculate single-gene trees for each gene. After this, we will perform Maximum-Likelihood analyses on the full dataset and infer species trees.
 
 Running through the main parts of the tutorial should take you about 1 hour to complete. Then there are further things to play around with if you don't want to stop at this point.
 
@@ -56,7 +56,7 @@ This command runs in local mode (without job submission to an HPC job scheduling
         The flag :bash:`--verbose` in the above command and all the commands below can also be omitted. It is used here to viualize pipeline output on screen.
 
 The setup step above has downloaded a bunch of genomes from NCBI, according to accession numbers we've specified in the *data file*. The downloaded genome assemblies are in :bash:`results/assemblies`. Metadata of downloaded genomes is in :bash:`results/downloaded_genomes`.
-Also, it downloaded a BUSCO reference gene set. We had specified `fungi_odb9` in the *settings file*. This set contains 290 genes. For this tutorial we want to limit our analyses to 10 random genes from this set. Phylociraptor has a utility to subsample an existing BUSCO set. The following command will take the original BUSCO set, pick 10 random genes and create a new BUSCO set. To ensure that we'll all get the same set of genes we specify a seed for the random number generator. 
+Also, it downloaded a BUSCO reference gene set. We had specified ``fungi_odb9`` in the *settings file*. This set contains 290 genes. For this tutorial we want to limit our analyses to 10 random genes from this set. Phylociraptor has a utility to subsample an existing BUSCO set. The following command will take the original BUSCO set, pick 10 random genes and create a new BUSCO set. To ensure that we'll all get the same set of genes we specify a seed for the random number generator. 
 
 Let's run (runtime: 2 seconds):
 
@@ -64,7 +64,7 @@ Let's run (runtime: 2 seconds):
 
         $ ./phylociraptor util modify-busco -b fungi_odb9 -n 10 --seed 42
 
-You will be informed that the new BUSCO set is called `fungi_odb9-seed-42-genes-10`. We'll have to adjust our *settings file* accordingly to use this set for subsequent analyses. Let's make a copy of the file.
+You will be informed that the new BUSCO set is called ``fungi_odb9-seed-42-genes-10``. We'll have to adjust our *settings file* accordingly to use this set for subsequent analyses. Let's make a copy of the file.
 
 .. code-block:: bash
 
@@ -78,8 +78,9 @@ Then, make the change in the file either by editing it with your favourite text 
 
 .. note::
         
-        If you wanted a specific set of genes from the BUSCO set you could also specify this explicitly, e.g.:
+        If you wanted a specific set of genes from the BUSCO set you could also specify this explicitly.
 
+For future reference:
 
 .. code-block:: bash
 
@@ -98,11 +99,11 @@ Run this command (runtime: 6 minutes):
         
         $ ./phylociraptor orthology --verbose -t local=4
 
-Notice, that we don't specify the *settings file* explicitly in the above command. Phylociraptor uses the default, which is `data/config.yaml`. Remember that we put a copy of the *settings file* there.
+Notice, that we don't specify the *settings file* explicitly in the above command (unlike when we called ``phylociraptor setup``). Now, phylociraptor uses the default, which is `data/config.yaml`. Remember that we put a copy of the *settings file* there.
 
 .. note::
         
-        We will run this command using four threads as indicated with ``-t local=4``. It is also possible to omit the the number of threads and use just ``-t local``. In this case phylociraptor will use as many threads as available. If you inspect the *settings file* you'll see that we had specified two threads for BUSCO. With the resources specified in the above command (``-t local=4``) phylociraptor will thus run two BUSCO jobs, each using two threads in parallel, whenever possible.
+        We will run this command using four threads as indicated with ``-t local=4``. It is also possible to omit the the number of threads and use just ``-t local``. In this case phylociraptor will use as many threads as are available on your machine/server/node. If you inspect the *settings file* you'll see that we had specified two threads for BUSCO. With the resources specified in the above command (``-t local=4``) phylociraptor will thus run two BUSCO jobs, each using two threads in parallel, whenever possible. Parallelization could be achieved at two levels, 1) the software and 2) the number of instances of a given step that are being run in parallel.
 
 
 Results of this step can be found in :bash:`results/orthology`.
@@ -130,7 +131,9 @@ To run this command (runtime: 30 seconds):
 Align single copy orthologs
 ------------------------------
 
-In this step we will create alignments of the single-copy orthologs recovered in each genome using mafft and clustalo. Note, that, since we have specified a single thread for alignment jobs in the *settings file*, this (`-t local=4`) will run up to 4 alignments in parallel at a given moment. Let's go (runtime: 1 minute): 
+In this step we will create alignments of the single-copy orthologs recovered in each genome using *MAFFT* and *Clustal omega*. Note, that, since we have specified a single thread for alignment jobs in the *settings file*, this (`-t local=4`) will run up to 4 alignments in parallel at a given moment.
+
+Let's go (runtime: 1 minute): 
 
 
 .. code-block:: bash
@@ -144,14 +147,20 @@ Results will be in :bash:`results/alignments/full`.
 Filter alignments
 ------------------------------
 
-Now, the each alignment will be trimmed using Aliscore/Alicut annd trimAl to remove poorly aligned regions. In the same step we'll filter alignments based on their information content (number of parsimony informative sites) and compositional heterogeneity. This is done for each aligner and trimmer combination, so after this step you will have four sets of alignments. Let's trim/filter (runtime: 2 minutes): 
+Now, each alignment will be trimmed using *Aliscore/Alicut* and *trimAl* to remove poorly aligned regions. In the same step we'll filter alignments based on their information content (number of parsimony informative sites) and compositional heterogeneity. This is done for each aligner and trimmer combination, so after this step you will have four sets of alignments. 
+
+Let's trim/filter our alignments (runtime: 2 minutes): 
 
  
 .. code-block:: bash
 
         $ ./phylociraptor filter-align --verbose -t local=4
 
-Results of this step will be in :bash:`results/alignments/trimmed` (after trimming) and :bash:`results/alignments/filtered`. The previous step will have filtered out a few alignments. Let's see what happened, for example, with the set processed through clustalo and trimal:
+Results of this step will be in:
+ - :bash:`results/alignments/trimmed` (after trimming), and
+ - :bash:`results/alignments/filtered` (alignments passing filters). 
+
+The previous step will have filtered out a few alignments. Let's see what happened, for example, with the set processed through *Clustal omega* and *trimAl*:
 
 .. code-block:: bash
 
@@ -163,7 +172,9 @@ Results of this step will be in :bash:`results/alignments/trimmed` (after trimmi
 Infer the best substitution models
 ----------------------------------
 
-Using filtered alignments we will now infer the best substitution model for each alignment and also calculate single gene-trees with IQ-Tree. This is done for each alignment in every aligner and trimmer combination (runtime: 4 minutes).
+Using filtered alignments we will now infer the best substitution model for each alignment and also calculate single gene-trees with IQ-Tree. This is done for each alignment in every aligner and trimmer combination.
+
+Let's go (runtime: 4 minutes):
 
 
 .. code-block:: bash
@@ -176,38 +187,49 @@ The results will be located in :bash:`results/modeltest`
 Calculate a full Maximum-Likelihood tree
 ----------------------------------------
 
-Now it is time to calculate full (concatenated) Maximum-Likelihood trees. We will use IQ-Tree at first and infer trees for every aligner and trimmer combination. The analysis will be partitioned using the best substitution models inferred during the step above. Additionally, phylociraptor will take only gene-trees above specified bootstrap values. In this example the average bootstrap filters used are 50, 60 and 70, as specified in the *settings file*.
+Now it is time to calculate Maximum-Likelihood trees based on concatenated supermatrices of the individual gene alignments. *IQ-Tree* will infer trees for every aligner and trimmer combination. The analyses will be partitioned using the best substitution models inferred during the step above. Additionally, phylociraptor will only include genes for which the gene tree showed average bootstrap support above specified bootstrap values. In this example the average bootstrap filters used are 50, 60 and 70, as specified in the *settings file*.
 
 The command is as follows (runtime: 4 minutes):
-
 
 .. code-block:: bash
 
         $ ./phylociraptor mltree --verbose -t local=4
 
-Results are in :bash:`results/phylogeny/iqtree/bootstrap-cutoff-50/ results/phylogeny/iqtree/bootstrap-cutoff-60/ results/phylogeny/iqtree/bootstrap-cutoff-70/`.
+
+Results are in:
+ - :bash:`results/phylogeny/iqtree/bootstrap-cutoff-50/`
+ - :bash:`results/phylogeny/iqtree/bootstrap-cutoff-60/`
+ - :bash:`results/phylogeny/iqtree/bootstrap-cutoff-70/`.
 
 
 ----------------------------------------
 Calculate a species tree
 ----------------------------------------
 
-Finally, we will calculate species trees for every aligner and trimmer combination and every bootstrap cutoff value (runtime: 1 minute).
+Finally, we will calculate species trees for every aligner and trimmer combination and every bootstrap cutoff value.
 
+This should be fast (runtime: 1 minute).
 
 .. code-block:: bash
 
         $ ./phylociraptor speciestree --verbose -t local=4
 
-Results are in :bash:`results/phylogeny/astral/bootstrap-cutoff-50/ results/phylogeny/astral/bootstrap-cutoff-60/ results/phylogeny/astral/bootstrap-cutoff-70/`.
+
+Results are in:
+ - :bash:`results/phylogeny/astral/bootstrap-cutoff-50/`
+ - :bash:`results/phylogeny/astral/bootstrap-cutoff-60/`
+ - :bash:`results/phylogeny/astral/bootstrap-cutoff-70/`.
 
 
 ----------------------------------------
 Generate a report
 ----------------------------------------
 
-Let's create a HTML report with the results of your analyses. The command below could be run at any point during the analyses to see the current status/stats.
+.. note::
 
+	The command below could be run at any point during the analyses to see the current status/stats.
+
+Let's create a HTML report with the results of your analyses (runtime: 1 minute). 
 
 .. code-block:: bash
 
@@ -226,7 +248,8 @@ Let's recap what the nine phylociraptor commands that we've executed above have 
 - 12 species trees using 3 different bootstrap-cutoff values
 - 1 comprehensive report of our analyses in HTML format
 
-Kudos!
+
+_Kudos!_
 
 .. note::
         
@@ -239,7 +262,7 @@ Further exploration of software- and parameter space
 
 In the above tutorial we had not yet enabled all software implemented in phylociraptor. Let's also trim our alignments with the third piece of software implemented.
 
-Enable trimming with BMGE, by adjusting the *settings file*. Open `data/config.yaml` in your favourite text editor search for the section `trimming`, and change:
+Enable trimming with *BMGE*, by adjusting the *settings file*. Open ``data/config.yaml`` in your favourite text editor search for the section ``trimming:``, and change:
 
 .. code-block:: bash
 
@@ -253,13 +276,13 @@ to:
         trimming:
 	    method: ["trimal", "aliscore", "bmge"]
 
-Now, let's see what would happen if you reran the alignment trimming step after this change. Note, that we add `--dry` to the command, which will result in a so-called dry-run, i.e. don't actually execute, but just show me what would happen.
+Now, let's see what would happen if you reran the alignment trimming step after this change. Note, that we add ``--dry`` to the command, which will result in a so-called *dry-run*, i.e. don't actually execute, but just show me what would happen.
 
 .. code-block:: bash
 
         $ ./phylociraptor filter-align --verbose -t local=4 --dry
 
-You'll see that phylociraptor proposes to run the necessary steps to add BMGE to our analyses.
+You'll see that phylociraptor proposes to run the necessary steps to add *BMGE* to our analyses.
 
 Let's do it for real (runtime: 1 minute):
 
@@ -273,15 +296,15 @@ Continue with modeltesting for the new alignments (runtime: 2 minutes),
 
         $ ./phylociraptor modeltest --verbose -t local=4
 
-and the inference of maximum-likelihood trees using IQ-Tree for the new datasets (runtime: 3 minutes).
+and the inference of maximum-likelihood trees using *IQ-Tree* for the new datasets (runtime: 3 minutes).
 
 .. code-block:: bash
 
         $ ./phylociraptor mltree --verbose -t local=4
 
-Neat, no? Now, let's say we want to also include the aligner MUSCLE.
+Neat, no? Now, let's say we want to also include the aligner *MUSCLE*.
 
-Open `data/config.yaml` in your favourite text editor search for the section `alignment`, and change:
+Open ``data/config.yaml`` in your favourite text editor search for the section ``alignment:``, and change:
 
 .. code-block:: bash
 
@@ -295,7 +318,7 @@ to:
         alignment:
             method: ["mafft", "clustalo", "muscle"]
 
-Rerun the alignment (add muscle), filter-align (trim/filter for all new combinations), modeltest (for all new combinations) and mltree (for all new combinations) steps (runtime: 5 minutes).
+Rerun the alignment (add *MUSCLE*), filter-align (trim/filter for all new combinations), modeltest (for all new combinations) and mltree (for all new combinations) steps (runtime: 5 minutes).
 
 .. code-block:: bash
 
@@ -307,7 +330,7 @@ Rerun the alignment (add muscle), filter-align (trim/filter for all new combinat
 
 
 
-Let's also infer phylogenomic trees with RAxML-NG - we'll just need to enable it in the *settings file*. Open `data/config.yaml` in your favourite text editor and search the section `mltree:`, and change:
+Let's also infer phylogenomic trees with *RAxML-NG* - we'll just need to enable it in the *settings file*. Open ``data/config.yaml`` in your favourite text editor and search the section ``mltree:``, and change:
 
 .. code-block:: bash
 
@@ -321,13 +344,15 @@ to:
         mltree:
 	    method: ["iqtree", "raxml"]
 
-Now, let's see what would happen if you reran the mltree inference of phylociraptor after this change. Note, that we add `--dry` to the command, which will result in a so-called dry-run, i.e. don't actually execute, but just show me what would happen.
+Now, let's see what would happen if you reran the mltree inference of phylociraptor after this change. Note, that we add ``--dry`` to the command, which will result in a so-called *dry-run*, i.e. don't actually execute, but just show me what would happen.
 
 .. code-block:: bash
 
         $ ./phylociraptor mltree --verbose -t local=4 --dry
 
-As expected, phylociraptor would prepare the data and run raxml for the 27 aligner/trimmer/bootstrap cutoff combinations that we have already completed with IQ-Tree. Doing this would actually take about 3 hours and you can skip this step unless you have the time. Otherwise, move on the post-processing. If you are happy to get into this, let's do this (runtime: 180 minutes):
+As expected, phylociraptor would prepare the data and run raxml for the 27 aligner/trimmer/bootstrap cutoff combinations that we have already completed with *IQ-Tree*. Doing this would actually take about 3 hours and you can skip this step unless you have the time. Otherwise, move on the post-processing. 
+
+If you are happy to get into this, let's do this (runtime: 180 minutes):
 
 .. code-block:: bash
 
@@ -337,15 +362,17 @@ As expected, phylociraptor would prepare the data and run raxml for the 27 align
 .. note::
         
         While this is running, or at any time, really, you can get a quick overview of the current progress of you analyses by running the following command (open a new terminal window and navigate to your working directory first, in case you want to check while a step is in progress):
-	.. code-block:: bash
 
-        	$ ./phylociraptor check
+
+.. code-block:: bash
+
+        	$ ./phylociraptor check --verbose
 
 ----------------------------------------
-Further exploration of software- and parameter space
+Exploration of results and post-processing
 ----------------------------------------
 
-Now, let's do some post processing. Plot a few trees, evaluate conflicts between trees, etc.
+Now, let's do some post-processing. Plot a few trees, evaluate conflicts between trees, etc.
 
 First, let's generate an updated report.
 
@@ -367,7 +394,7 @@ Phylociraptor also has a utility to plot trees to PDFs. Let's try. The random nu
 
 	$ ./phylociraptor util plot-tree -i results/phylogeny/iqtree/bootstrap-cutoff-70/clustalo-trimal.727b788ba6/concat.treefile -g Neurospora_crassa,Usnea_hakonensis --seed 42
 
-This will produce a PDF with the name `iqtree-clustalo-trimal-70-none-tree.pdf`. 
+This will produce a PDF with the name ``iqtree-clustalo-trimal-70-none-tree.pdf``. 
 
 If the sample names in the *data file* are actually valid species binomials you can annotate the tree with taxonomic information. First, let's query Genbank for the taxonomic information for the taxa included in our analyses.
 
@@ -381,9 +408,13 @@ Then annotate the tree with the taxonomic information at the level *class*.
 
 	$ ./phylociraptor util plot-tree -i results/phylogeny/iqtree/bootstrap-cutoff-70/clustalo-trimal.727b788ba6/concat.treefile -g Neurospora_crassa,Usnea_hakonensis --seed 42 -l lineage_information.txt -e class 
 
-Check out the PDF `iqtree-clustalo-trimal-70-none-tree.pdf`.
+Check out the PDF ``iqtree-clustalo-trimal-70-none-tree.pdf``.
 
-Let's estimate topological conflict for all possible pairs of trees that we've inferred. For a given pair of trees, this is done by drawing quartets of tips from the first tree and check whether this paricular quartet is present in the second tree. Note, that the number of quartets that can be drawn from a given tree increases drastically with the number of tips in the overall tree and in large trees sampling all possibilities may be very time consuming. Therefore we tell our tool to stop the sampling if each tip in the tree was incorporated (on average) in a certain number of radomly drawn unique quartets, say 200. This will not be possible in the current dataset - our tree has just 6 tips - so in this case `estimate-conflict` will actually sample all quartets occuring in our trees and then stop. The proportion of quartets not shared between two trees is taken as an estimate for topological conflict.  We'll do this using 4 computational threads. Output will be written to text files with the prefix `quartet-stop-200.*`. Note that you may optionally specify a seed of the random number generator. If you omit this, our tool will pick a random seed and report it to you for future reference and reproducibility. 
+Let's estimate topological conflict for all possible pairs of trees that we've inferred. For a given pair of trees, this is done by drawing quartets of tips from the first tree and check whether this paricular quartet is present in the second tree. Note, that the number of quartets that can be drawn from a given tree increases drastically with the number of tips in the overall tree and in large trees sampling all possibilities may be very time consuming. Therefore we tell our tool to stop the sampling if each tip in the tree was incorporated (on average) in a certain number of radomly drawn unique quartets, say 200. This will not be possible in the current dataset - our tree has just 6 tips - so in this case *estimate-conflict* will actually sample all quartets occuring in our trees and then stop. The proportion of quartets not shared between two trees is taken as an estimate for topological conflict.  We'll do this using 4 computational threads. Output will be written to text files with the prefix ``quartet-stop-200.*``. 
+
+.. note::
+
+	Note that you may specify (optionally) a seed for the random number generator. If you omit this, *estimate-conflict* will pick a random seed and report it to you for future reference and reproducibility. 
 
 .. code-block:: bash
 
