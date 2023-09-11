@@ -1,58 +1,56 @@
 ## This is a minimal example to quickly test if phylociraptor works
 
-Run these commands from inside the phylociraptor directory in the given order to reproduce the minimal example.
+Run these commands from inside the phylociraptor directory in the given order to reproduce the minimal example. 
 
 This minimal test dataset consists of six fungal genomes.
 
 Results generated from this run:
 
-- 6 downloaded fungal genome assemblies
-- 10 identified single-copy orthologs in each genome
-- 20 multiple sequence alignments using mafft and clustal-o
-- 38 trimmed alignments using trimal and aliscore/alicut (2 will be excluded during trimming)
-- 38 maximum-likelihood gene trees calculated with iqtree
+- 6 fungal genome assemblies downloaded
+- 10 single-copy orthologs identified in each genome
+- 20 multiple sequence alignments using mafft (n=10) and clustal omega (n=10)
+- 24 trimmed alignments using trimal and aliscore/alicut (could have been 40, but 16 were eliminated by our filters)
+- 24 maximum-likelihood gene trees calculated with iqtree
 - 12 concatenated maximum-likelihood phylogenies using 3 different bootstrap-cutoff values
 - 12 species trees using 3 different bootstrap-cutoff values
+- 1 comprehensive report of our analyses in HTML format
 
-### Copy the necessary files:
+The below commands make use of a single computational thread only. If you have more resources available on your machine you can adjust the part `-t local=1` to however many CPU threads you actually have available, say four threads: `-t local=4`. This will result in parallelization of most of the processes and speed up your analyses.
 
-```
-cp data/test_cases/minimal/config.yaml data/
-cp data/test_cases/minimal/minimal.csv data/
-cp data/test_cases/minimal/modify_busco.sh .
-```
+For some more details about what's happening below, have a look at our tutorial [here](https://phylociraptor.readthedocs.io/en/latest/introduction/minimal.html).
 
 ### setup the pipeline:
 
-This runs on a single thread (serial=1) and the same machine. It should take about 5 minutes.
+This runs using only one thread (`-t local=1) on the same machine. Adjust the number of threads to be used if you want (see above). It should take about 5 minutes.
 
 ```
-./phylociraptor setup --verbose -t serial=1
+./phylociraptor setup --config-file data/test_cases/minimal/config.yaml -t local=1 --verbose
 ```
 
-### Modify the used busco set
+### Subsample the BUSCO set
 
 For this minimal example we need to modify the busco set to include only a small number (10) of genes. We do this so the remaining steps complete quickly.
 To reduce the busco set to only 10 genes run this command in the phylocirpator directory:
 
 ```
-./modify_busco.sh
+./phylociraptor util modify-busco -b fungi_odb9 -n 10 --seed 42
 ```
 
-Alternatively you can also run the respective command directly from phylociraptor:
+This should take only a few seconds. 
+
+To resume with the new, reduced BUSCO set make a copy of the settings file and modify the BUSCO set specified. You can also modify the file manually with a text editor, but here we do it programmatically. Note that this solution works in this case, given the files and BUSCO set as used in the tutorial. Adjust for your own set if needed.
 
 ```
-./phylociraptor util modify-busco -b fungi_odb9 -g EOG092C5OAL,EOG092C5OPO,EOG092C5Q82,EOG092C5S4U,EOG092C5T6H,EOG092C5U93,EOG092C5UXM,EOG092C5V3D,EOG092C5Z2K,EOG092C608K
+cp data/test_cases/minimal/config.yaml data/config.yaml 
+sed -i 's/fungi_odb9/fungi_odb9-seed-42-genes-10/' data/config.yaml
 ```
-
-This should take only a few seconds. After the script is finished (no errors should show up), we can continue with the next step:
 
 ### Run orthology to indentify single-copy orthologs:
 
-This step runs using four threads (serial=4). It will run locally and should take about 5 minutes to complete
+This should take about 15 minutes to complete with a single thread.
 
 ```
-./phylociraptor orthology --verbose -t serial=4
+./phylociraptor orthology --verbose -t local=1
 ```
 
 ### Filter orthology results:
@@ -60,15 +58,15 @@ This step runs using four threads (serial=4). It will run locally and should tak
 This step should take about one minute to complete
 
 ```
-./phylociraptor filter-orthology --verbose -t serial=1
+./phylociraptor filter-orthology --verbose -t local=1
 ```
 
 ### Create alignments of single-copy orthologs:
 
-With a single thread (serial=1) this takes about 3 minutes.
+With a single thread (`local=1`) this takes about 3 minutes.
 
 ```
-./phylociraptor align --verbose -t serial=1
+./phylociraptor align --verbose -t local=1
 ```
 
 ### Filter alignments to remove poorly aligned regions:
@@ -76,31 +74,31 @@ With a single thread (serial=1) this takes about 3 minutes.
 This takes about 4 minutes to complete.
 
 ```
-./phylociraptor filter-align --verbose -t serial=1
+./phylociraptor filter-align --verbose -t local=1
 ```
 
 ### Use filtered alignments to estimate the best substitution model and calculate gene trees
 
-This takes about 5 minutes to run using 4 threads.
+This takes about 15 minutes to run using 1 thread.
 
 ```
-./phylociraptor modeltest --verbose -t serial=4
+./phylociraptor modeltest --verbose -t local=1
 ```
 
 ### Calculate concatenated Maximum-Likelihood trees
 
-This step takes about 30 minutes when using 4 threads.
+This step takes about 15 minutes when using 1 thread.
 
 ```
-./phylociraptor mltree --verbose -t serial=4
+./phylociraptor mltree --verbose -t local=1
 ```
 
 ### Calculate species trees
 
-This step takes xx minutes to complete using 4 threads:
+This step takes 2 minutes to complete using 1 thread:
 
 ```
-./phylociraptor speciestree --verbose -t serial=4
+./phylociraptor speciestree --verbose -t local=1
 ```
 
 ### Create a report of the run
