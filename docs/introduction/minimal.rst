@@ -5,9 +5,11 @@
 Tutorial - A minimal example
 ============================
 
-This document guides you through a first example on how to run phylociraptor. This minimal dataset consists of 6 fungal genomes, three belonging to the Ascomycota and three to
-Basidiomycota which will be downloaded during the first step of the run. Downstream analyses are carried out on 10 single-copy orthologous genes which will be identified in each genome with a modified BUSCO set.
-The so recovered genes will be aligned and trimmed and we will calculate single-gene trees for each gene. After this, we will perform a Maximum-Likelihood analyses on the full dataset and infer a species tree. The whole analysis should take about 1 hour to complete.
+This document guides you through a first example on how to run phylociraptor. We'll analyse a minimal dataset consists of 6 fungal genomes, three belonging to the Ascomycota and three to
+Basidiomycota which will be downloaded during the first step of the run. Downstream analyses are carried out on 10 single-copy orthologous genes which will be identified in each genome.
+Data for all genes will be aligned and trimmed and we will calculate single-gene trees for each gene. After this, we will perform a Maximum-Likelihood analyses on the full dataset and infer species trees.
+
+Running through the main parts of the tutorial should take you about 1 hour to complete. Then there are further things to play around with if you don't want to stop at this point.
 
 ------------------------
 Dataset and preparations
@@ -15,13 +17,19 @@ Dataset and preparations
 
 .. note::
         
-        Note that the below assumes you have two things set up:
+	The tutorial below assumes you have three things set up:
 	 - Snakemake (tested with version 6.0.2; perhaps loaded as a conda environment)
 	 - Singularity (tested with version 3.11.4-focal)
+	 - You have a local copy of the phylociraptor repo on your system and your present working directory (command prompt) is at the base level of this repo
 
 
-Input files for this dataset are located in :bash:`data/test_cases/minimal`. Two config files are mandatory. The `settings file` contains settings applied in the following analyses. The `data file` specifies the data to be processed. Check out the content of these files, e.g. with the following commands.
- - 
+
+Input files for this dataset are located in :bash:`data/test_cases/minimal`.
+Two config files are mandatory:
+ - The *settings file* contains settings applied in the following analyses.
+ - The *data file* specifies the data to be processed. 
+
+Check out the content of these files, e.g. with the following commands.
 
 .. code-block:: bash
         
@@ -33,27 +41,30 @@ Input files for this dataset are located in :bash:`data/test_cases/minimal`. Two
 Analysis setup
 -----------------------
 
-At first it is necessary to download the genomes which should be analyzed. Specific accession numbers to be downloaded from NCBI are specified in the `data file`. You can start the procoess with this command (runtime: about 3 mintues depending on the speed of your connection):
+At first it is necessary to download the genomes which should be analyzed. Specific accession numbers to be downloaded from NCBI are specified in the *data file*.
+
+You can start the process with the following command (runtime: about 3 mintues, depending on the speed of your connection):
 
 .. code-block:: bash
 
         $ ./phylociraptor setup --config-file data/test_cases/minimal/config.yaml -t local=4 --verbose
 
-This command runs in local mode (without job submission to an HPC job scheduling system) and uses up to 4 CPU cores (`-t local=4`). Since in the settings file we have specified `concurrency: 4`, the data download will be performed in four parallel batches. So, with four cores available, four downloads should run in parallel. If you had limited the use of resources to, say `-t local=2`, then the download would start with two processes in parallel, and then phylociraptor starts the next two whenever cores become available. The whole process should take about 3 minutes to complete.
-
+This command runs in local mode (without job submission to an HPC job scheduling system) and uses up to 4 CPU cores (``-t local=4``). Since in the *settings file* we have specified :bash:`concurrency: 4`, the data download will be performed in four parallel batches. So, with four cores available, four downloads should run in parallel. If you had limited the use of resources to, say ``-t local=2``, then the download would start with two processes in parallel, and then phylociraptor starts the next two whenever cores become available. 
 
 .. note::
         
         The flag :bash:`--verbose` in the above command and all the commands below can also be omitted. It is used here to viualize pipeline output on screen.
 
-The setup step above has downloaded a bunch of genomes from NCBI, according to accession numbers we've specified in the `data file`. The downloaded genome assemblies are in :bash:`results/assemblies`. Metadata of downloaded genomes is in :bash:`results/downloaded_genomes`.
-Also, it will download a BUSCO reference gene set. We had specified `fungi_odb9` in the `settings file`. This set contains 290 genes. For this tutorial we want to limit our analyses to 10 random genes from this set. Phylociraptor has a utility to subsample an existing BUSCO set. The following command will take the original BUSCO set, pick 10 random genes and create a new BUSCO set. To ensure that we'll all get the same set of genes we specify a seed for the random number generator. Let's run (runtime: 2 seconds):
+The setup step above has downloaded a bunch of genomes from NCBI, according to accession numbers we've specified in the *data file*. The downloaded genome assemblies are in :bash:`results/assemblies`. Metadata of downloaded genomes is in :bash:`results/downloaded_genomes`.
+Also, it downloaded a BUSCO reference gene set. We had specified `fungi_odb9` in the *settings file*. This set contains 290 genes. For this tutorial we want to limit our analyses to 10 random genes from this set. Phylociraptor has a utility to subsample an existing BUSCO set. The following command will take the original BUSCO set, pick 10 random genes and create a new BUSCO set. To ensure that we'll all get the same set of genes we specify a seed for the random number generator. 
+
+Let's run (runtime: 2 seconds):
 
 .. code-block:: bash
 
         $ ./phylociraptor util modify-busco -b fungi_odb9 -n 10 --seed 42
 
-You will be informed that the new BUSCO set is called `fungi_odb9-seed-42-genes-10`. We'll have to adjust our `settings file` accordingly to use this set for subsequent analyses. Let's make a copy of the file.
+You will be informed that the new BUSCO set is called `fungi_odb9-seed-42-genes-10`. We'll have to adjust our *settings file* accordingly to use this set for subsequent analyses. Let's make a copy of the file.
 
 .. code-block:: bash
 
@@ -68,26 +79,30 @@ Then, make the change in the file either by editing it with your favourite text 
 .. note::
         
         If you wanted a specific set of genes from the BUSCO set you could also specify this explicitly, e.g.:
-	.. code-block:: bash
 
-		$ ./phylociraptor util modify-busco -b fungi_odb9 -g EOG092C5OAL,EOG092C5OPO,EOG092C5Q82,EOG092C5S4U,EOG092C5T6H
+
+.. code-block:: bash
+
+	$ ./phylociraptor util modify-busco -b fungi_odb9 -g EOG092C5OAL,EOG092C5OPO,EOG092C5Q82,EOG092C5S4U,EOG092C5T6H
 
 
 --------------------------------------------------
 Identify single-copy orthologs
 --------------------------------------------------
 
-Next, we'll infer single-copy orthologs in the six selected genomes via BUSCO. Run this command (runtime: 6 minutes):
+Next, we'll infer single-copy orthologs in the six selected genomes via BUSCO. 
+
+Run this command (runtime: 6 minutes):
 
 .. code-block:: bash
         
         $ ./phylociraptor orthology --verbose -t local=4
 
-Notice, that we don't specify the `settings file` explicitly in the above command. Phylociraptor uses the default, which is `data/config.yaml`. Remember that we put a copy of the `settings file` there.
+Notice, that we don't specify the *settings file* explicitly in the above command. Phylociraptor uses the default, which is `data/config.yaml`. Remember that we put a copy of the *settings file* there.
 
 .. note::
         
-        We will run this command using four threads as indicated with :bash:`local=4`. It is also possible to omit the the number of threads and use just ``local``. In this case phylociraptor will use as many threads as available. If you inspect the `settings file` you'll see that we had specified two threads for BUSCO. With the above command (`-t local=4`) phylociraptor will thus run two BUSCO jobs, each using two threads in parallel, whenever possible.
+        We will run this command using four threads as indicated with ``-t local=4``. It is also possible to omit the the number of threads and use just ``-t local``. In this case phylociraptor will use as many threads as available. If you inspect the *settings file* you'll see that we had specified two threads for BUSCO. With the resources specified in the above command (``-t local=4``) phylociraptor will thus run two BUSCO jobs, each using two threads in parallel, whenever possible.
 
 
 Results of this step can be found in :bash:`results/orthology`.
@@ -97,7 +112,9 @@ Results of this step can be found in :bash:`results/orthology`.
 Filter orthology results
 --------------------------------
 
-This step is used to filter orthology results based on how many orthologs where found in each genome. The process will again be split into four batches. Consult the `settings file` to see the filters we have chosen. To run execute this command (runtime: 30 seconds):
+This step is used to filter orthology results based on how many orthologs where found in each genome. The process will again be split into four batches. Consult the *settings file* to see the filters we have chosen. 
+
+To run this command (runtime: 30 seconds):
 
 .. code-block:: bash
         
@@ -113,7 +130,7 @@ This step is used to filter orthology results based on how many orthologs where 
 Align single copy orthologs
 ------------------------------
 
-In this step we will create alignments of the single-copy orthologs recovered in each genome using mafft and clustalo. Note, that, since we have specified a single thread for alignment jobs in the `settings file`, this (`-t local=4`) will run up to 4 alignments in parallel at a given moment. Let's go (runtime: 1 minute): 
+In this step we will create alignments of the single-copy orthologs recovered in each genome using mafft and clustalo. Note, that, since we have specified a single thread for alignment jobs in the *settings file*, this (`-t local=4`) will run up to 4 alignments in parallel at a given moment. Let's go (runtime: 1 minute): 
 
 
 .. code-block:: bash
@@ -159,7 +176,9 @@ The results will be located in :bash:`results/modeltest`
 Calculate a full Maximum-Likelihood tree
 ----------------------------------------
 
-Now it is time to calculate full (concatenated) Maximum-Likelihood trees. We will use IQ-Tree at first and infer trees for every aligner and trimmer combination. The analysis will be partitioned using the best substitution models inferred during the step above. Additionally, phylociraptor will take only gene-trees above specified bootstrap values. In this example the average bootstrap filters used are 50, 60 and 70, as specified in the `settings file` (runtime: 4 minutes). 
+Now it is time to calculate full (concatenated) Maximum-Likelihood trees. We will use IQ-Tree at first and infer trees for every aligner and trimmer combination. The analysis will be partitioned using the best substitution models inferred during the step above. Additionally, phylociraptor will take only gene-trees above specified bootstrap values. In this example the average bootstrap filters used are 50, 60 and 70, as specified in the *settings file*.
+
+The command is as follows (runtime: 4 minutes):
 
 
 .. code-block:: bash
@@ -220,7 +239,7 @@ Further exploration of software- and parameter space
 
 In the above tutorial we had not yet enabled all software implemented in phylociraptor. Let's also trim our alignments with the third piece of software implemented.
 
-Enable trimming with BMGE, by adjusting the `settings file`. Open `data/config.yaml` in your favourite text editor search for the section `trimming`, and change:
+Enable trimming with BMGE, by adjusting the *settings file*. Open `data/config.yaml` in your favourite text editor search for the section `trimming`, and change:
 
 .. code-block:: bash
 
@@ -288,7 +307,7 @@ Rerun the alignment (add muscle), filter-align (trim/filter for all new combinat
 
 
 
-Let's also infer phylogenomic trees with RAxML-NG - we'll just need to enable it in the `settings file`. Open `data/config.yaml` in your favourite text editor and search the section `mltree:`, and change:
+Let's also infer phylogenomic trees with RAxML-NG - we'll just need to enable it in the *settings file*. Open `data/config.yaml` in your favourite text editor and search the section `mltree:`, and change:
 
 .. code-block:: bash
 
@@ -350,7 +369,7 @@ Phylociraptor also has a utility to plot trees to PDFs. Let's try. The random nu
 
 This will produce a PDF with the name `iqtree-clustalo-trimal-70-none-tree.pdf`. 
 
-If the sample names in the `data file` are actually valid species binomials you can annotate the tree with taxonomic information. First, let's query Genbank for the taxonomic information for the taxa included in our analyses.
+If the sample names in the *data file* are actually valid species binomials you can annotate the tree with taxonomic information. First, let's query Genbank for the taxonomic information for the taxa included in our analyses.
 
 .. code-block:: bash
 
