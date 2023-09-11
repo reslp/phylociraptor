@@ -249,7 +249,7 @@ Let's recap what the nine phylociraptor commands that we've executed above have 
 - 1 comprehensive report of our analyses in HTML format
 
 
-_Kudos!_
+__Kudos!__
 
 .. note::
         
@@ -429,31 +429,31 @@ Now, let's plot the results of our conflict estimation to a heatmap.
 
 Let's inspect the result. A value of 1.00 means that, in a given pairwise comparison, 100% of the quartets that were sampled were identical, i.e. present in both trees. 0.96 would indicate that 4% of the sampled quartets were not shared in the pair of trees.
 
-We can also visualise the conflict between two trees (in this case tree T1 vs. T4, see `quartet-stop-200.treelist.tsv`), given the conflicting quartets that we've inferred.
+We can also visualise the conflict between two trees (in this case tree T1 vs. T4, see ``quartet-stop-200.treelist.tsv``), given the conflicting quartets that we've inferred.
 
 .. code-block:: bash
 
 	$ ./phylociraptor util plot-conflict -i T1,T4 -l lineage_information.txt -e class -r quartet-stop-200.treelist.tsv -q quartet-stop-200.quartets.csv --seed 42
 
 
-Another way of summarizing differences between trees is based on a Principal component analysis (PCA) of all tip-2-tip distances of all taxa in the trees. Again we have a utility to calculate and visualise this.
+Another way of summarizing differences between trees is based on a Principal component analysis (PCA) of all tip-2-tip distances of all taxa in each tree. Again we have a utility to calculate and visualise this.
 
 .. code-block:: bash
 
 	$ ./phylociraptor util plot-pca -r quartet-stop-200.treelist.tsv --seed 123 -t 5
 
-The resulting file will be called `tip2tip-PCA-all.pdf`. Rename it, please, since the next command will overwrite it.
+The resulting file will be called ``tip2tip-PCA-all.pdf``. Rename it, please, since the next command will overwrite it.
 
-The trees to be included in the comparision are specified in the treelist file. Let's say we'll only want to inspect differences in trees inferred with ASTRAL.
+The trees to be included in the comparision are specified in the treelist file. Let's say we'll only want to inspect differences in trees inferred with *ASTRAL*.
 
 .. code-block:: bash
 
 	$ grep "astral" quartet-stop-200.treelist.tsv > quartet-stop-200.treelist.astral.tsv
 	$ ./phylociraptor util plot-pca -r quartet-stop-200.treelist.astral.tsv --seed 123 -t 5
 
-The resulting file will be called `tip2tip-PCA-all.pdf`. Rename it, please, since the next command will overwrite it.
+The resulting file will be called ``tip2tip-PCA-all.pdf``. Rename it, please, since the next command will overwrite it.
 
-We can also exclude trees inferred with ASTRAL and consequently only include maximum-likelihood based trees.
+We can also exclude trees inferred with *ASTRAL* and consequently only include maximum-likelihood based trees.
 
 .. code-block:: bash
 
@@ -461,9 +461,9 @@ We can also exclude trees inferred with ASTRAL and consequently only include max
 	$ ./phylociraptor util plot-pca -r quartet-stop-200.treelist.ml.tsv --seed 123 -t 5
 
 
-The resulting file will be called `tip2tip-PCA-all.pdf`.
+The resulting file will be called ``tip2tip-PCA-all.pdf``.
 
-Now, we can investigate whether aligner, trimmer or bootstrap cutoffs may have a consistent effect on branch lengths in our trees.
+Now we can investigate whether aligner, trimmer or bootstrap cutoffs may have a consistent effect on branch lengths in our trees.
 
 
 ----------------------------------------
