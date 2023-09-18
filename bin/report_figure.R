@@ -1,4 +1,5 @@
 args <- commandArgs(trailingOnly=TRUE)
+options(warn=-1)
 
 wd <- getwd()
 setwd(paste0(wd,"/bin"))
@@ -251,7 +252,7 @@ if (length(dirs)==0) {
   alignment_statistics <- data.frame(aligner=c(), total=numeric(), pass=numeric(),fail=numeric())
   aligner_names <- c()
   for (dir in dirs) {
-    print(dir)
+    cat(paste0("Gathering alignment statitics in: ", dir, "\n"))
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     aligner_name <- strsplit(dir,split="align-")[[1]][2]
@@ -289,17 +290,16 @@ full_alignments_plot
 #trimmed
 cat("Gather trimmed alignment data...\n")
 py_run_string("
-#print(all_hashes['filter-align']['filter-align']['per'])
 dirs = []
-for trimmer in all_hashes['filter-align']['filter-align']['per']:
-	for aligner in all_hashes['filter-align']['filter-align']['per'][trimmer]:
-		dirs.append('../results/statistics/trim-' + aligner + '-' + trimmer + '.' + all_hashes['filter-align']['filter-align']['per'][trimmer][aligner])
+for trimmer in all_hashes['filter-align']['filter-align']['per-trimming']:
+	for aligner in all_hashes['filter-align']['filter-align']['per-trimming'][trimmer]:
+		dirs.append('../results/statistics/trim-' + aligner + '-' + trimmer + '.' + all_hashes['filter-align']['filter-align']['per-trimming'][trimmer][aligner])
 ")
 dirs <- py$dirs
 
 
 if (length(dirs)==0) {
-  cat("<br><b> Alignment statistic files not found. Did you run phylociraptor align?</b>\n")
+  cat("<br><b> Alignment statistic files not found. Did you run phylociraptor filter-align?</b>\n")
 } else {
   read_my_csv <-function(dat) {
     return(read.csv(dat,header=T,sep="\t"))
@@ -309,6 +309,7 @@ if (length(dirs)==0) {
   trimmed_alignment_statistics <- data.frame(aligner=c(),trimmer=c(), total=numeric(), pass=numeric(), fail=numeric())
   trimmer_names <- c()
   for (dir in dirs) {
+    cat(paste0("Gathering trimmed alignment statitics in: ", dir, "\n"))
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     combination <- strsplit(dir,split="trim-")[[1]][2]
@@ -363,7 +364,7 @@ if (length(dirs)==0) {
   i <- 1
   filtered_alignment_statistics <- data.frame(aligner=c(),trimmer=c(), total=numeric(), pass=numeric(), fail=numeric())
   for (dir in dirs) {
-    print(dir)
+    cat(paste0("Gathering filtered alignment statitics in: ", dir, "\n"))
     files <- list.files(path=dir, pattern="*statistics*", full.names=T)
     data <- do.call(rbind,lapply(files,read_my_csv))	
     combination <- strsplit(dir,split="filter-")[[1]][2]
@@ -484,13 +485,12 @@ modeltest_plots <- modeltest_plots + theme(legend.title = element_blank())
 ##### Gene Trees
 cat("Gather genetree data...\n")
 py_run_string("
-print(all_hashes['modeltest']['modeltest'])
+#print(all_hashes['modeltest']['modeltest'])
 files = []
 for trimmer in all_hashes['modeltest']['modeltest']['per']['iqtree']:
 	for aligner in all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer]:
 		files.append('../results/modeltest/genetree_filter_' + aligner + '_' + trimmer + '.' + all_hashes['modeltest']['modeltest']['per']['iqtree'][trimmer][aligner] + '.txt')
 ")
-print(py$files)
 files <- py$files
 
 if (length(files) > 0) {
