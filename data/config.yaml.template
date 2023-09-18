@@ -31,9 +31,6 @@ filtering:
     seq_type: "aa"
     exclude_orthology: "data/exclude.focus_Neodermata.csv" #"data/exclude.small_outgroup.csv"
 
-genetree_filtering:
-    bootstrap_cutoff: [50,60,70,80] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
-
 # settings related to alignment and trimming
 alignment:
     method: ["clustalo","mafft","muscle"] #, "clustalo", "muscle"]
@@ -63,6 +60,9 @@ modeltest:
     options:
          iqtree: ""
 
+genetree_filtering:
+    bootstrap_cutoff: [50,60,70,80] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
+
 speciestree:
     method: ["astral"]
     include: "" #"data/trees_to_include.txt"
@@ -88,25 +88,3 @@ njtree:
     options:
         quicktree: ""
 
-# specific settings for individual tree reconstruction methods
-#iqtree:
-#    threads: 20 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
-#    bootstrap: 1000
-#    model: "MFP"
-#    additional_params: ""
-
-#raxmlng:
-#    threads: 20
-#    bootstrap: 100
-#    additional_params: ""
-
-# phylobayes is currently not working
-bayesian:
-    method: [] #["phylobayes"]
-
-phylobayes:
-    threads: 30
-    model: ""
-    ngens: 100
-    additional_params: "-f"
-    nchains: 4
