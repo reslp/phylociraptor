@@ -55,17 +55,19 @@ if (treelistfile == "none") {
   print(p)
   garbage <- dev.off()
 } else {
-  cat("Using detailed tree name information for plotting.\n")
+  cat("Using detailed tree names and reduce to tree list while plotting...\n")
   treelist <- read.csv(treelistfile, sep="\t", header=F)
   newtreenames <- c() 
   for (names in strsplit(treelist$V2,"/")){
     newtreenames <-c(newtreenames, paste0(names[3], "-", names[5], "-", strsplit(names[4], "-")[[1]][3]))
   }
+  #remove rows and columns of tree which are not in the treelist file
+  data <- data[treelist$V1,]
+  data <- data[,treelist$V1]
   treelist$V2 <- newtreenames
-  #data$First <- treelist$V2[match(data$First, treelist$V1)]
-  #data$Second <- treelist$V2[match(data$Second, treelist$V1)]
   colnames(data) <- treelist$V2[match(colnames(data), treelist$V1)]
   rownames(data) <- treelist$V2[match(rownames(data), treelist$V1)]
+
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   p <- pheatmap(data, display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
   pdf(file=paste0("quartet-similarity-heatmap-",nrow(data),"-trees.pdf"), width=pwidth, height=pheight)
@@ -75,7 +77,7 @@ if (treelistfile == "none") {
 }
 
 cat("Similarity plotting is done.\n")
-cat('Output: quartet-similarity-heatmap-*trees.pdf - Heatmap of % similarity based on quartets of tips. * is the number of trees in comparison.\n')
+cat(paste0("Output: quartet-similarity-heatmap-", nrow(data), "-trees.pdf - Heatmap of % similarity based on quartets of tips.\n"))
 
 
 
