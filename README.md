@@ -75,7 +75,7 @@ Now we can proceed with installing phylociraptor.
 
 ```
 (snakemake) $ git clone --recursive https://github.com/reslp/phylociraptor.git
-(snakemake) $ cd ./phylociraptor
+(snakemake) $ cd phylociraptor
 (snakemake) $ ./phylociraptor
 
 			     Welcome to
@@ -118,9 +118,61 @@ Examples:
 
 ```
 
-## A quick introduction on how to run phylociraptor 
+## A quick introduction
 
 For more information including a short tutorial please refer to the [documentation](https://phylociraptor.readthedocs.io).
+
+**A typical run of phylociraptor would look like this:**
+
+1. Setup the pipeline:
+
+```
+$ ./phylociraptor setup -t local
+```
+
+2. Identify orthologous genes for all the genomes:
+
+```
+$ ./phylociraptor orthology -t local
+```
+
+3. Filter orthologs using according to settings in the `config.yaml` file:
+
+```
+$ ./phylociraptor filter-orthology -t local
+```
+
+4. Create alignments and trim them:
+
+```
+$ ./phylociraptor align -t local
+```
+
+5. Filter alignments according to settings in the `config.yaml`file:
+
+```
+$ ./phylociraptor filter-align -t local
+```
+
+6. Run modeltesting for individual alignments:
+
+```
+$ ./phylociraptor modeltest -t local
+```
+
+7. Reconstruct phylogenies:
+
+```
+$ ./phylociraptor njtree -t local
+$ ./phylociraptor mltree -t local
+$ ./phylociraptor speciestree -t local
+```
+
+7. Create a report of the run:
+
+```
+$ ./phylociraptor report
+```
 
 **To customize the behavior of the pipeline to fit your needs you can edit the `config.yaml` file in the `data/` folder. Two things are mandatory:**
 
@@ -153,64 +205,13 @@ Dictyostelium lacteum,web=GCA_001606155.1,
 Paraphelidium tribonemae,data/assemblies/EP00158_Paraphelidium_tribonemae.fasta,protein
 Synchytrium microbalum,web=GCA_006535985.1,
 Nuclearia sp,data/assemblies/Nuclearia_sp_trinity_cdhit-0.95.fasta,transcriptome
+Aspergillus nidulans,data/assemblies/Asp_nid_full_proteome.fasta,protein
 Stereomyxa ramosa,data/assemblies/Stereomyxa_ramosa_trinity_cdhit-0.95.fasta,transcriptome
 ``` 
 
 The basis of this file can be a CSV file directly downloaded from the [NCBI Genome Browser](https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/). Just mind the changed header and additional column in the example above. The mandatory columns are the `species` and the `web_local` column. The first is the species name and the second specifies whether the genome is provided locally (in which case you should specify the path to the assembly) or not (in which case you should specify web).  
 It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything. It is also possible to use transcriptome assemblies or sets of proteins. Please refer to the documentation for more information.
 
-**A typical run of phylociraptor would look like this:**
-
-
-1. Setup the pipeline:
-
-```
-$ ./phylociraptor setup
-```
-
-2. Identify orthologous genes for all the genomes:
-
-```
-$ ./phylociraptor orthology -t sge -c data/cluster_config-SGE.yaml
-```
-
-3. Filter orthologs using according to settings in the `config.yaml` file:
-
-```
-$ ./phylociraptor filter-orthology -t sge -c data/cluster_config-SGE.yaml
-```
-
-4. Create alignments and trim them:
-
-```
-$ ./phylociraptor align -t sge -c data/cluster_config-SGE.yaml
-```
-
-5. Filter alignments according to settings in the `config.yaml`file:
-
-```
-$ ./phylociraptor filter-align -t sge -c data/cluster_config-SGE.yaml
-```
-
-Optionally you can run extensive model testing for individual alignments. This is done using iqtree. In case you run this step, the next step will use these models. Otherwise phylociraptor will use models specified in the config file.
-
-```
-$ ./phylociraptor modeltest -t sge -c data/cluster_config-SGE.yaml
-```
-
-6. Reconstruct phylogenies:
-
-```
-$ ./phylociraptor njtree -t sge -c data/cluster_config-SGE.yaml
-$ ./phylociraptor mltree -t sge -c data/cluster_config-SGE.yaml
-$ ./phylociraptor speciestree -t sge -c data/cluster_config-SGE.yaml
-```
-
-7. Create a report of the run:
-
-```
-$ ./phylociraptor report
-```
 
 ## A posteriori analyses of trees calculated using phylociraptor
 
