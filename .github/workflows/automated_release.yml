@@ -53,7 +53,7 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag: ${{ env.VERSION }}
-          prerelease: true
+          prerelease: false
           name: "phylociraptor v${{ env.VERSION }}"
           body: |
                 Changes since last release:

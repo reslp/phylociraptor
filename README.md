@@ -11,15 +11,7 @@
 
 # phylociraptor - Rapid phylogenomic tree calculator 
 
-This pipeline creates phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
-
-*One word of caution:* phylociraptor is currently under active development. Different features may change or won't work from time to time before everything is finalized.
-
-
-## Documentation
-
-This README only provides a quick overview of phylociraptor. An extended documentation can be found here: https://phylociraptor.readthedocs.io
-
+Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
 ## Prerequisites
 Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
@@ -34,12 +26,11 @@ or
 
 - Docker (this is still experimental; see information below)
 
-
-On a cluster:
+On a HPC cluster:
 
 - installed snakemake 6.0.2+ (best in an anaconda environment)
 - globally installed singularity 3.4.1+
-- SGE or SLURM job scheduling system
+- SGE, SLURM or TORQUE job scheduling system
 
 ## Available tools:
 
@@ -65,14 +56,27 @@ Tree inference:
 - raxml-ng 1.1 (https://github.com/amkozlov/raxml-ng)
 - astral 5.7.1 (https://github.com/smirarab/ASTRAL)
 
-## Getting phylociraptor
+## Installing phylociraptor
 
-1. Clone the repository:
+1. Create a conda environment with snakemake:
+If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
 
 ```
-$ git clone --recursive https://github.com/reslp/phylociraptor.git
-$ cd ./phylociraptor
-$ ./phylociraptor
+$ conda install -n base -c conda-forge mamba
+$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
+$ conda activate snakemake
+```
+
+Additional information on how to install snakemake can be found [here](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html).
+
+Now we can proceed with installing phylociraptor.
+
+2. Clone the repository:
+
+```
+(snakemake) $ git clone --recursive https://github.com/reslp/phylociraptor.git
+(snakemake) $ cd ./phylociraptor
+(snakemake) $ ./phylociraptor
 
 			     Welcome to
            __          __           _                  __            
@@ -82,7 +86,7 @@ $ ./phylociraptor
  / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
 /_/          /____/                         /_/                      
 
-	  the rapid phylogenomic tree calculator, ver.0.9.9
+	  the rapid phylogenomic tree calculator, ver.1.0.0
 
 
 Usage: phylociraptor <command> <arguments>
@@ -112,23 +116,11 @@ Examples:
 	To run orthology inferrence for a set of genomes on a SLURM cluster:
 	./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
 
-	To filter alignments overwriting the number of parsimony informative sites set in the config file:
-	./phylciraptor filter-align --npars_cutoff 12
-
 ```
 
-2. Create a conda environment with snakemake:
-If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
+## A quick introduction on how to run phylociraptor 
 
-```
-$ conda install -n base -c conda-forge mamba
-$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
-$ conda activate snakemake
-```
-
-Additional information on how to install snakemake can be found [here](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html).
-
-## Running phylociraptor 
+For more information including a short tutorial please refer to the [documentation](https://phylociraptor.readthedocs.io).
 
 **To customize the behavior of the pipeline to fit your needs you can edit the `config.yaml` file in the `data/` folder. Two things are mandatory:**
 
@@ -164,9 +156,8 @@ Nuclearia sp,data/assemblies/Nuclearia_sp_trinity_cdhit-0.95.fasta,transcriptome
 Stereomyxa ramosa,data/assemblies/Stereomyxa_ramosa_trinity_cdhit-0.95.fasta,transcriptome
 ``` 
 
-The basis of this file can be a CSV file directly downloaded from the [NCBI Genome Browser](https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/). Just mind the changed header and additional column in the example above. The mandatory columns are the `species` and the `web_local` column. The first is the species name and the second specifies whether the genome is provided locally (in which case you should specify the path to the assembly) or not (in which case you should specify web). It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything. It is also possible to use transcriptome assemblies or sets of proteins. Please refer to the documentation for more information.
-
-
+The basis of this file can be a CSV file directly downloaded from the [NCBI Genome Browser](https://www.ncbi.nlm.nih.gov/genome/browse#!/overview/). Just mind the changed header and additional column in the example above. The mandatory columns are the `species` and the `web_local` column. The first is the species name and the second specifies whether the genome is provided locally (in which case you should specify the path to the assembly) or not (in which case you should specify web).  
+It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything. It is also possible to use transcriptome assemblies or sets of proteins. Please refer to the documentation for more information.
 
 **A typical run of phylociraptor would look like this:**
 

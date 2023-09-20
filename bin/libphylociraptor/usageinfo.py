@@ -50,9 +50,6 @@ Examples:
 	To run orthology inferrence for a set of genomes on a SLURM cluster:
 	./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
 
-	To filter alignments overwriting the number of parsimony informative sites set in the config file:
-	./phylciraptor filter-align --npars_cutoff 12
-        
 """
 standard_arguments= """
 Argumemts:
