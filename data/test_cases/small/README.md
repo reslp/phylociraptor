@@ -1,6 +1,6 @@
 ## This is the small example dataset to test phylociraptor
 
-Results from this example are also displayed and discussed in the the phylociraptor manuscript.
+Results from this example are also displayed (Figure 2) and discussed in the phylociraptor manuscript.
 
 Run these commands from inside the phylociraptor directory in the given order to reproduce the example.
 
@@ -13,10 +13,10 @@ cp data/test_cases/small/small.csv data/
 
 ### setup the pipeline:
 
-This runs on a single thread (serial=1) and the same machine. It should take about 5 minutes.
+This runs on a single thread (local=1) and the same machine. It should take about 5 minutes.
 
 ```
-./phylociraptor setup -t serial=1
+./phylociraptor setup -t local=1
 ```
 
 ### Modify the used busco set

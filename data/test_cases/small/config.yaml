@@ -26,13 +26,13 @@ orthology:
 
 filtering:
     dupseq: "persample"
-    cutoff: 0.1
+    cutoff: 0.4
     minsp: 3
     seq_type: "aa"
     exclude_orthology: #"data/exclude.small_outgroup.csv"
 
 genetree_filtering:
-    bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
+    bootstrap_cutoff: [0, 50, 60, 70] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
 # settings related to alignment and trimming
 alignment:
@@ -51,7 +51,7 @@ trimming:
         aliscore: ""
         bmge: ""
     min_parsimony_sites: 50
-    max_rcv_score: 1
+    max_rcv_score: 0.2
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
