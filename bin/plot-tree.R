@@ -156,8 +156,9 @@ generate_colors <- function(ncols) {
 }
  
 get_pdf_height <- function(tree) {
-	size_per_tip = 0.2 # in inches
-	return(round(length(tree$tip.label) * size_per_tip, digits=0))
+	space_for_legend <- 1.2
+	size_per_tip = 0.2 # in inches 
+	return(round(space_for_legend + (length(tree$tip.label) * size_per_tip), digits=0))
 }
  
 get_conflicts <- function(tree, conflict_quartets) {
@@ -257,11 +258,11 @@ reroot_my_tree <- function (tree, outgroup){
 		{	
 			rootnode <- getMRCA(tree, outgroup)
 			tree <- root(tree, node=rootnode, resolve.root = TRUE)
-			return(tree)
+			return(c(tree, 1))
  		},
 		error = function(e) {
 			cat("There was an error while rerooting the tree. Will plot the tree as is. Please check manually\n")
-			return(tree)
+			return(c(tree, 0))
 		})
 }
 
@@ -296,11 +297,12 @@ if (level == "none" || lineage_file == "none") {
     #reroot tree
     tree <- read.tree(treename)
     if (outgroup != "none") { #reroot tree in case an outgroup was specified
-      tree <- reroot_my_tree(tree,outgroup)
+      ret <- reroot_my_tree(tree,outgroup)
+      if (ret[[2]] == 0) { outgroups <- "none"}
+      tree <- ret[[1]]
     }
     #plot(tree)
     ntips <- length(tree$tip.label)
-    
     
     # this is where we decide how to plot (conflicts or not). Maybe this will be refactored later...
     cat(paste0("Plot tree: ", prefix, "\n"))
@@ -351,7 +353,9 @@ if (level == "none" || lineage_file == "none") {
     #reroot tree
     tree <- read.tree(treename)
     if (outgroup != "none") { #reroot tree in case an outgroup was specified
-      tree <- reroot_my_tree(tree,outgroup)
+      ret <- reroot_my_tree(tree,outgroup)
+      if (ret[[2]] == 0) { outgroups <- "none"}
+      tree <- ret[[1]]
     }
     #plot(tree)
     ntips <- length(tree$tip.label)
