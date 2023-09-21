@@ -7,7 +7,9 @@
            /_/          /____/                         /_/                      
 ```
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/reslp/phylociraptor) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/reslp/phylociraptor) ![GitHub](https://img.shields.io/github/license/reslp/phylociraptor)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/reslp/phylociraptor) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/reslp/phylociraptor) ![GitHub](https://img.shields.io/github/license/reslp/phylociraptor) [![DOI](https://zenodo.org/badge/258200660.svg)](https://zenodo.org/badge/latestdoi/258200660)
+
+
 
 # phylociraptor - Rapid phylogenomic tree calculator 
 
@@ -55,6 +57,7 @@ Tree inference:
 - IQ-Tree 2.0.7 (http://www.iqtree.org/)
 - RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
 - ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
+- Quicktree 2.5 (https://github.com/khowe/quicktree)
 
 
 ## Installing phylociraptor
