@@ -40,21 +40,22 @@ Orthology inference:
 
 Alignment:
 
-- clustalo 1.2.4 (http://www.clustal.org/omega/)
-- mafft 7.464 (https://mafft.cbrc.jp/alignment/software/)
+- Clustal-Omega 1.2.4 (http://www.clustal.org/omega/)
+- MAFFT 7.464 (https://mafft.cbrc.jp/alignment/software/)
 - MUSCLE 5.1 (https://drive5.com/muscle5/)
 
 Trimming:
 
-- trimal 1.4.1 (http://trimal.cgenomics.org/)
+- trimAl 1.4.1 (http://trimal.cgenomics.org/)
 - Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
-- bmge 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
+- BMGE 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
 
 Tree inference:
 
-- iqtree 2.0.7 (http://www.iqtree.org/)
-- raxml-ng 1.1 (https://github.com/amkozlov/raxml-ng)
-- astral 5.7.1 (https://github.com/smirarab/ASTRAL)
+- IQ-Tree 2.0.7 (http://www.iqtree.org/)
+- RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
+- ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
+
 
 ## Installing phylociraptor
 
@@ -148,7 +149,7 @@ $ ./phylociraptor filter-orthology -t local
 $ ./phylociraptor align -t local
 ```
 
-5. Filter alignments according to settings in the `config.yaml`file:
+5. Filter alignments according to settings in the `config.yaml` file:
 
 ```
 $ ./phylociraptor filter-align -t local
