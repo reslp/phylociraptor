@@ -190,11 +190,14 @@ rule aliscore:
 			
 			echo "\n\n ALICUT output:\n" >> {params.wd}/{log}	
 			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
-				echo "$(date) - The aliscore output file does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 				if [[ $(cat {params.busco}_aligned.fas_List_random.txt | head -n 1 | grep '[0-9]' -c) != 0 ]]; then
-					echo "$(date) - The aliscore output appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 					ALICUT.pl -s 2>&1 | tee -a {params.wd}/{log}
+				else
+					echo "$(date) - The aliscore output {params.wd}/{params.target_dir}/{params.busco}_aligned.fas_List_random.txt appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
 				fi
+			else
+				echo "$(date) - The aliscore output file {params.wd}/{params.target_dir}/{params.busco}_aligned.fas_List_random.txt does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
+				
 			fi
 			
 			# this check is included because alicut very rarely does not  produce an output file.
@@ -309,7 +312,7 @@ rule filter_alignments:
 #		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
 
 		echo "$(date) - Number of alignments ({wildcards.aligner}): $(ls results/alignments/full/{wildcards.aligner}.{params.aligner_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
-		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.trimmer_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls {params.target_dir}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		"""
 
