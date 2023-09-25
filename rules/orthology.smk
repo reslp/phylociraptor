@@ -83,16 +83,16 @@ def select_species(dir="results/assemblies"):
 	else:
 		for sp in sps:
 			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any():
+				print(sp," -> default mode: ",sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False))
 				hashes.append(str(default_hash))
 			else:
-				print("non default mode: ",sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False))
+				print(sp," -> mode from data file: ",sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False))
 				nondefault = default.copy()
 				nondefault["orthology"]["busco_options"]["mode"] = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
 				hashes.append(get_hash(nondefault))
 	return [sps, hashes]
 
 species = select_species()
-print(species[1])
 	
 
 #get hash for current step
