@@ -121,8 +121,8 @@ rule remove_duplicated_sequence_files:
 		#for file in $(ls results/statistics/benchmarks/busco/run_busco_*); do printf $file"\t"; sed '2q;d' results/statistics/benchmarks/busco/$file; done > results/statistics/benchmark_all_busco_runs.bench	
 
 		# get statistics files for report. This is still a bit hacky and could be solved better, especially for the genomes file:
-		cat results/statistics/orthology_filtering/orthology_filtering_gene_* > results/statistics/orthology_filtering_gene_statistics.{params.current_hash}.txt
-		files=$(ls results/statistics/orthology_filtering/orthology_filtering_genomes_*)
+		cat results/statistics/orthology_filtering/orthology_filtering_gene_*{params.current_hash}.txt > results/statistics/orthology_filtering_gene_statistics.{params.current_hash}.txt
+		files=$(ls results/statistics/orthology_filtering/orthology_filtering_genomes_*{params.current_hash}.txt)
 		cat $(echo $files | awk '{{print $1}}') > results/statistics/orthology_filtering_genomes_statistics.{params.current_hash}.txt		
 		
 		echo "$(date) - Number of BUSCO sequence files: $(ls results/orthology/busco/busco_sequences.{params.current_hash}/*/*.fas | wc -l)" >> results/statistics/runlog.txt
