@@ -243,7 +243,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 						for t in hashes['filter-align']["per"].keys():
 							hashes['speciestree']["per"][c][i][m][t] = {}
 							for a in hashes['align']["per"].keys():
-								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed speciestree,options,"+i+" speciestree,include", configfi, debug=debug, wd=wd)
+								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" speciestree,options,"+i+" speciestree,include", configfi, debug=debug, wd=wd)
 		if debug:
 			print("Gathered hashes until 'speciestree'")
 			#print(hashes['tree_inference'])
