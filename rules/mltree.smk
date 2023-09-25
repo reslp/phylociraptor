@@ -143,7 +143,7 @@ rule prepare_iqtree:
 				cp {params.wd}/{params.alidir}/"$gene"_aligned_trimmed.fas {output.algn}/
 			done
 			
-			echo "Will create NEXUS partition file with model information now." >> {params.wd}/results/statistics/runlog.txt
+			echo "$(date) - Will create NEXUS partition file with model information now." >> {params.wd}/results/statistics/runlog.txt
 			echo "#nexus" > {output.nexus}
 			echo "begin sets;" >> {output.nexus}
 			i=1
