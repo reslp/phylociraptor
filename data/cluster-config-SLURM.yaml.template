@@ -4,10 +4,20 @@ __default__:
    cpus-per-task: 1
    job-name: default
    mem: 4G
+   qos: hpc
    partition: mem_0096 
-   qos: mem_0096
    output: $(pwd)/log/cluster-logs/slurm-%j.out
    error: $(pwd)/log/cluster-logs/slurm-%j.err
+#### generic ####
+read_params:
+   job-name: readpa
+   time: "00:01:00"
+read_params_global:
+   job-name: readpg
+   time: "00:01:00"
+read_params_per:
+   job-name: readpp
+   time: "00:01:00"
 #### setup ####
 download_genome_overview:
    job-name: dloverview
@@ -27,7 +37,7 @@ setup:
 #### orthology ####
 busco:
    job-name: rBUSCO
-   mem: 16G
+   mem: 30G
 aggregate_orthology:
    job-name: aggorth 
 extract_orthology_table:
@@ -39,12 +49,15 @@ orthology:
 #### filter-orthology ####
 create_sequence_files:
    job-name: exSeqfiles
+   time: "02:00:00"
    mem: 12G
 remove_duplicated_sequence_files:
    job-name: remdupseq
+   time: "02:00:00"
    mem: 12G
 filter_orthology:
    job-name: FILTORTH
+   time: "00:01:00"
 ##########################
 #### align ####
 mafft:
@@ -72,6 +85,9 @@ align:
    time: "00:00:10"
 #############
 #### filter-align ####
+read_params_per_trimmer:
+   job-name: readpt
+   time: "00:10:00"
 trimal:
    job-name: trimal
    mem: 10G
@@ -82,50 +98,70 @@ aliscore:
    time: "24:00:00"
 bmge:
    job-name: bmge
-   mem: 10G
-   time: "02:00:00"
+   mem: 20G
+   time: "24:00:00"
 get_trimmed_statistics:
    job-name: gettristat
+   mem: 10G
+   time: "02:00:00"
 filter_alignments:
    job-name: filtalgn
+   mem: 10G
+   time: "02:00:00"
 get_filter_statistics:
    job-name: getfilstat 
+   mem: 10G
+   time: "02:00:00"
 filter_align:
    job-name: FILTALGN
+   time: "00:10:00"
 ######################
 #### modeltest ####
 iqtree_mt:
    job-name: mt
-   mem: 64G
+   mem: 10G
+   time: "02:00:00"
 aggregate_best_models:
    job-name: aggmodels
    mem: 10G
+   time: "02:00:00"
 modeltest:
    job-name: MODELTEST
+   time: "00:10:00"
 ###################
 #### mltree ####
 raxmlng:
    job-name: raxmlng
-   mem: 94G
+   mem: 40G
+   time: "10-00:00:00"
 prepare_iqtree:
    job-name: prepiqt
+   mem: 4G
+   time: "01:00:00"
 iqtree:
    job-name: iqtree
-   mem: 94G
+   mem: 30G
+   time: "10:00:00"
 partition_alignment:
    job-name: partalgn
    mem: 10G
+   time: "01:00:00"
 mltree:
    job-name: MLTREE
+   time: "00:10:00"
 ###############
 #### speciestree #### 
 astral:
    job-name: astral
-   mem: 48G
+   time: "01:00:00"
+   mem: 10G
 aggregate_gene_trees:
    job-name: agg_gt
+   mem: 4G
+   time: "01:00:00"
 speciestree:
    job-name: SPECIESTREE
+   time: "00:10:00"
 ####################
 #### njtree ####
 quicktree:
@@ -138,5 +174,5 @@ njtree:
 concatenate:
    job-name: concat
    mem: 8G
-
+   time: "02:00:00"
 
