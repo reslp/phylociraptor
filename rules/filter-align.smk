@@ -312,7 +312,7 @@ rule filter_alignments:
 #		rm results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt
 
 		echo "$(date) - Number of alignments ({wildcards.aligner}): $(ls results/alignments/full/{wildcards.aligner}.{params.aligner_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
-		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.trimmer_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
+		echo "$(date) - Number of trimmed alignments ({wildcards.aligner} - {wildcards.alitrim}): $(ls results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{params.trimmer_hash}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		echo "$(date) - Number of alignments ({wildcards.aligner} - {wildcards.alitrim}) after filtering: $(ls {params.target_dir}/*.fas | wc -l)" >> results/statistics/runlog.txt
 		"""
 
