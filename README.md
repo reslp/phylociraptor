@@ -15,6 +15,13 @@
 
 Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
 
+## Citation:
+
+If you use phylociraptor please cite our preprint, which is available [here](https://www.biorxiv.org/content/10.1101/2023.09.22.558970v1.article-info). 
+
+**Resl Philipp & Hahn Christoph** (2023) *Phylociraptor - A unified computational framework for reproducible phylogenomic inference* (Preprint) bioRxiv doi:10.1101/2023.09.22.558970
+
+
 ## Prerequisites
 Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
 
@@ -103,8 +110,8 @@ Commands:
 	filter-align		Trim and filter alignments
 	modeltest		Calculate gene trees and perform model testing
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
-	speciestree		Calculate gene trees and species tree
-	njtree			Calculate Neighbor-Joining tree
+	speciestree		Calculate species trees
+	njtree			Calculate Neighbor-Joining trees
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run
