@@ -192,6 +192,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 	char = ""
 	nline = 0
 	curr_task = 0
+	verbose = True # there are some problems with the progress bar functionality, until this is fixed verbose is the default.
 	if not os.path.isdir("log/phylociraptor"):
 		os.mkdir("log/phylociraptor")
 	if "-n" in cmd:
@@ -291,7 +292,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
-			else:
+			else: # this is the quiet mode with progressbar
 				#if check_for_errors(result):
 				#	yield check_for_errors(result)
 				if result.startswith("Job counts"):
@@ -299,7 +300,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
 						njobs = int(result.split("\t")[1])
