@@ -18,6 +18,8 @@ download_busco_set:
    N: dlbuscoset
 get_genome_download_statistics:
    N: ggendlstat
+rename_protein_sets:
+   N: rprotsets
 setup:
    N: SETUP
 ###############

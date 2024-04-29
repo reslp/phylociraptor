@@ -15,6 +15,8 @@ orthology:
         mode: "genome"
         augustus_species: #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
         additional_parameters: ""
+    orthofinder_options:
+        params: "-of"
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----

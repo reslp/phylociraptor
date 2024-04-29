@@ -42,7 +42,6 @@ def get_species_names_rename(wildcards):
 	names= " ".join(names)
 	return names
 
-
 def get_local_species_names_rename(wildcards):
 	names_with_accession = [name for name in sample_data.loc[sample_data["web_local"].str.startswith("web="), "species"].to_list()]
 	names_with_web = [name for name in sample_data.loc[sample_data["web_local"] == "web", "species"].to_list()]
@@ -67,229 +66,258 @@ def get_all_species_names(wildcards):
 	#print(names)
 	return names
 
+def get_all_orthofinder_inputs_files(wildcards): # this does currently not error check the input...
+	print("Getting all input files for orthofinder")
+	file_paths = [name for name in sample_data["web_local"].to_list()]
+	return file_paths
 
-rule download_genome_overview:
-	output:
-		overview = "results/downloaded_genomes/assembly_summary_genbank.txt"
-	singularity: containers["biopython"]
-	log:
-		"log/setup/download_genomes_overview.log"
-	threads: 2
-	params:
-		wd = os.getcwd(),
-		email = config["email"]
-	shell:
-		"""
-		python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only 2>&1 | tee {log}
-		"""
-
-rule download_genomes:
-	input:
-		config["species"],
-		rules.download_genome_overview.output.overview
-	output:
-		checkpoint = "results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done",
-		download_overview = "results/downloaded_genomes/download_overview_{batch}.txt",
-		success = "results/downloaded_genomes/successfully_downloaded_{batch}.txt",
-		failed = "results/downloaded_genomes/not_downloaded_{batch}.txt"
-#	benchmark:
-#		"results/statistics/benchmarks/setup/download_genomes.txt"
-	singularity: containers["biopython"]
-	log:
-		"log/setup/download_genomes_{batch}-"+str(config["concurrency"])+".log"
-	params:
-		species = get_species_names,
-		wd = os.getcwd(),
-		email = config["email"],
-		batch = "{batch}"
-	shell:
-		"""
-		if [[ ! -f results/statistics/runlog.txt ]]; then if [[ ! -d results/statistics ]]; then mkdir -p results/statistics; fi; touch results/statistics/runlog.txt; fi
-		if [[ "{params.species}" != "" ]]; then
-			echo "$(date) - Setup: Will download species now - batch: {params.batch}" >> results/statistics/runlog.txt
-			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} --batch {params.batch} 2>&1 | tee {log}
-		else
-			# need to touch these files, since they are usually produced by the python script.
-			touch {output.success}
-			touch {output.download_overview}
-			touch {output.failed}
-			echo "$(date) - Setup: No species to download." >> results/statistics/runlog.txt
-		fi
-		if [[ ! -d results/checkpoints/genome_download ]]; then mkdir -p results/checkpoints/genome_download; fi # sometimes this folder is not created, better do it to be safe.
-		touch {output.checkpoint}
-		"""
-
-rule get_genome_download_statistics:
-	input:
-		checkpoints = expand(rules.download_genomes.output.checkpoint, batch=batches)
-	output:
-		statistics = "results/statistics/downloaded_genomes_statistics.txt",
-		success = "results/downloaded_genomes/successfully_downloaded.txt",
-		failed = "results/downloaded_genomes/not_downloaded.txt",
-		overview = "results/downloaded_genomes/download_overview.txt"
-	params:
-		checkpoints = expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
-		success = expand("results/downloaded_genomes/successfully_downloaded_{b}.txt", b=batches),
-		overview = expand("results/downloaded_genomes/download_overview_{b}.txt", b=batches),
-		failed = expand("results/downloaded_genomes/not_downloaded_{b}.txt", b=batches)
-		
-	benchmark:
-		"results/statistics/setup/get_genome_download_statistics.txt"
-	shell:
-		"""
-		if [[ -z "{input}" ]]; then
-			echo "All genomes local. Will touch empty output files."
-			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
-			touch {output.success}
-			touch {output.failed}
-			touch {output.overview}
-		else
-			cat {params.success} > {output.success}
-			cat {params.failed} > {output.failed}	
-			cat {params.overview} > {output.overview}
-			echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
-			for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
-				do
-					echo "---- Adding info ----"
-					echo "file: "$file
-					species=$(echo $file | awk -F '_db_' '{{print $1}}' | awk -F '/' '{{print $(NF)}}')
-					
-					echo "species: "$species
-					if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna.gz" ]]; then 
-						output=$(sed -n 2p $file | awk -F '\t' '{{ for (i=1;i<=20;i++) {{printf $i"\t";}} print $21}}')
-						echo $species"\t""$output" >> {output.statistics}
-					fi
-				done
-		fi
-		"""
-
-
-rule rename_assemblies:
-	input:
-		overview=rules.get_genome_download_statistics.output.overview
-	output:
-		checkpoint = "results/checkpoints/rename_assemblies.done",
-		statistics = "results/statistics/species_not_downloaded.txt",
-		statistics_local = "results/statistics/local_species.txt"
-	benchmark:
-		"results/statistics/benchmarks/setup/rename_assemblies.txt"
-	params:
-		#downloaded_species = get_species_names_rename,
-		local_species = get_local_species_names_rename,
-		wd = os.getcwd()
-	shell:
-		"""
-		mkdir -p results/assemblies
-		for spe in $(grep ",success" {input.overview}); do
-			sp=$(echo $spe | awk -F',' '{{print $1}}')
-			if [[ -f {params.wd}/results/assemblies/"$sp".fasta.gz ]]; then
-				continue
+if config["orthology"]["method"] == "busco":
+	rule download_genome_overview:
+		output:
+			overview = "results/downloaded_genomes/assembly_summary_genbank.txt"
+		singularity: containers["biopython"]
+		log:
+			"log/setup/download_genomes_overview.log"
+		threads: 2
+		params:
+			wd = os.getcwd(),
+			email = config["email"]
+		shell:
+			"""
+			python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --overview-only 2>&1 | tee {log}
+			"""
+	
+	rule download_genomes:
+		input:
+			config["species"],
+			rules.download_genome_overview.output.overview
+		output:
+			checkpoint = "results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done",
+			download_overview = "results/downloaded_genomes/download_overview_{batch}.txt",
+			success = "results/downloaded_genomes/successfully_downloaded_{batch}.txt",
+			failed = "results/downloaded_genomes/not_downloaded_{batch}.txt"
+	#	benchmark:
+	#		"results/statistics/benchmarks/setup/download_genomes.txt"
+		singularity: containers["biopython"]
+		log:
+			"log/setup/download_genomes_{batch}-"+str(config["concurrency"])+".log"
+		params:
+			species = get_species_names,
+			wd = os.getcwd(),
+			email = config["email"],
+			batch = "{batch}"
+		shell:
+			"""
+			if [[ ! -f results/statistics/runlog.txt ]]; then if [[ ! -d results/statistics ]]; then mkdir -p results/statistics; fi; touch results/statistics/runlog.txt; fi
+			if [[ "{params.species}" != "" ]]; then
+				echo "$(date) - Setup: Will download species now - batch: {params.batch}" >> results/statistics/runlog.txt
+				python bin/genome_download.py --entrez_email {params.email} --outdir {params.wd}/results/downloaded_genomes/ --genomes {params.species} --batch {params.batch} 2>&1 | tee {log}
 			else
-				link="{params.wd}/results/downloaded_genomes/"$sp"_genomic_genbank.fna.gz"
-				if [[ ! -f "$link" ]]; then
-					echo "$sp" >> {output.statistics} 
+				# need to touch these files, since they are usually produced by the python script.
+				touch {output.success}
+				touch {output.download_overview}
+				touch {output.failed}
+				echo "$(date) - Setup: No species to download." >> results/statistics/runlog.txt
+			fi
+			if [[ ! -d results/checkpoints/genome_download ]]; then mkdir -p results/checkpoints/genome_download; fi # sometimes this folder is not created, better do it to be safe.
+			touch {output.checkpoint}
+			"""
+	
+	rule get_genome_download_statistics:
+		input:
+			checkpoints = expand(rules.download_genomes.output.checkpoint, batch=batches)
+		output:
+			statistics = "results/statistics/downloaded_genomes_statistics.txt",
+			success = "results/downloaded_genomes/successfully_downloaded.txt",
+			failed = "results/downloaded_genomes/not_downloaded.txt",
+			overview = "results/downloaded_genomes/download_overview.txt"
+		params:
+			checkpoints = expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
+			success = expand("results/downloaded_genomes/successfully_downloaded_{b}.txt", b=batches),
+			overview = expand("results/downloaded_genomes/download_overview_{b}.txt", b=batches),
+			failed = expand("results/downloaded_genomes/not_downloaded_{b}.txt", b=batches)
+			
+		benchmark:
+			"results/statistics/setup/get_genome_download_statistics.txt"
+		shell:
+			"""
+			if [[ -z "{input}" ]]; then
+				echo "All genomes local. Will touch empty output files."
+				echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
+				touch {output.success}
+				touch {output.failed}
+				touch {output.overview}
+			else
+				cat {params.success} > {output.success}
+				cat {params.failed} > {output.failed}	
+				cat {params.overview} > {output.overview}
+				echo "name\tid\tassembly_accession\tbioproject\tbiosample\twgs_master\trefseq_category\ttaxid\tspecies_taxid\torganism_name\tinfraspecific_name\tisolate\tversion_status\tassembly_level\trelease_type\tgenome_rep\tseq_rel_date\tasm_name\tsubmitter\tgbrs_paired_asm\tpaired_asm_comp\tftp_path" > {output.statistics}
+				for file in $(ls results/downloaded_genomes/*_db_genbank.tsv); 
+					do
+						echo "---- Adding info ----"
+						echo "file: "$file
+						species=$(echo $file | awk -F '_db_' '{{print $1}}' | awk -F '/' '{{print $(NF)}}')
+						
+						echo "species: "$species
+						if [[ -f "results/downloaded_genomes/"$species"_genomic_genbank.fna.gz" ]]; then 
+							output=$(sed -n 2p $file | awk -F '\t' '{{ for (i=1;i<=20;i++) {{printf $i"\t";}} print $21}}')
+							echo $species"\t""$output" >> {output.statistics}
+						fi
+					done
+			fi
+			"""
+	
+	
+	rule rename_assemblies:
+		input:
+			overview=rules.get_genome_download_statistics.output.overview
+		output:
+			checkpoint = "results/checkpoints/rename_assemblies.done",
+			statistics = "results/statistics/species_not_downloaded.txt",
+			statistics_local = "results/statistics/local_species.txt"
+		benchmark:
+			"results/statistics/benchmarks/setup/rename_assemblies.txt"
+		params:
+			#downloaded_species = get_species_names_rename,
+			local_species = get_local_species_names_rename,
+			wd = os.getcwd()
+		shell:
+			"""
+			mkdir -p results/assemblies
+			for spe in $(grep ",success" {input.overview}); do
+				sp=$(echo $spe | awk -F',' '{{print $1}}')
+				if [[ -f {params.wd}/results/assemblies/"$sp".fasta.gz ]]; then
 					continue
 				else
-					echo "Symbolic link (downloads): $link"
-					ln -rs $link {params.wd}/results/assemblies/"$sp".fasta.gz
-				fi
-			fi
-		done	
-		for spe in {params.local_species}; do
-			sparr=(${{spe//,/ }})
-			if [[ -L {params.wd}/results/assemblies/"${{sparr[0]}}".fasta ]]; then
-				echo "${{sparr[0]}}" >> {output.statistics_local}
-				continue
-			else
-				if [[ -f "${{sparr[1]}}" ]]
-				then
-					echo "${{sparr[0]}}" >> {output.statistics_local}
-					if [[ $(./bin/check_if_inside.sh ${{sparr[1]}}) -eq 0 ]]
-					then
-						echo "Symbolic link (user provided): ${{sparr[1]}}"
-						ln -rs {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
+					link="{params.wd}/results/downloaded_genomes/"$sp"_genomic_genbank.fna.gz"
+					if [[ ! -f "$link" ]]; then
+						echo "$sp" >> {output.statistics} 
+						continue
 					else
-						echo "Copying: $(realpath ${{sparr[1]}})"
-						rsync -apuzP $(realpath "${{sparr[1]}}") results/assemblies/"${{sparr[0]}}".fasta
+						echo "Symbolic link (downloads): $link"
+						ln -rs $link {params.wd}/results/assemblies/"$sp".fasta.gz
 					fi
-				else
-					echo -e "{params.wd}/${{sparr[1]}} doesn't seem to exist - please check the path"
-					exit
 				fi
+			done	
+			for spe in {params.local_species}; do
+				sparr=(${{spe//,/ }})
+				if [[ -L {params.wd}/results/assemblies/"${{sparr[0]}}".fasta ]]; then
+					echo "${{sparr[0]}}" >> {output.statistics_local}
+					continue
+				else
+					if [[ -f "${{sparr[1]}}" ]]
+					then
+						echo "${{sparr[0]}}" >> {output.statistics_local}
+						if [[ $(./bin/check_if_inside.sh ${{sparr[1]}}) -eq 0 ]]
+						then
+							echo "Symbolic link (user provided): ${{sparr[1]}}"
+							ln -rs {params.wd}/"${{sparr[1]}}" {params.wd}/results/assemblies/"${{sparr[0]}}".fasta
+						else
+							echo "Copying: $(realpath ${{sparr[1]}})"
+							rsync -apuzP $(realpath "${{sparr[1]}}") results/assemblies/"${{sparr[0]}}".fasta
+						fi
+					else
+						echo -e "{params.wd}/${{sparr[1]}} doesn't seem to exist - please check the path"
+						exit
+					fi
+				fi
+			done
+			if [[ ! -f {output.statistics} ]]; then touch {output.statistics}; fi
+			if [[ ! -f {output.statistics_local} ]]; then touch {output.statistics_local}; fi
+			touch {output.checkpoint}
+			"""
+	
+	
+	
+	rule download_busco_set:
+		output:
+			busco_set = directory("results/orthology/busco/busco_set/"+config["orthology"]["busco_options"]["set"]),
+			checkpoint = "results/checkpoints/download_busco_set.done"
+		params:
+			set = config["orthology"]["busco_options"]["set"],
+			busco_version = config["orthology"]["busco_options"]["version"]
+		log:
+			"log/setup/download_busco_set.log"
+		benchmark:
+			"results/statistics/benchmarks/setup/dowload_busco_set.txt"
+		shell:
+			"""
+			echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
+			if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
+			mkdir {output.busco_set}
+	
+			if [ "{params.busco_version}" == "3.0.2" ]
+			then
+				base_url="https://busco.ezlab.org/v3/datasets"
+				echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
+				wget -q -c $base_url/{params.set}.tar.gz -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
+			elif [ "{params.busco_version}" == "5.2.1" ]
+			then
+				base_url="https://busco-data.ezlab.org/v5/data/lineages"
+				current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
+				echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
+				echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
+				wget -q -c $base_url/$current -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
+			else
+				echo -e "\\n######\\nPlease specify a valid BUSCO version in your config file - supported are '3.0.2' and '5.0.2'\\n######" 2>&1 | tee -a {log}
+				exit 1
 			fi
-		done
-		if [[ ! -f {output.statistics} ]]; then touch {output.statistics}; fi
-		if [[ ! -f {output.statistics_local} ]]; then touch {output.statistics_local}; fi
-		touch {output.checkpoint}
-		"""
-
-
-
-rule download_busco_set:
-	output:
-		busco_set = directory("results/orthology/busco/busco_set/"+config["orthology"]["busco_options"]["set"]),
-		checkpoint = "results/checkpoints/download_busco_set.done"
-	params:
-		set = config["orthology"]["busco_options"]["set"],
-		busco_version = config["orthology"]["busco_options"]["version"]
-	log:
-		"log/setup/download_busco_set.log"
-	benchmark:
-		"results/statistics/benchmarks/setup/dowload_busco_set.txt"
-	shell:
-		"""
-		echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
-		if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
-		mkdir {output.busco_set}
-
-		if [ "{params.busco_version}" == "3.0.2" ]
-		then
-			base_url="https://busco.ezlab.org/v3/datasets"
-			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
-			wget -q -c $base_url/{params.set}.tar.gz -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
-		elif [ "{params.busco_version}" == "5.2.1" ]
-		then
-			base_url="https://busco-data.ezlab.org/v5/data/lineages"
-			current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
-			echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
-			echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
-			wget -q -c $base_url/$current -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
-		else
-			echo -e "\\n######\\nPlease specify a valid BUSCO version in your config file - supported are '3.0.2' and '5.0.2'\\n######" 2>&1 | tee -a {log}
-			exit 1
-		fi
-
-		echo -ne "[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
-		touch {output.checkpoint}
-		"""
-
-
-rule setup:
-	input:
-		expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
-		"results/checkpoints/download_busco_set.done",
-		"results/checkpoints/rename_assemblies.done",
-		"results/statistics/downloaded_genomes_statistics.txt"
-	output:
-		"results/checkpoints/modes/phylogenomics_setup.done"
-
-	shell:
-		"""
-		touch {output}
-		mkdir -p results/statistics
-		touch "results/statistics/runlog.txt"
-		echo "$(date) - phylociraptor setup done." >> results/statistics/runlog.txt
-		"""
-
-rule add_genomes:
-	input:
-		"results/checkpoints/download_genomes.done",
-		"results/checkpoints/rename_assemblies.done",
-		"results/statistics/downloaded_genomes_statistics.txt"
-	output:
-		"results/checkpoints/modes/add_genomes.done"
-	shell:
-		"""
-		touch {output}
-		"""
-
+	
+			echo -ne "[$(date)]\\tDone!\\n" 2>&1 | tee -a {log}
+			touch {output.checkpoint}
+			"""
+	
+	
+	rule setup:
+		input:
+			expand("results/checkpoints/genome_download/download_genomes_{batch}-"+str(config["concurrency"])+".done", batch=batches),
+			"results/checkpoints/download_busco_set.done",
+			"results/checkpoints/rename_assemblies.done",
+			"results/statistics/downloaded_genomes_statistics.txt"
+		output:
+			"results/checkpoints/modes/phylogenomics_setup.done"
+	
+		shell:
+			"""
+			touch {output}
+			mkdir -p results/statistics
+			touch "results/statistics/runlog.txt"
+			echo "$(date) - phylociraptor setup done." >> results/statistics/runlog.txt
+			"""
+	
+	rule add_genomes:
+		input:
+			"results/checkpoints/download_genomes.done",
+			"results/checkpoints/rename_assemblies.done",
+			"results/statistics/downloaded_genomes_statistics.txt"
+		output:
+			"results/checkpoints/modes/add_genomes.done"
+		shell:
+			"""
+			touch {output}
+			"""
+if config["orthology"]["method"] == "orthofinder":
+	rule rename_protein_sets:
+		input:
+			files = get_all_orthofinder_inputs_files
+		output:
+			"results/checkpoints/rename_assemblies.done" # need to name that file better
+		params:
+			spnames = ",".join(samples),
+		container:
+			"docker://reslp/biopython_plus:1.77"
+		shell:
+			"""
+			mkdir -p results/renamed-sequence_files
+			bin/rename_sequences.py --filelist $(echo "{input.files}" | tr ' ' ',') --prefixlist {params.spnames} --outdir results/renamed-sequence_files
+			touch {output}
+			"""	
+	rule setup:
+		input:
+			rules.rename_protein_sets.output
+		output:
+			"results/checkpoints/modes/phylogenomics_setup.done"
+		shell:
+			"""
+			touch {output}
+			"""

@@ -27,6 +27,8 @@ download_genomes:
    mem: 2G
 rename_assemblies:
    job-name: renasse
+rename_protein_sets:
+   job-name: reprose
 download_busco_set:
    job-name: dlbuscoset
 get_genome_download_statistics:
