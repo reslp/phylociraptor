@@ -308,8 +308,8 @@ if config["orthology"]["method"] == "orthofinder":
 			"docker://reslp/biopython_plus:1.77"
 		shell:
 			"""
-			mkdir -p results/renamed-sequence_files
-			bin/rename_sequences.py --filelist $(echo "{input.files}" | tr ' ' ',') --prefixlist {params.spnames} --outdir results/renamed-sequence_files
+			mkdir -p results/renamed-protein-sets
+			bin/rename_sequences.py --filelist $(echo "{input.files}" | tr ' ' ',') --prefixlist {params.spnames} --outdir results/renamed-protein-sets
 			touch {output}
 			"""	
 	rule setup:
@@ -320,4 +320,7 @@ if config["orthology"]["method"] == "orthofinder":
 		shell:
 			"""
 			touch {output}
+			mkdir -p results/statistics
+                        touch "results/statistics/runlog.txt"
+			echo "$(date) - phylociraptor setup for orthofinder is done." >> results/statistics/runlog.txt
 			"""
