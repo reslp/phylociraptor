@@ -28,6 +28,9 @@ setup:
 run_busco:
    N: rBUSCO
    mem: 12gb
+orthofinder:
+   N: rOF
+   mem: 30gb
 aggregate_orthology:
    N: aggorth 
 extract_orthology_table:

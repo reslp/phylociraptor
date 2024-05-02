@@ -27,6 +27,9 @@ setup:
 run_busco:
    N: rBUSCO
    h_vmem: 2G
+orthofinder:
+   N: rOF
+   h_vmem: 2G
 aggregate_orthology:
    N: aggorth 
 extract_orthology_table:

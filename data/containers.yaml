@@ -1,6 +1,7 @@
 biopython: "docker://reslp/biopython_plus:1.77"
 busco3: "docker://reslp/busco:3.0.2"
 busco5: "docker://ezlabgva/busco:v5.2.1_cv1"
+orthofinder: "docker://reslp/orthofinder:2.5.5"
 clustalo: "docker://reslp/clustalo:1.2.4"
 mafft: "docker://reslp/mafft:7.464"
 muscle: "docker://reslp/muscle:5.1"

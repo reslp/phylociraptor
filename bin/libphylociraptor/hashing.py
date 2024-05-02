@@ -142,6 +142,9 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 	if config["orthology"]["method"] == "busco":
 		hashes['orthology']["global"] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters", configfi, debug=debug, wd=wd)
 
+	if config["orthology"]["method"] == "orthofinder":
+		hashes['orthology']["global"] = get_hash("", "<species,web_local,mode>species orthology,method <>orthology,exclude orthology,orthofinder_options,params", configfi, debug=debug, wd=wd)
+
 	if mode == "orthology":
 		if debug:
 			print("Gathered hashes until 'orthology':", hashes['orthology'],"\n")

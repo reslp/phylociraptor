@@ -40,6 +40,9 @@ setup:
 busco:
    job-name: rBUSCO
    mem: 30G
+orthofinder:
+   job-name: rOF
+   mem: 30G
 aggregate_orthology:
    job-name: aggorth 
 extract_orthology_table:
