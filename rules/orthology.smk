@@ -332,23 +332,24 @@ elif config["orthology"]["method"] == "orthofinder":
 		threads: config["orthology"]["threads"]
 		shell:
 			"""
-			if [[ -d results/orthofinder-{params.hash} ]]; then
-				echo "Orthofinder results folder already exists: results/orthofinder"
+			if [[ -d results/orthology/orthofinder-{params.hash} ]]; then
+				echo "Orthofinder results folder already exists: results/orthology/orthofinder-{params.hash}"
 				if [[ "{params.force}" == "yes" ]]; then
-					echo "Mode set to force, will remove old results first: results/orthofinder"
-					rm -rf results/orthofinder-{params.hash}
+					echo "Mode set to force, will remove old results first: results/orthology/orthofinder-{params.hash}"
+					rm -rf results/orthology/orthofinder-{params.hash}
 					echo "Will start new orthofinder run"
-					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthofinder-{params.hash}
+					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder-{params.hash}
 					touch {output}
 				else
 					exit 1
 				fi
 			else 
+				mkdir -p results/orthology
 				echo "Will start new orthofinder run"
-				orthofinder -f {params.proteinsets} -t {threads} -o results/orthofinder-{params.hash} {params.addorthoparams}
+				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder-{params.hash} {params.addorthoparams}
 				touch {output}
 			fi
-			cd results/orthofinder-{params.hash}
+			cd results/orthology/orthofinder-{params.hash}
 			ln -s $(find . -type d -name Results*) orthofinder-results-{params.hash}
 			"""
 		
