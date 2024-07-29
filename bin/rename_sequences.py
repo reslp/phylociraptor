@@ -22,7 +22,7 @@ for name, file in zip(names, files):
 	with open(file, "r") as f:
 		print("Renaming sequences for", name, "in", file)
 		counter = 1
-		with open(args.outdir + "/" + name + "_proteins.faa", "w") as outfile:
+		with open(args.outdir + "/" + name + ".faa", "w") as outfile:
 			for line in f:
 				line = line.strip()
 				if line.startswith(">"):

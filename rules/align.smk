@@ -18,12 +18,12 @@ print(aligner_hash)
 previous_hash = hashes['filter-orthology']["global"]
 
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas")
 
 def determine_concurrency_limit():
-	fname = "results/orthology/busco/busco_sequences_deduplicated."+previous_hash
+	fname = "results/orthology/orthology/single-copy-orthologs."+previous_hash
 	if os.path.isdir(fname):
-		ngenes = glob.glob("results/orthology/busco/busco_sequences_deduplicated"+"/*.fas")
+		ngenes = glob.glob("results/orthology/single-copy-orthologs." + previous_hash + "/*.fas")
 		ngenes = len(ngenes)
 		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
@@ -65,7 +65,7 @@ rule read_params_global:
 rule clustalo:
 		input:
 			"results/alignments/full/clustalo.{hash}/parameters.align.clustalo.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/clustalo.{hash}/{busco}_aligned.fas",
 		benchmark:
@@ -86,7 +86,7 @@ rule clustalo:
 rule mafft:
 		input:
 			"results/alignments/full/mafft.{hash}/parameters.align.mafft.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/mafft.{hash}/{busco}_aligned.fas",
 		benchmark:
@@ -106,7 +106,7 @@ rule mafft:
 rule muscle:
 		input:
 			"results/alignments/full/muscle.{hash}/parameters.align.muscle.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/muscle.{hash}/{busco}_aligned.fas",
 		benchmark:
@@ -157,14 +157,21 @@ rule get_alignment_statistics:
 		pars_sites = config["trimming"]["min_parsimony_sites"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['filter-orthology']["global"],
+		mode = config["orthology"]["method"]
 	log:	"log/align/{aligner}_{batch}_get_aligment_statistics.{hash}.txt"
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+		
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+
+		fi
 		mv results/statistics/statistics.txt {output.statistics_alignment}
 		# make this output tab delimited so it is easier to parse
 		ovstats="{params.alignment_method}"

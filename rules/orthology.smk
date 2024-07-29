@@ -117,9 +117,9 @@ current_hash = hashes["orthology"]["global"]
 ###############
 rule read_params_global:
 	input:
-		compare("results/orthology/busco/parameters.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
+		compare("results/orthology/parameters.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
 	output:
-		"results/orthology/busco/parameters.orthology."+current_hash+".yaml"
+		"results/orthology/parameters.orthology."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input[0]} {output} species orthology,method orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters
@@ -332,24 +332,24 @@ elif config["orthology"]["method"] == "orthofinder":
 		threads: config["orthology"]["threads"]
 		shell:
 			"""
-			if [[ -d results/orthology/orthofinder-{params.hash} ]]; then
-				echo "Orthofinder results folder already exists: results/orthology/orthofinder-{params.hash}"
+			if [[ -d results/orthology/orthofinder/orthofinder-{params.hash} ]]; then
+				echo "Orthofinder results folder already exists: results/orthology/orthofinder/orthofinder-{params.hash}"
 				if [[ "{params.force}" == "yes" ]]; then
-					echo "Mode set to force, will remove old results first: results/orthology/orthofinder-{params.hash}"
-					rm -rf results/orthology/orthofinder-{params.hash}
+					echo "Mode set to force, will remove old results first: results/orthology/orthofinder/orthofinder-{params.hash}"
+					rm -rf results/orthology/orthofinder/orthofinder-{params.hash}
 					echo "Will start new orthofinder run"
-					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder-{params.hash}
+					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash}
 					touch {output}
 				else
 					exit 1
 				fi
 			else 
-				mkdir -p results/orthology
+				mkdir -p results/orthology/orthofinder
 				echo "Will start new orthofinder run"
-				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder-{params.hash} {params.addorthoparams}
+				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash} {params.addorthoparams}
 				touch {output}
 			fi
-			cd results/orthology/orthofinder-{params.hash}
+			cd results/orthology/orthofinder/orthofinder-{params.hash}
 			ln -s $(find . -type d -name Results*) orthofinder-results-{params.hash}
 			"""
 		
@@ -395,14 +395,19 @@ if config["orthology"]["method"] == "busco":
 				printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
 			"""
 else:
-	rule aggregate_orthology:
+	rule extract_orthology_table:
 		input:
-			"results/checkpoints/orthofinder." + current_hash + ".done"
+			"results/checkpoints/orthofinder." + current_hash + ".done",
+			params = rules.read_params_global.output
 		output:
 			"results/orthology/orthology_table." + current_hash + ".txt"
+		params:
+			of = "results/orthology/orthofinder/orthofinder-" + current_hash + "/orthofinder-results-"+ current_hash + "/Orthogroups/Orthogroups.GeneCount.tsv"
+		singularity:
+			containers["biopython"]
 		shell:
 			"""
-			touch {output}
+			bin/extract_orthofinder_table.py --of {params.of} -o {output}
 			"""
 			
 	

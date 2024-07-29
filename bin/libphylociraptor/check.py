@@ -33,7 +33,7 @@ def return_results_location(mode = "", hashes={}, debug=False, verbose=False):
 	if mode == "orthology":
 		return "  ./results/orthology/orthology_table." + hashes[mode]["global"] + ".txt"
 	if mode == "filter-orthology":
-		out = "  ./results/orthology/busco/busco_sequences_deduplicated." + hashes[mode]["global"] + "\n"
+		out = "  ./results/orthology/single-copy-orthologs." + hashes[mode]["global"] + "\n"
 		return out.rstrip()
 	if mode == "align":
 		out = ""
@@ -105,7 +105,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 		# first get all sequences files after filter-orthology
 		if not os.path.isdir("results/alignments"):
 			return
-		for gene in os.listdir("results/orthology/busco/busco_sequences_deduplicated."+previous_hashes[previous_mode]["global"]+"/"):
+		for gene in os.listdir("results/orthology/single-copy-orthologs."+previous_hashes[previous_mode]["global"]+"/"):
 			gene = os.path.splitext(gene)[0]
 			genes.append(gene.split("_")[0])
 		# now check if the same files are in align
