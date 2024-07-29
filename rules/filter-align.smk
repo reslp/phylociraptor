@@ -19,7 +19,7 @@ current_hash = hashes['filter-align']["global"]
 trimmed_hashes = hashes['filter-align']["per-trimming"]
 filtered_hashes = hashes['filter-align']["per"]
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs."+filter_orthology_hash+"/{busco}_all.fas")
 
 def previous_params_global(wildcards):
 	return "results/alignments/full/parameters.align."+previous_hash+".yaml"
@@ -104,8 +104,10 @@ def return_aligner_checkpoint(wildcards):
 
 def return_bmge_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-bmge."+trimmed_hashes["bmge"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-bmge."+trimmed_hashes["bmge"][wildcards.aligner]+".yaml"
+
 def return_trimal_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-trimal."+trimmed_hashes["trimal"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-trimal."+trimmed_hashes["trimal"][wildcards.aligner]+".yaml"
+
 def return_aliscore_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-aliscore."+trimmed_hashes["aliscore"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-aliscore."+trimmed_hashes["aliscore"][wildcards.aligner]+".yaml"
 
@@ -228,13 +230,19 @@ rule get_trimmed_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['orthology']["global"],
+		mode = config["orthology"]["method"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		fi
+
 		mv results/statistics/statistics.txt {output.statistics_trimmed}
 		"""
 
@@ -327,13 +335,18 @@ rule get_filter_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['orthology']["global"],
+		mode = config["orthology"]["method"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		fi
 		mv results/statistics/statistics.txt {output.statistics_filtered}
 		"""
 
