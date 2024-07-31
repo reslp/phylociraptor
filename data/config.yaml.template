@@ -41,6 +41,7 @@ alignment:
         mafft: "--quiet --auto"
         clustalo: ""
         muscle: ""
+        tcoffee: ""
 
 # possible trimming options: trimal, aliscore
 trimming: 

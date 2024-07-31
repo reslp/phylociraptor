@@ -39,6 +39,7 @@ alignment:
         mafft: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
         clustalo: 
         muscle: 
+        tcoffee:
 
 # possible trimming options: trimal, aliscore, bmge
 trimming: 
