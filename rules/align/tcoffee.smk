@@ -9,7 +9,7 @@ rule tcoffee:
 		log:
 			"log/align/tcoffee/tcoffee_align_{busco}.{hash}.log.txt"
 		singularity:
-			"docker://reslp/tcoffee:13.46.0.919e8c6b"
+			containers["tcoffee"]
 		threads:
 			int(config["alignment"]["threads"])
 		params:

@@ -14,3 +14,5 @@ phylobayes: "docker://reslp/phylobayes-mpi:git_dca7bdf"
 astral: "docker://reslp/astral:5.7.1"
 quicktree: "docker://reslp/quicktree:2.5"
 bmge: "docker://reslp/bmge:1.12"
+tcoffee: "docker://reslp/tcoffee:13.46.0.919e8c6b"
+
