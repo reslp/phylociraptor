@@ -56,6 +56,9 @@ mafft:
 clustalo:
    N: clo
    mem: 10gb
+tcoffee: 
+   N: tco
+   mem: 10gb
 aggregate_alignments:
    N: aggalgn
    mem: 10gb
@@ -70,6 +73,9 @@ trimal:
    mem: 10gb
 aliscore:
    N: aliscore
+   mem: 10gb
+clipkit:
+   N: clipkit
    mem: 10gb
 get_trimmed_statistics:
    N: gettristat

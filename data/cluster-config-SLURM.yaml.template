@@ -77,6 +77,10 @@ muscle:
    job-name: mus
    time: "02:00:00"
    mem: 10G
+tcoffee:
+   job-name: tco
+   time: "02:00:00"
+   mem: 10G
 aggregate_alignments:
    job-name: aggalgn
    mem: 4G
@@ -103,6 +107,10 @@ aliscore:
    time: "24:00:00"
 bmge:
    job-name: bmge
+   mem: 20G
+   time: "24:00:00"
+clipkit:
+   job-name: clipkit
    mem: 20G
    time: "24:00:00"
 get_trimmed_statistics:
