@@ -20,6 +20,7 @@ Phylociraptor performs every step of a typical phylogenomic analysis.
 * It calculates the best substitution model for single-gene alignments.
 * It automatically produces all input and runs iqtree and raxml to create concatenated Maximum-Likelihood phylogenies.
 * It provides extensive reports for each analysis step combined in a single HTML file which can be viewed in a Web Browser.
+* It provides multiple tools to analyze, compare and visualize phylogenetic trees.
 * Most steps are highly parallelized and it is possible to get from a list of hundreds of taxa to a phylogenomic tree in a few days. 
 
 ---------------------------------------------
@@ -45,12 +46,14 @@ dependencies:
 * mafft 7.464 - `https://mafft.cbrc.jp/alignment/software/ <https://mafft.cbrc.jp/alignment/software/>`_
 * clustalo 1.2.4 - `http://www.clustal.org/omega/ <http://www.clustal.org/omega/>`_
 * muscle 5.1 - `https://drive5.com/muscle5/ <https://drive5.com/muscle5/>`_
+* tcoffee 13.46.0.919e8c6b - `https://github.com/cbcrg/tcoffee <https://github.com/cbcrg/tcoffee>`_
 
 **Trimming:**
 
 * trimal 1.4.1 - `http://trimal.cgenomics.org/ <http://trimal.cgenomics.org/>`_
 * Aliscore/Alicut 2.31 - `https://www.zfmk.de/en/research/research-centres-and-groups/aliscore <https://www.zfmk.de/en/research/research-centres-and-groups/aliscore>`_ - `https://github.com/PatrickKueck/AliCUT <https://github.com/PatrickKueck/AliCUT>`_
 * bmge 1.12 - `https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/ <https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/>`_
+* ClipKit 2.3.0 - `https://github.com/JLSteenwyk/ClipKIT <https://github.com/JLSteenwyk/ClipKIT>`_
 
 **Tree inference:**
 
