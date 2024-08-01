@@ -59,6 +59,7 @@ Trimming:
 - trimAl 1.4.1 (http://trimal.cgenomics.org/)
 - Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
 - BMGE 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
+- ClipKit 2.3.0 (https://github.com/JLSteenwyk/ClipKIT)
 
 Tree inference:
 

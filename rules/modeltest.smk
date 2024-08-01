@@ -138,7 +138,7 @@ rule iqtree_mt:
 	shell:
 		"""
 		if [[ ! -d {params.target_dir} ]]; then mkdir -p {params.target_dir}; fi
-		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/{params.target_dir}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
+		iqtree --redo -s {input.alignment} -msub nuclear --prefix {params.wd}/{params.target_dir}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
 		touch {output.checkpoint}
 		"""
 

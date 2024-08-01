@@ -33,7 +33,8 @@ filtering:
     seq_type: "aa"
     exclude_orthology: "data/exclude.focus_Neodermata.csv" #"data/exclude.small_outgroup.csv"
 
-# settings related to alignment and trimming
+# settings related to creating alignments
+# possible options: clustalo, mafft, muscle, tcoffee
 alignment:
     method: ["clustalo","mafft","muscle"] #, "clustalo", "muscle"]
     threads: 2
@@ -43,13 +44,16 @@ alignment:
         muscle: ""
         tcoffee: ""
 
-# possible trimming options: trimal, aliscore
+# settings related to alignment trimming and filtering
+# possible trimming options: trimal, aliscore, bmge, clipkit
 trimming: 
     method: ["trimal", "aliscore", "bmge"] 
     options:
         trimal: "-gappyout"
         aliscore: ""
         bmge: ""
+        clipkit: ""
+    minsp: 4 # 4 is the minimum number of taxa needed by the modeltest step.
     min_parsimony_sites: 50
     max_rcv_score: 1 # Relative composition variability. Between 0 (filtering everything) and 1 (filter nothing).
 
