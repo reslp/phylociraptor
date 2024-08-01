@@ -1,0 +1,6 @@
+species,web_local,mode
+Mycoplasma_agalactiae,data/protein_sets/Mycoplasma_agalactiae_5632_FP671138.faa,protein
+Mycoplasma_genitalium,data/protein_sets/Mycoplasma_genitalium_uid97_L43967.faa,protein
+Mycoplasma_hyopneumoniae,data/protein_sets/Mycoplasma_hyopneumoniae_AE017243.faa,protein
+Mycoplasma_struthionis,data/protein_sets/Mycoplasma_struthionis_GCF_003855455.1.faa,protein
+Mycoplasma_tauri,data/protein_sets/Mycoplasma_tauri_GCF_016925555.1.faa,protein
