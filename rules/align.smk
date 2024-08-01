@@ -149,4 +149,4 @@ rule align:
 
 for aligner in config["alignment"]["method"]:
 	print(aligner)
-	include: "align/" + aligner + ".smk"
+	include: "aligners/" + aligner + ".smk"

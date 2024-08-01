@@ -24,7 +24,7 @@ Steps to add a new aligner
 
 The required steps to add a new aligner include:
 
-1. Creating a new rule file or modifying an old one for the aligner and placing it in the ``rules/align/`` directory.
+1. Creating a new rule file or modifying an old one for the aligner and placing it in the ``rules/aligners/`` directory.
 2. Creating a new entry in the ``config.yaml.template`` file you would like to use.
 
 Optional steps:
@@ -52,8 +52,8 @@ First we need to make a copy of the file which we will later modify.
 
 .. code-block:: bash
 
-	$ cp rules/align/clustalo.smk rules/align/MYALIGNER.smk 
-        $ cat rules/align/MYALIGNER.smk
+	$ cp rules/aligners/clustalo.smk rules/aligners/MYALIGNER.smk 
+        $ cat rules/aligners/MYALIGNER.smk
         rule clustalo:
 		input:
 			"results/alignments/full/clustalo.{hash}/parameters.align.clustalo.{hash}.yaml",
