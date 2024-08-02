@@ -13,7 +13,6 @@ with open("data/containers.yaml", "r") as yaml_stream:
 hashes = collect_hashes("align", config, configfi, wd=os.getcwd())
 current_hash = hashes["align"]["global"]
 aligner_hash = hashes["align"]["per"]
-print(aligner_hash)
 #previous hash
 previous_hash = hashes['filter-orthology']["global"]
 
@@ -148,5 +147,4 @@ rule align:
 		"""
 
 for aligner in config["alignment"]["method"]:
-	print(aligner)
 	include: "aligners/" + aligner + ".smk"
