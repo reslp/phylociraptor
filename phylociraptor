@@ -48,7 +48,6 @@ def help_message(mes):
 	return mes
 
 def determine_submission_mode(flag):
-	cmd = []
 	if "serial" in flag:
 		return ["--cores" + flag.replace("serial","")]
 	elif "local" in flag:
@@ -59,8 +58,40 @@ def determine_submission_mode(flag):
 		return ["--cluster", 'bin/immediate-submit/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 
 def get_flags(flags):
+	if flags["config_file"]:
+		config_data = parse_config_file(flags["config_file"])
+	# first check cluster setting
+	if "cluster" in config_data.keys() and flags["cluster"] == None: #this assumes a cluster setting is provided in the config file
+		if config_data["cluster"] != None and config_data["cluster"] != "": # the provided entry is assumed to be valid
+			flags["cluster"] = config_data["cluster"]
+		else: # the provided entry is empty => revert to default which is local
+			print(now(), "No cluster has been specified in the provided config file. Will revert to default (local).")
+			flags["cluster"] = "local"
+	if "cluster" not in config_data.keys() and flags["cluster"] == None: # this assumes that nothing was specified (neither in config nor in cli) 
+		flags["cluster"] = "local"
+
+	# now check cluster config file
+	if "local" not in flags["cluster"] and "serial" not in flags["cluster"]: # this assumes that cluster submission is desired. (no local or serial specified)
+		print(now(), "Cluster submission specified (" +flags["cluster"] + ")")
+		if flags["cluster_config"] == None: # no cluster-config file specified at CLI
+			if "cluster-config" in config_data.keys(): # 1. check if file is provided in config file
+				if config_data["cluster-config"] != None and config_data["cluster-config"] != "":
+					flags["cluster_config"] = config_data["cluster-config"]
+					print(now(), "Using cluster config file: " + flags["cluster_config"])
+			else:
+				print(now(), "WARNING: No cluster config file specified. Will use default template for cluster type:", cluster_config_defaults[flags["cluster"]])
+				flags["cluster_config"] = cluster_config_defaults[flags["cluster"]]
+		else:
+				print(now(), "Using cluster config file: " + flags["cluster_config"])
+
+
+
+					
+
+
+	else:
+		print(now(), "Local job execution specified (" + flags["cluster"] + ")")
 	mapdict ={
-	#"t": '--cluster "bin/immediate_submit.py {dependencies} ', "cluster": '--cluster "bin/immediate_submit.py {dependencies} ',
 	"c": "--cluster-config", "cluster_config": "--cluster-config",
 	"FORCE": "-F",
 	"force": "-f",
@@ -69,16 +100,6 @@ def get_flags(flags):
 	cmd = []
 	if debug:
 		print(now(), "DEBUG: flags: ", flags)
-	if flags["cluster_config"] == None and not "serial" in flags["cluster"] and not "local" in flags["cluster"]: #in case no cluster config file was specified, get default value
-		ccf = cluster_config_defaults[flags["cluster"]]
-		flags["cluster_config"] = ccf
-		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
-	else:
-		ccf = flags["cluster_config"]
-		if ccf != None:
-			if not os.path.isfile(ccf):
-				print(now(), "ERROR: Specified cluster config file:", ccf, "not found.")
-				sys.exit(1)
 	for flag in flags.keys():
 		if flag in mapdict.keys() and flags[flag] != None:
 			if flag == "t" or flag == "cluster": #handle cluster specification
@@ -86,15 +107,15 @@ def get_flags(flags):
 				arg = arg + " "+flags[flag]+'"'
 				cmd.append(arg) 
 			if flag == "c" or flag == "cluster_config": #handle cluster config file
-				#print("here")
-				#arg = mapdict[flag]
-				#arg = arg + " " + flags[flag]
 				cmd.append(mapdict[flag])
-				cmd.append(ccf)
+				cmd.append(flags["cluster_config"])
 			else:
 				if flags[flag]:
 					cmd.append(mapdict[flag])
-	
+	cmd += determine_submission_mode(flags["cluster"])
+	if debug:
+		print(now(), "DEBUG: Flags from get_flags:", cmd)	
+
 	return cmd
 
 def check_required_files(runmode, previous_runmode, args):
@@ -381,8 +402,8 @@ class PhyloParser(argparse.ArgumentParser):
 		super().__init__(**kwargs)
 		self.add_argument("-f", "--force", action="store_true" )
 		self.add_argument("-F", "--FORCE", action="store_true" )
-		self.add_argument("-t", "--cluster",  action="store", default="local")
-		self.add_argument("-c", "--cluster-config", action="store")
+		self.add_argument("-t", "--cluster",  action="store", default=None)
+		self.add_argument("-c", "--cluster-config", action="store", default=None)
 		self.add_argument("--dry", action="store_true")
 		self.add_argument("-h", "--help", action="store_true")
 		self.add_argument("--verbose", action="store_true", default=False)	
@@ -429,7 +450,6 @@ if args.command == "setup":
 	else:
 		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(setup_args))
-	cmd += determine_submission_mode(setup_args.cluster)
 
 	# check for overrides of config file parameters	
 	if setup_args.config_file:
@@ -465,7 +485,6 @@ elif args.command=="orthology":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(orthology_args.cluster)
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
@@ -509,7 +528,6 @@ elif args.command=="filter-orthology":
 	check_required_files(args.command, previous_steps[args.command], forthology_args)
 	
 	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "filter_orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(forthology_args.cluster)
 	cmd += get_flags(vars(forthology_args))
 	
 	# check for overrides of config file parameters	
@@ -564,7 +582,6 @@ elif args.command=="align":
 	check_required_files(args.command, previous_steps[args.command], align_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "align", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(align_args.cluster)
 	cmd += get_flags(vars(align_args))
 
 	# check for overrides of config file parameters	
@@ -610,7 +627,6 @@ elif args.command=="filter-align":
 	check_required_files(args.command, previous_steps[args.command], falign_args)
 
 	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "filter_align", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(falign_args.cluster)
 	cmd += get_flags(vars(falign_args))
 	
 	# check for overrides of config file parameters	
@@ -648,7 +664,6 @@ elif args.command=="speciestree":
 	check_required_files(args.command, previous_steps[args.command], sptree_args)
 
 	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "speciestree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
 	# check for overrides of config file parameters	
@@ -676,7 +691,6 @@ elif args.command=="njtree":
 	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
 	cmd = ["snakemake", "-s", "rules/njtree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
 	# check for overrides of config file parameters	
@@ -703,7 +717,6 @@ elif args.command=="mltree":
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
 	cmd = ["snakemake", "-s", "rules/mltree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(tree_args.cluster)
 	cmd += get_flags(vars(tree_args))
 	
 	# check for overrides of config file parameters	
@@ -731,7 +744,6 @@ elif args.command=="modeltest":
 	check_required_files(args.command, previous_steps[args.command], model_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/modeltest.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	
 	# check for overrides of config file parameters	
