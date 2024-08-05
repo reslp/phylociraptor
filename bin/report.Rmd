@@ -660,20 +660,28 @@ filterhash = all_hashes["filter-align"]["filter-align"]["global"]
 ```
 
 ```{r ext-figures, echo=FALSE, fig.width = 11.7, message=FALSE, warning=FALSE}
-#f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats.7451266150", full.names=T)
 f <- paste0("../results/statistics/filtered-alignments-stats.",py$filterhash,".txt")
-#filter-mafft-trimal.250586f87f
 if (identical(f, character(0)) == FALSE && file.exists(f) == TRUE) {
 	data <- read.csv(f, sep='\t', row.names=NULL)
 	data$alignment <- NULL  # this is wrongly formatted in the csv. needs to be corrected
 	colnames(data) <- c("combination", "alignment", "length", "nseqs", "nparsimony", "nvariable", "nfixed", "rcv")	
 	plotlist <- list()
 	i <- 1
-	cols <- c("#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#cccccc")
+	#cols <- c("#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#cccccc", "#000000" , "#000000" ,"#000000" ,"#000000" ,"#000000" ,"#000000")
+	# get unqiue number of models in dataset and create colors for them:
+	combs <- length(unique(data$combination))
+	cols <- c()
+	if (combs <= 11) {
+		# prettier colors when there are not too many different models
+		cols <- brewer.pal(combs, "BrBG")		
+	} else {
+		# we need more colors
+		color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+		cols <- sample(color, combs)
+	}
 	for (col in colnames(data))
 	{
 	  if (col == "combination" || col == "alignment") {next}
-	
 	  p <- ggplot(data,aes(x=.data[[col]]))+ geom_density(aes(color = combination), show.legend = FALSE)+stat_density(aes(x=.data[[col]], color=combination), geom="line",position="identity") + scale_color_manual(values=cols)
 	  p <- p + ggtitle(paste0(col)) 
 	  plotlist[[i]] <- p
