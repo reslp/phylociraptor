@@ -88,9 +88,16 @@ target=int(args.batchid)
 gene_file = open(args.gene_stats, "w").close()
 if args.mode == "orthofinder": # this is for orthofinder mode
 	for gene in buscos:
-		print("Copying: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
-		shutil.copy(args.busco_results + gene + ".fa", args.outdir + "/" + gene + "_all.fas")
-
+		print("Writing sequence file: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
+		with open(args.busco_results + gene + ".fa", "r") as seqfile:
+			with open(args.outdir + "/" + gene + "_all.fas", "w") as outfile:
+				for line in seqfile:
+					line = line.strip()
+					if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
+						print(line.rsplit("_", 1)[0], file=outfile)
+					else:
+						print(line, file=outfile)
+	
 if args.mode == "busco": #this if for busco mode
 	for i in range(len(buscos)):
 		j = i+1
