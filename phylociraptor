@@ -60,6 +60,9 @@ def determine_submission_mode(flag):
 def get_flags(flags):
 	if flags["config_file"]:
 		config_data = parse_config_file(flags["config_file"])
+	if flags["cluster"] == None and "cluster" not in config_data.keys():
+		print(now(), "ERROR: Please provide execution mode either in config file or -t/--cluster")
+		sys.exit(1)
 	# first check cluster setting
 	if "cluster" in config_data.keys() and flags["cluster"] == None: #this assumes a cluster setting is provided in the config file
 		if config_data["cluster"] != None and config_data["cluster"] != "": # the provided entry is assumed to be valid
@@ -230,11 +233,11 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.lstrip().startswith("wildcards:"):
 					yield "\tParameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Nothing"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if result.startswith("Job counts"):
 					jobcounts = True
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -266,7 +269,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("sbatch") or line.startswith("qsub"):
 					yield "\t%s\n" % line
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Singularity"):
@@ -283,7 +286,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("rule"):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
@@ -310,7 +313,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.lstrip().startswith("wildcards:"):
 					yield "\tParameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
 			else: # this is the quiet mode with progressbar
@@ -331,7 +334,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
 				line=""
@@ -370,9 +373,22 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+ [singularity_bindpoints]
 
 def parse_config_file(cf):
+	if not os.path.isfile(cf):
+		print(now(), "Specified config file not found:", cf)
+		sys.exit(1)
 	with open(cf) as f:
     		data = yaml.load(f, Loader=yaml.FullLoader)
 	return data
+
+def check_help_and_config(params, helpmsg):
+	if params.help: # help is specified
+		print(help_message(helpmsg))
+		sys.exit(0)
+	if params.config_file == "data/config.yaml":
+		print(now(), "No config file specified, will use default:", params.config_file)
+	else:
+		print(now(), "Will use the specified config file:", params.config_file)
+
 
 	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
@@ -438,9 +454,7 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	debug = check_debug(setup_args.debug) #check if debug is enabled
-	if setup_args.help or len(sys.argv) <= 2:
-		print(help_message(setup_help))
-		sys.exit(0)
+	check_help_and_config(setup_args, setup_help) 	
 	
 	check_required_software()
 	
@@ -479,9 +493,7 @@ elif args.command=="orthology":
 	orthology_parser.add_argument("--additional_params", action="store")
 	orthology_args = orthology_parser.parse_args(args.arguments)
 	debug = check_debug(orthology_args.debug) #check if debug is enabled
-	if orthology_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(orthology_help))
-		sys.exit(0)
+	check_help_and_config(orthology_args, orthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
@@ -521,9 +533,7 @@ elif args.command=="filter-orthology":
 	
 	forthology_args = forthology_parser.parse_args(args.arguments)	
 	debug = check_debug(forthology_args.debug) #check if debug is enabled
-	if forthology_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(forthology_help))
-		sys.exit(0)
+	check_help_and_config(forthology_args, forthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], forthology_args)
 	
@@ -575,9 +585,7 @@ elif args.command=="align":
 	align_parser.add_argument("--parameters", action="store")
 	align_args = align_parser.parse_args(args.arguments)	
 	debug = check_debug(align_args.debug) #check if debug is enabled
-	if align_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(align_help))
-		sys.exit(0)
+	check_help_and_config(align_args, align_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], align_args)
 
@@ -620,9 +628,7 @@ elif args.command=="filter-align":
 	
 	falign_args = falign_parser.parse_args(args.arguments)	
 	debug = check_debug(falign_args.debug) #check if debug is enabled
-	if falign_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(falign_help))
-		sys.exit(0)
+	check_help_and_config(falign_args, falign_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], falign_args)
 
@@ -657,9 +663,8 @@ elif args.command=="speciestree":
 	sptree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	sptree_args = sptree_parser.parse_args(args.arguments)	
 	debug = check_debug(sptree_args.debug) #check if debug is enabled
-	if sptree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(sptree_help))
-		sys.exit(0)
+	
+	check_help_and_config(sptree_args, sptree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], sptree_args)
 
@@ -684,9 +689,7 @@ elif args.command=="njtree":
 	njtree_args = njtree_parser.parse_args(args.arguments)	
 	debug = check_debug(njtree_args.debug) #check if debug is enabled
 
-	if njtree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(njtree_help))
-		sys.exit(0)
+	check_help_and_config(njtree_args, njtree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
@@ -710,9 +713,7 @@ elif args.command=="mltree":
 	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	tree_args = tree_parser.parse_args(args.arguments)	
 	debug = check_debug(tree_args.debug) #check if debug is enabled
-	if tree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(tree_help))
-		sys.exit(0)
+	check_help_and_config(tree_args, tree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
@@ -737,9 +738,7 @@ elif args.command=="modeltest":
 	model_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	model_args = model_parser.parse_args(args.arguments)	
 	debug = check_debug(model_args.debug) #check if debug is enabled
-	if model_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(model_help))
-		sys.exit(0)
+	check_help_and_config(model_args, model_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], model_args)
 
@@ -811,7 +810,7 @@ elif args.command == "check":
 	check_parser.add_argument("--debug", action="store_true", dest="debug", default=False)
 	check_args = check_parser.parse_args(args.arguments)
 	debug = check_debug(check_args.debug) #check if debug is enabled
-	
+		
 	if check_args.help: 
 		print(help_message(check_help))
 		sys.exit(0)
