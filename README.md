@@ -13,7 +13,7 @@
 
 # phylociraptor - Rapid phylogenomic tree calculator 
 
-Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
+Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO or OrthoFinder to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference using state of the art software. 
 
 ## Citation:
 
@@ -46,6 +46,7 @@ On a HPC cluster:
 Orthology inference:
 
 - BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
+- OrthoFinder 2.5.5 (https://github.com/davidemms/OrthoFinder)
 
 Alignment:
 
