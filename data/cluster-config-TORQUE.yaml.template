@@ -118,6 +118,13 @@ aggregate_gene_trees:
    N: agg_genetrees
 speciestree:
    N: SPECIESTREE
+###############
+#### bitree #### 
+phylobayes:
+   N: pb
+   mem: 100gb
+bitree:
+   job-name: bitree
 #####################
 #### njtree ####
 quicktree:

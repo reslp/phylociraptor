@@ -121,3 +121,6 @@ def get_genetree_methods():
 	else:
 		print("phylociraptor modeltest: The genetree method needs to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
 		sys.exit(1)
+
+def get_bichains():
+	return [i for i in range(1, int(config["bitree"]["chains"]["phylobayes"]))]

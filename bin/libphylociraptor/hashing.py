@@ -279,6 +279,30 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 			print(hashes['mltree'])
 		return hashes
 
+	#bitree	
+	hashes['bitree'] = {"global": "", "per": {}}
+	if mode == "bitree":
+		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
+			if debug:
+				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
+			sys.exit()
+		else:
+			hashes['bitree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff bitree,method bitree,chains bitree,options", configfi, debug=debug, wd=wd)
+			for c in config["genetree_filtering"]["bootstrap_cutoff"]:
+				c = str(c)
+				hashes['bitree']["per"][c] = {}
+				for i in config["bitree"]["method"]:
+					hashes['bitree']["per"][c][i] = {}
+					for m in hashes['modeltest']["per"].keys():
+						hashes['bitree']["per"][c][i][m] = {}
+						for t in hashes['filter-align']["per"].keys():
+							hashes['bitree']["per"][c][i][m][t] = {}
+							for a in hashes['align']["per"].keys():
+								hashes['bitree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" bitree,chains,"+i+" bitree,options,"+i, configfi, debug=debug, wd=wd)
+		if debug:
+			print("Gathered hashes until 'bitree'")
+			print(hashes['bitree'])
+		return hashes
 	#njtree	
 	hashes['njtree'] = {"global": "", "per": {}}
 	if mode == "njtree":

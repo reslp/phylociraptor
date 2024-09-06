@@ -10,12 +10,13 @@ outfile_check_dict = {
 "speciestree": ["results/checkpoints/modes/modeltest.PREVIOUS.done", "results/checkpoints/modes/speciestree.HASH.done" ],
 "njtree": ["results/checkpoints/modes/njtree.HASH.done", "results/checkpoints/modes/modeltest.PREVIOUS.done"],
 "mltree": ["results/checkpoints/modes/modeltest.PREVIOUS.done", "results/checkpoints/modes/mltree.HASH.done"],
+"bitree": ["results/checkpoints/modes/modeltest.PREVIOUS.done", "results/checkpoints/modes/bitree.HASH.done"],
 "modeltest": ["results/checkpoints/modes/filter_align.PREVIOUS.done", "results/checkpoints/modes/modeltest.HASH.done"]
 }
 
-previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "modeltest", "mltree": "modeltest", "speciestree": "modeltest"}
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "modeltest", "njtree", "speciestree", "mltree"]
-step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0}
+previous_steps = {"setup": "setup", "orthology": "setup", "filter-orthology": "orthology", "align": "filter-orthology", "filter-align": "align", "modeltest": "filter-align", "njtree": "modeltest", "mltree": "modeltest", "speciestree": "modeltest", "bitree": "modeltest"}
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "modeltest", "njtree", "speciestree", "mltree", "bitree"]
+step_status = {"setup": 0, "orthology": 0, "filter-orthology": 0, "align": 0, "filter-align": 0, "modeltest": 0, "njtree": 0, "mltree": 0, "speciestree": 0, "bitree": 0}
 
 def has_outfile(mode="", previous_mode = "", hashes={}, previous_hashes={}, debug=False, verbose=False):
 	if debug:
@@ -80,6 +81,20 @@ def return_results_location(mode = "", hashes={}, debug=False, verbose=False):
 			for bscutoff in hashes[mode]["per"]:
 				for mltree in hashes[mode]["per"][bscutoff]:
 					out += "  ./results/phylogeny/" + mltree + "/bootstrap-cutoff-" + bscutoff + "\n"
+		return out.rstrip()
+	if mode == "bitree":
+		out = ""
+		if verbose:
+			for bscutoff in hashes[mode]["per"]:
+				for mltree in hashes[mode]["per"][bscutoff]:
+					for genetree in hashes[mode]["per"][bscutoff][bitree]:
+						for trimmer in hashes[mode]["per"][bscutoff][bitree][genetree]:
+							for aligner in hashes[mode]["per"][bscutoff][bitree][genetree][trimmer]:
+								out += "  ./results/phylogeny/" + bitree + "/bootstrap-cutoff-" + bscutoff + "/" +  aligner + "-" + trimmer + "." + hashes[mode]["per"][bscutoff][bitree][genetree][trimmer][aligner] + "\n"
+		else:
+			for bscutoff in hashes[mode]["per"]:
+				for mltree in hashes[mode]["per"][bscutoff]:
+					out += "  ./results/phylogeny/" + bitree + "/bootstrap-cutoff-" + bscutoff + "\n"
 		return out.rstrip()
 	if mode == "speciestree":
 		out = ""
@@ -262,6 +277,31 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 						print("\tTotal number of missing RAxML-NG trees:", len(missing))
 					else:
 						print("\tAll RAxML-NG trees finished.")
+	if mode == "bitree":
+		for bs in hashes[mode]["per"].keys():
+			print(" Bootstrap-cutoff:", bs)
+			missing = []
+			if "phylobayes" in hashes[mode]["per"][bs].keys(): # this can be made more efficient!
+				if not os.path.isdir("results/phylogeny/phylobayes/bootstrap-cutoff-"+bs):
+					print("\tPhylobayes analysis for boostrap-cutoff "+bs+" not yet started.")
+				else:
+					for trimmer in hashes[mode]["per"][bs]["phylobayes"]["iqtree"].keys(): #not sure why iqtree is in this
+						for aligner in hashes[mode]["per"][bs]["phylobayes"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
+							alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
+							genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
+							mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["phylobayes"]["iqtree"][trimmer][aligner]	
+							if os.path.isfile("results/phylogeny/phylobayes/bootstrap-cutoff-"+bs+"/"+mltree+"/concat.contree"):
+								if verbose:
+									print("\tPhylobayes tree for", bitree, "done.")
+							else:
+								missing.append(bitree)
+								if verbose:
+									print("\tMissing Phylobayes tree for", bitree)
+					if len(missing) > 0:
+						print("\tTotal number of missing Phylobayes trees:", len(missing))
+					else:
+						print("\tAll Phylobayes trees finished.")
+			print()
 	if mode == "speciestree":
 		for bs in hashes[mode]["per"].keys():
 			print(" Bootstrap-cutoff:", bs)

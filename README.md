@@ -68,6 +68,7 @@ Tree inference:
 - RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
 - ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
 - Quicktree 2.5 (https://github.com/khowe/quicktree)
+- Phylobayes-MPI 1.9 (https://github.com/bayesiancook/pbmpi)
 
 
 ## Installing phylociraptor
@@ -115,6 +116,7 @@ Commands:
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate species trees
 	njtree			Calculate Neighbor-Joining trees
+        bitree                  Calculate Bayesian-inference phylogenomic trees
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run

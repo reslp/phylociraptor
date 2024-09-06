@@ -32,7 +32,6 @@ latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
 debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
-rphylocontainer="docker://reslp/rphylogenetics:4.0.3-strict-versions"
 
 def now():
 	return time.strftime("%Y-%m-%d %H:%M") + " -"
@@ -124,7 +123,7 @@ def get_flags(flags):
 def check_required_files(runmode, previous_runmode, args):
 	if args.debug:
 		print(now(), "DEBUG: Checking required files for:", runmode, "as they should be present")
-	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file, wd=os.getcwd()) 
+	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file, wd=os.getcwd(), debug=args.debug) 
 	currenthash = hashes[previous_runmode]["global"]
 	for f in outfile_dict[runmode]:
 		if currenthash != "":
@@ -216,7 +215,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 	char = ""
 	nline = 0
 	curr_task = 0
-	verbose = True # there are some problems with the progress bar functionality, until this is fixed verbose is the default.
+	#verbose = True # there are some problems with the progress bar functionality, until this is fixed verbose is the default.
 	if not os.path.isdir("log/phylociraptor"):
 		os.mkdir("log/phylociraptor")
 	if "-n" in cmd:
@@ -379,6 +378,22 @@ def parse_config_file(cf):
 	with open(cf) as f:
     		data = yaml.load(f, Loader=yaml.FullLoader)
 	return data
+
+def get_container(container):
+	containerfile = "data/containers.yaml"
+	if not os.path.isfile(containerfile):
+		print(now(), "The containers file is missing:", containerfile)
+		print(now(), "Unable to continue.")
+		sys.exit(1)
+	with open(containerfile) as f:
+		data = yaml.load(f, Loader=yaml.FullLoader)
+		if container in data.keys():
+			return data[container]
+		else:
+			print(now(), "Container", container, "not found in containersfile:", containerfile)
+			print(now(), "Unable to continue with requested command.")
+			sys.exit(1)
+		
 
 def check_help_and_config(params, helpmsg):
 	if params.help: # help is specified
@@ -732,6 +747,31 @@ elif args.command=="mltree":
                 print(line, end="\r")
 	if debug:
 		print(now(),"DEBUG:", " ".join(cmd))
+elif args.command=="bitree":
+	print(now(), "Welcome to phylociraptor bitree v%s" % version)
+	tree_parser = PhyloParser(add_help=False)
+	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
+	tree_args = tree_parser.parse_args(args.arguments)	
+	debug = check_debug(tree_args.debug) #check if debug is enabled
+	check_help_and_config(tree_args, bitree_help) 	
+	check_required_software()
+	check_required_files(args.command, previous_steps[args.command], tree_args)
+
+	cmd = ["snakemake", "-s", "rules/bitree.smk", "--use-singularity", "-r", "bitree", "--latency-wait", latency_wait]
+	cmd += get_flags(vars(tree_args))
+	
+	# check for overrides of config file parameters	
+	if tree_args.config_file:
+		cmd += check_config_file(tree_args.config_file)
+	
+	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun, tree_args.unlock)
+	cmd += get_additional_singularity_flags(tree_args.si_args)
+	
+	
+	for line in execute_command(cmd, tree_args.verbose, config=tree_args.config_file):
+                print(line, end="\r")
+	if debug:
+		print(now(),"DEBUG:", " ".join(cmd))
 elif args.command=="modeltest":
 	print(now(), "Welcome to phylociraptor modeltest v%s" % version)
 	model_parser = PhyloParser(add_help=False)
@@ -942,11 +982,13 @@ elif args.command == "util":
 					for trimmer in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"]:
 						for aligner in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer]:
 							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/species_tree.tre")
+			## TODO: Add logic for bitrees here to get all combinations!!
 			# now check which files are there in the file system:
 			iqtree_trees = glob.glob("results/phylogeny/iqtree/bootstrap-cutoff-*/*/concat.contree")
 			raxml_trees =  glob.glob("results/phylogeny/raxml/bootstrap-cutoff-*/*/raxmlng.raxml.support")
 			astral_trees = glob.glob("results/phylogeny/astral/bootstrap-cutoff-*/*/species_tree.tre")
-			all_trees = iqtree_trees + raxml_trees + astral_trees
+			bi_trees = glob.glob("results/phylogeny/phylobayes/bootstrap-cutoff-*/*/phylobayes.con.tre")
+			all_trees = iqtree_trees + raxml_trees + astral_trees + bi_trees
 			all_trees = [tree for tree in all_trees if tree in combinations] #keep only files which are specified in config file.
 			all_trees = ",".join(all_trees)
 		else:
@@ -1026,7 +1068,7 @@ elif args.command == "util":
 		else:
 			single = "no"
 
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-tree.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix, single]
 
 		if debug and qs_args.verbose:
@@ -1063,7 +1105,7 @@ elif args.command == "util":
 			print(now(), "Hint: You need to provide the treelist file.")
 			sys.exit(1)
 		
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-conflict.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-conflict.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
 
 		if debug and qs_args.verbose:
@@ -1084,7 +1126,7 @@ elif args.command == "util":
 			print(now(), "Hint: You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, str(qs_args.decimalplaces)]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, str(qs_args.decimalplaces)]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):
@@ -1104,7 +1146,7 @@ elif args.command == "util":
 			print(now(), "You have to provide the treelist file created with phylociraptor util estimate-conflict with -r/--treelist")
 			print(help_message(util_plot_pca_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):
@@ -1146,7 +1188,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help:
-			print(help_message(util_modify_busco_help))
+			print(help_message(util_manage_jobs_help))
 			sys.exit(0)
 		if not qs_args.logfile:
 			list_of_files = glob.glob('log/phylociraptor/*')
@@ -1161,6 +1203,156 @@ elif args.command == "util":
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, None, True):
+			print(line, end="\r")
+	if which_util == "tracecomp":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-x","--burnin", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		tracefiles=[]
+		for folder in folderlist:
+			tracefiles += glob.glob(folder + "chain-*/*.trace")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			tracefiles = [tracefile for chain in whichchains for tracefile in tracefiles if chain in tracefile]
+				
+		print(now(), "Found "+ str(len(tracefiles)) +" trace files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("phylobayes"), "tracecomp"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile, ".contdiff")
+			cmd += ["-o", qs_args.outfile]
+		cmd += tracefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
+			print(line, end="\r")
+	if which_util == "bpcomp":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-c","--cutoff", action="store", default=None)
+		qs_parser.add_argument("-x", "--burnin", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		treefiles=[]
+		for folder in folderlist:
+			treefiles += glob.glob(folder + "chain-*/*.treelist")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			treefiles = [treefile for chain in whichchains for treefile in treefiles if chain in treefile]
+		print(now(), "Found "+ str(len(treefiles)) +" treelist files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("phylobayes"), "bpcomp"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.cutoff:
+			print(now(), "Will use provided partition probability cutoff:", qs_args.burnin)
+			cmd += ["-c", qs_args.cutoff]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile + ".con.tre and", qs_args.outfile + ".bplist")
+			cmd += ["-o", qs_args.outfile]
+		else:
+			folder = set(folderlist)
+			if len(folder) == 1:
+				folder = next(iter(folder))
+				print(now(), "Will write output to file:", folder+ "phylobayes.con.tre and", folder + "phylobayes.bplist")
+				cmd += ["-o", folder+"phylobayes"]
+		cmd += treefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
+			print(line, end="\r")
+	if which_util == "viewtrace":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-x", "--burnin", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		tracefiles=[]
+		for folder in folderlist:
+			tracefiles += glob.glob(folder + "chain-*/*.trace")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			tracefiles = [tracefile for chain in whichchains for tracefile in tracefiles if chain in tracefile]
+				
+		print(now(), "Found "+ str(len(tracefiles)) +" trace files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("gnuplot"), "gnuplot", "-p", "-e", "'set", "terminal", "dumb", "size", "120,", "30;", "set", "autoscale;", "plot", "\'-\'", "using", "1:4", "with", "lines", "notitle'"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile, ".contdiff")
+			cmd += ["-o", qs_args.outfile]
+		cmd += tracefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
 			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)

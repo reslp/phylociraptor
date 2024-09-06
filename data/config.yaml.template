@@ -95,3 +95,15 @@ njtree:
     options:
         quicktree: ""
 
+bitree:
+    method: ["phylobayes"]
+    threads:
+        phylobayes: 12 
+    chains:
+        phylobayes: 4
+    generations:
+        phylobayes: 10000
+    sampling:
+        phylobayes: 10
+    options:
+        phylobayes: "-cat -gtr"

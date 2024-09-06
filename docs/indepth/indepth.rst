@@ -32,6 +32,7 @@ A phylociraptor analysis is split into different parts, which also correspond to
 	$ phylociraptor modeltest
 	$ phylociraptor njtree
         $ phylocirpator mltree
+        $ phylocirpator bitree
         $ phylocirpator speciestree
 	$ phylociraptor check
 	$ phylociraptor report
@@ -114,6 +115,13 @@ speciestree (Calculate species trees)
 phylociraptor calculates species trees using `astral`. Astral takes pre-calculated gene trees as input. Phylociraptor checks if gene-trees have been already calculated and creates them in case they are not yet available.
 
 Individal gene trees are calculated with iqtree.
+
+-----------------------------------------
+bitree (Calculate trees using bayesian inference)
+-----------------------------------------
+
+phylociraptor calculates bayesian trees using phylobayes. Phylobayes uses concatenated (supermatrix) alignments all genes which pass the filtering steps as input.
+Phylociraptor can start multiple chains as specified in the config file and it allows to monitor running chains and calculating consensus trees using `phylocripator util`.
 
 ------------------------------------------
 njtree (Calculate NJ tree)
