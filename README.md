@@ -54,6 +54,7 @@ Alignment:
 - MAFFT 7.464 (https://mafft.cbrc.jp/alignment/software/)
 - MUSCLE 5.1 (https://drive5.com/muscle5/)
 - T-Coffee 13.46.0.919e8c6b (https://github.com/cbcrg/tcoffee)
+- PRANK v150803 (https://ariloytynoja.github.io/prank-msa/)
 
 Trimming:
 

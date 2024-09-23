@@ -43,6 +43,7 @@ alignment:
         clustalo: ""
         muscle: ""
         tcoffee: ""
+        prank: ""
 
 # settings related to alignment trimming and filtering
 # possible trimming options: trimal, aliscore, bmge, clipkit
