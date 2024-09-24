@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinx_rtd_theme",
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -31,7 +32,7 @@ html_title = project
 #       written as part of the site generation pipeline for this project.
 # !! MARKER !!
 
-#html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme"
 #html_theme = "furo"
 html_static_path = ['_static']
 
