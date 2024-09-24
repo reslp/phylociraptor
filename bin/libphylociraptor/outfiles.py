@@ -8,11 +8,12 @@ outfile_dict = {
 	"speciestree": ["results/checkpoints/modes/modeltest.HASH.done"],
 	"njtree": ["results/checkpoints/modes/modeltest.HASH.done"],
 	"mltree": ["results/checkpoints/modes/modeltest.HASH.done"],
+	"bitree": ["results/checkpoints/modes/modeltest.HASH.done"],
 	"modeltest": ["results/checkpoints/modes/filter_align.HASH.done"],
 	}
 
 #steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "mltree", "speciestree"]
-steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree"]
+steps_to_check = ["setup", "orthology", "filter-orthology", "align", "filter-align", "njtree", "modeltest", "speciestree", "mltree", "bitree"]
 checkpoint_file_dict = {
 	"setup": "results/checkpoints/modes/phylogenomics_setup.done",
 	"orthology": "results/checkpoints/modes/orthology.HASH.done",
@@ -22,6 +23,7 @@ checkpoint_file_dict = {
 	"speciestree": "results/checkpoints/modes/speciestree.done",
 	"njtree": "results/checkpoints/modes/njtree.done",
 	"mltree": "results/checkpoints/modes/trees.done",
+	"bitree": "results/checkpoints/modes/bitrees.done",
 	"modeltest": "results/checkpoints/modes/modeltest.done"
 }
 	
@@ -36,5 +38,6 @@ outdir_dict = {
 	"speciestree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"njtree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"mltree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
+	"bitree": [""], #donefile will have to do as check, because there are several possible output folder combinations for this step
 	"modeltest": ["results/modeltest"]
 }

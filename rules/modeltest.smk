@@ -20,7 +20,7 @@ previous_hash = hashes['filter-align']["global"]
 modeltest_hashes = hashes['modeltest']["per"]
 current_hash = hashes['modeltest']["global"]
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs."+filter_orthology_hash+"/{busco}_all.fas")
 
 def previous_params_global(wildcards):
 	return "results/alignments/trimmed/parameters.filter-align."+previous_hash+".yaml"
@@ -138,7 +138,7 @@ rule iqtree_mt:
 	shell:
 		"""
 		if [[ ! -d {params.target_dir} ]]; then mkdir -p {params.target_dir}; fi
-		iqtree -s {input.alignment} -msub nuclear --prefix {params.wd}/{params.target_dir}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
+		iqtree --redo -s {input.alignment} -msub nuclear --prefix {params.wd}/{params.target_dir}/{params.busco} -nt {threads} -m MFP $(if [[ "{params.bb}" != "None" ]]; then echo "-bb {params.bb}"; fi) $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {log}
 		touch {output.checkpoint}
 		"""
 

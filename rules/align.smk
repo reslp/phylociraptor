@@ -13,17 +13,16 @@ with open("data/containers.yaml", "r") as yaml_stream:
 hashes = collect_hashes("align", config, configfi, wd=os.getcwd())
 current_hash = hashes["align"]["global"]
 aligner_hash = hashes["align"]["per"]
-print(aligner_hash)
 #previous hash
 previous_hash = hashes['filter-orthology']["global"]
 
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas")
 
 def determine_concurrency_limit():
-	fname = "results/orthology/busco/busco_sequences_deduplicated."+previous_hash
+	fname = "results/orthology/orthology/single-copy-orthologs."+previous_hash
 	if os.path.isdir(fname):
-		ngenes = glob.glob("results/orthology/busco/busco_sequences_deduplicated"+"/*.fas")
+		ngenes = glob.glob("results/orthology/single-copy-orthologs." + previous_hash + "/*.fas")
 		ngenes = len(ngenes)
 		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
@@ -62,67 +61,6 @@ rule read_params_global:
 		cat {input.previous} >> {output}
 		"""
 
-rule clustalo:
-		input:
-			"results/alignments/full/clustalo.{hash}/parameters.align.clustalo.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
-		output:
-			alignment = "results/alignments/full/clustalo.{hash}/{busco}_aligned.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/clustalo_align_{busco}.{hash}.txt"
-		log:
-			"log/align/clustalo/clustalo_align_{busco}.{hash}.log.txt"
-		singularity:
-			containers["clustalo"]
-		threads:
-			int(config["alignment"]["threads"])
-		params:
-			config["alignment"]["options"]["clustalo"]
-		shell:
-			"""
-			clustalo -i {input.sequence_file} --threads={threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) 1> {output.alignment} 2> {log}
-			"""
-
-rule mafft:
-		input:
-			"results/alignments/full/mafft.{hash}/parameters.align.mafft.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
-		output:
-			alignment = "results/alignments/full/mafft.{hash}/{busco}_aligned.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/mafft_align_{busco}.{hash}.txt"
-		log:
-			"log/align/mafft/mafft_align_{busco}.{hash}.log.txt"
-		singularity:
-			containers["mafft"]
-		threads:
-			int(config["alignment"]["threads"])
-		params:
-			config["alignment"]["options"]["mafft"]
-		shell:
-			"""
-			mafft --thread {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) {input.sequence_file} 1> {output.alignment} 2> {log}
-			"""
-rule muscle:
-		input:
-			"results/alignments/full/muscle.{hash}/parameters.align.muscle.{hash}.yaml",
-			sequence_file = "results/orthology/busco/busco_sequences_deduplicated."+hashes["filter-orthology"]["global"]+"/{busco}_all.fas",
-		output:
-			alignment = "results/alignments/full/muscle.{hash}/{busco}_aligned.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/muscle_align_{busco}.{hash}.txt"
-		log:
-			"log/align/muscle/muscle_align_{busco}.{hash}.log.txt"
-		singularity:
-			containers["muscle"]
-		threads:
-			int(config["alignment"]["threads"])
-		params:
-			config["alignment"]["options"]["muscle"]
-		shell:
-			"""
-			muscle -super5 {input.sequence_file} -threads {threads} $(if [[ "{params}" != "None" ]]; then echo {params}; fi) -output {output.alignment} 2> {log}
-			"""
 
 def per_aligner(wildcards):
 	lis = []
@@ -139,6 +77,12 @@ rule aggregate_alignments:
 		"""
 		touch {output.checkpoint}
 		"""
+def get_aligner_params(wildcards):
+	if wildcards.aligner in config["alignment"]["options"].keys():
+		return config["alignment"]["options"][wildcards.aligner]
+	else:
+		return ""
+
 
 rule get_alignment_statistics:
 	input:
@@ -151,32 +95,31 @@ rule get_alignment_statistics:
 		ids = config["species"],
 		datatype = config["filtering"]["seq_type"],
 		alignment_method = "{aligner}",
+		aligner_params = get_aligner_params,
 		mafft_alignment_params = config["alignment"]["options"]["mafft"],
 		clustalo_alignment_params = config["alignment"]["options"]["clustalo"],
 		muscle_alignment_params = config["alignment"]["options"]["muscle"],
 		pars_sites = config["trimming"]["min_parsimony_sites"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['filter-orthology']["global"],
+		mode = config["orthology"]["method"]
 	log:	"log/align/{aligner}_{batch}_get_aligment_statistics.{hash}.txt"
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+		
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/full/{wildcards.aligner}.{wildcards.hash}/* | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq 2>&1 | tee {log}
+
+		fi
 		mv results/statistics/statistics.txt {output.statistics_alignment}
 		# make this output tab delimited so it is easier to parse
-		ovstats="{params.alignment_method}"
-		if [[ "{wildcards.aligner}" == "mafft" ]]; then 
-			ovstats="${{ovstats}}\t{params.mafft_alignment_params}"
-		fi
-		if [[ "{wildcards.aligner}" == "clustalo" ]]; then 
-			ovstats="${{ovstats}}\t{params.clustalo_alignment_params}"
-		fi
-		if [[ "{wildcards.aligner}" == "muscle" ]]; then 
-			ovstats="${{ovstats}}\t{params.muscle_alignment_params}"
-		fi
+		ovstats="{params.alignment_method}\t{params.aligner_params}"
 		ovstats="${{ovstats}}\t{params.pars_sites}"
 		echo -e $ovstats > {output.overview_statistics}
 		"""
@@ -187,7 +130,7 @@ def pull(wildcards):
 		for i in range(1, config["concurrency"] + 1):
 			lis.append("results/statistics/align-" + str(ali) + "." + str(aligner_hash[ali]) + "/" + str(ali) + "_statistics_alignments-" + str(i) + "-" + str(config["concurrency"]) + ".txt")
 		lis.append("results/alignments/full/" + str(ali) + "." + str(aligner_hash[ali]) + "/parameters.align." + str(ali) + "." + str(aligner_hash[ali]) + ".yaml")
-	print(lis, file=sys.stderr)
+	#print(lis, file=sys.stderr)
 	return lis	
 
 rule align:
@@ -202,3 +145,6 @@ rule align:
 		touch {output}
 		echo "$(date) - phylociraptor align done." >> results/statistics/runlog.txt
 		"""
+
+for aligner in config["alignment"]["method"]:
+	include: "aligners/" + aligner + ".smk"

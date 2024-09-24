@@ -18,12 +18,17 @@ download_busco_set:
    N: dlbuscoset
 get_genome_download_statistics:
    N: ggendlstat
+rename_protein_sets:
+   N: rprotsets
 setup:
    N: SETUP
 ###############
 #### orthology ####
 run_busco:
    N: rBUSCO
+   h_vmem: 2G
+orthofinder:
+   N: rOF
    h_vmem: 2G
 aggregate_orthology:
    N: aggorth 
@@ -53,6 +58,9 @@ clustalo:
 muscle:
    N: mus
    h_vmem: 10G
+tcoffee:
+   N: tco
+   h_vmem: 10G
 aggregate_alignments:
    N: aggalgn
    h_vmem: 10G
@@ -70,6 +78,9 @@ aliscore:
    h_vmem: 10G
 bmge:
    N: bmge
+   h_vmem: 10G
+clipkit:
+   N: clipkit
    h_vmem: 10G
 get_trimmed_statistics:
    N: gettristat
@@ -112,6 +123,13 @@ aggregate_gene_trees:
    N: agg_genetrees
 speciestree:
    N: SPECIESTREE
+###############
+#### bitree #### 
+phylobayes:
+   N: pb
+   h_vmem: 24G
+bitree:
+   job-name: bitree
 #####################
 #### njtree ####
 quicktree:

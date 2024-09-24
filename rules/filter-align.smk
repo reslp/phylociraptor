@@ -19,7 +19,7 @@ current_hash = hashes['filter-align']["global"]
 trimmed_hashes = hashes['filter-align']["per-trimming"]
 filtered_hashes = hashes['filter-align']["per"]
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs."+filter_orthology_hash+"/{busco}_all.fas")
 
 def previous_params_global(wildcards):
 	return "results/alignments/full/parameters.align."+previous_hash+".yaml"
@@ -104,117 +104,14 @@ def return_aligner_checkpoint(wildcards):
 
 def return_bmge_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-bmge."+trimmed_hashes["bmge"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-bmge."+trimmed_hashes["bmge"][wildcards.aligner]+".yaml"
+
 def return_trimal_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-trimal."+trimmed_hashes["trimal"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-trimal."+trimmed_hashes["trimal"][wildcards.aligner]+".yaml"
+
 def return_aliscore_params(wildcards):
 	return "results/alignments/trimmed/"+wildcards.aligner+"-aliscore."+trimmed_hashes["aliscore"][wildcards.aligner]+"/parameters.filter-align."+wildcards.aligner+"-aliscore."+trimmed_hashes["aliscore"][wildcards.aligner]+".yaml"
 
-rule bmge:
-		input:
-			checkpoint = return_aligner_checkpoint,
-			params = return_bmge_params,
-			alignment = per_aligner
-		output:
-			trimmed_alignment = "results/alignments/trimmed/{aligner}-bmge.{hash}/{busco}_aligned_trimmed.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/{aligner}_bmge_{busco}.{hash}.txt"
-		params:
-			trimmer = config["trimming"]["options"]["bmge"],
-			type = config["filtering"]["seq_type"] 
-		log:
-			"log/filter-align/bmge/bmge_{aligner}_{busco}.{hash}.txt"
-		singularity:
-			containers["bmge"]	
-		shell:
-			"""
-			if [[ "{params.type}" == "aa" ]]
-			then
-				echo "Setting sequence type to AA" 2>&1 | tee {log}
-				seqtype="AA"
-			elif [[ "{params.type}" == "nu" ]]
-			then
-				seqtype="DNA"
-				echo "Setting sequence type to DNA" 2>&1 | tee {log}
-			fi
-			bmge -i {input.alignment} -t $seqtype -of {output.trimmed_alignment} 2>&1 | tee -a {log}
-			"""
 
-rule trimal:
-		input:
-			checkpoint = return_aligner_checkpoint,
-			params = return_trimal_params,
-			alignment = per_aligner
-		output:
-			trimmed_alignment = "results/alignments/trimmed/{aligner}-trimal.{hash}/{busco}_aligned_trimmed.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/{aligner}_trimal_{busco}.{hash}.txt"
-		params:
-			trimmer = config["trimming"]["options"]["trimal"]
-		log:
-			"log/filter-align/trimal/trimal_{aligner}_{busco}.{hash}.txt"
-		singularity:
-			containers["trimal"]	
-		shell:
-			"""
-			trimal {params.trimmer} -in {input.alignment} -out {output.trimmed_alignment} 2>&1 | tee {log}
-			#it can happen that the alignment is empty after trimming. In this case trimal doesn't produce an error, but does not write the file so we do that manually
-			if [[ ! -f "{output.trimmed_alignment}" ]]; then echo "Making dummy file" 2>&1 | tee {log}; touch {output.trimmed_alignment}; fi
-			"""
-rule aliscore:
-		input:
-			checkpoint = return_aligner_checkpoint,
-			params = return_aliscore_params,
-			alignment = per_aligner
-		output:
-			trimmed_alignment = "results/alignments/trimmed/{aligner}-aliscore.{hash}/{busco}_aligned_trimmed.fas",
-		benchmark:
-			"results/statistics/benchmarks/align/{aligner}_aliscore_{busco}.{hash}.txt"
-		params:
-			trimmer = config["trimming"]["options"]["aliscore"],
-			busco = "{busco}",
-			target_dir = "results/alignments/trimmed/{aligner}-aliscore.{hash}/{busco}",
-			wd = os.getcwd()
-		log:
-			"log/filter-align/aliscore/aliscore_alicut_{aligner}_{busco}.{hash}.txt"
-		singularity:
-			containers["aliscore"]	
-		shell:
-			"""
-			if [[ -d {params.target_dir} ]]; then rm -rf {params.target_dir}; fi
-			mkdir -p {params.target_dir}
-			cd {params.target_dir}
-			ln -s -f  {params.wd}/{input.alignment} {params.busco}_aligned.fas 
-			
-			echo "ALISCORE output:\n" > {params.wd}/{log}	
-			Aliscore.pl $(if [[ "{params.trimmer}" != "None" ]]; then echo "{params.trimmer}"; fi) -i {params.busco}_aligned.fas 2>&1 | tee {params.wd}/{log} aliscore_{params.busco}.log || true
-			
-			echo "\n\n ALICUT output:\n" >> {params.wd}/{log}	
-			if [[ -f {params.busco}_aligned.fas_List_random.txt ]]; then
-				if [[ $(cat {params.busco}_aligned.fas_List_random.txt | head -n 1 | grep '[0-9]' -c) != 0 ]]; then
-					ALICUT.pl -s 2>&1 | tee -a {params.wd}/{log}
-				else
-					echo "$(date) - The aliscore output {params.wd}/{params.target_dir}/{params.busco}_aligned.fas_List_random.txt appears to be empty. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
-				fi
-			else
-				echo "$(date) - The aliscore output file {params.wd}/{params.target_dir}/{params.busco}_aligned.fas_List_random.txt does not exist. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
-				
-			fi
-			
-			# this check is included because alicut very rarely does not  produce an output file.
-			# in this case an empty file will be touched. This is necessary so the rule does not fail
-			# The empty file will later be exluded again in the next rule.
-			if [[ ! -f {params.wd}/{params.target_dir}/ALICUT_{params.busco}_aligned.fas ]]; then
-				echo "$(date) - The ALICUT output appears to be empty. Will touch an empty file so the pipeline will continue. Check results for BUSCO: {params.busco}" >> {params.wd}/results/statistics/runlog.txt
-				touch {params.wd}/{output.trimmed_alignment}
-			else
-				if [[ "$(cat ALICUT_{params.busco}_aligned.fas | grep -v ">" | sed 's/-//g' | grep "^$" | wc -l)" -gt 0 ]]; then
-					echo "$(date) - Alignment of BUSCO: {params.busco} contains empty sequence after aliscore/alicut. This sequence will be removed." >> {params.wd}/results/statistics/runlog.txt
-					cp ALICUT_{params.busco}_aligned.fas ALICUT_{params.busco}_aligned.fas_tmp
-					cat ALICUT_{params.busco}_aligned.fas_tmp | perl -ne 'chomp; $h=$_; $s=<>; chomp($s); $check=$s; $check=~s/-//g; if (length($check) > 0){{print "$h\n$s\n"}}' > ALICUT_{params.busco}_aligned.fas
-				fi
-				mv ALICUT_{params.busco}_aligned.fas {params.wd}/{output.trimmed_alignment}
-			fi
-			"""
 
 rule get_trimmed_statistics:
 	input:
@@ -228,13 +125,19 @@ rule get_trimmed_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['orthology']["global"],
+		mode = config["orthology"]["method"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/trimmed/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		fi
+
 		mv results/statistics/statistics.txt {output.statistics_trimmed}
 		"""
 
@@ -262,7 +165,7 @@ rule filter_alignments:
 		containers["biopython"]	
 	params:
 		wd = os.getcwd(),
-		minsp=config["filtering"]["minsp"],
+		minsp=config["trimming"]["minsp"],
 		trimming_method = config["trimming"]["method"],
 		min_pars_sites = config["trimming"]["min_parsimony_sites"],
 		max_rcv_score = config["trimming"]["max_rcv_score"],
@@ -327,13 +230,18 @@ rule get_filter_statistics:
 		datatype = config["filtering"]["seq_type"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['orthology']["global"]
+		orthology_hash = hashes['orthology']["global"],
+		mode = config["orthology"]["method"]
 	singularity: containers["concat"] 
 	shadow: "minimal"
 	shell:
 		"""
 		# here the ids for the alignments need to be filtered as well first. maybe this can be changed in the concat.py script, so that an id file is not needed anymore.
-		concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		if [[ "{params.mode}" == "orthofinder" ]]; then
+			concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		else
+			concat.py -i $(ls -1 {params.wd}/results/alignments/filtered/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/*.fas | sed -n '{wildcards.batch}~{params.nbatches}p' | tr '\\n' ' ') -t <(for name in $(ls -1 {params.wd}/results/orthology/busco/busco_runs.{params.set}.{params.orthology_hash}); do echo "${{name%.*}}"; done) --runmode concat -o results/statistics/ --biopython --statistics --seqtype {params.datatype} --noseq
+		fi
 		mv results/statistics/statistics.txt {output.statistics_filtered}
 		"""
 
@@ -353,6 +261,17 @@ def pull_algn_info(wildcards):
 				lis.append("results/statistics/filter-"+a+"-"+t+"."+filtered_hashes[t][a]+"/alignment_filter_information_"+t+"_"+a+".txt")
 	return lis
 
+def get_trimmer_params(wildcards):
+	algn_trim = expand("{al}__{tr}", al=config["alignment"]["method"], tr=config["trimming"]["method"])
+	out = []
+	for comb in algn_trim:
+		trimmer = comb.split("_")[-1]
+		if config["trimming"]["options"][trimmer] == None or config["trimming"]["options"][trimmer] == "":
+			out.append(comb + "__no§parameters") # this is a little weird hack because of the bash for loop below. but it works.
+		else:
+			out.append(comb + "__" + config["trimming"]["options"][trimmer])
+	return out
+
 rule filter_align:
 	input:
 		filtered = pull_filtered_stats,
@@ -364,13 +283,10 @@ rule filter_align:
 	params:
 		dupseq = config["filtering"]["dupseq"],
 		cutoff = config["filtering"]["cutoff"],
-		minsp = config["filtering"]["minsp"],
+		minsp = config["trimming"]["minsp"],
 		seq_type = config["filtering"]["seq_type"],
 		min_parsimony_sites = config["trimming"]["min_parsimony_sites"],
-		algn_trim = expand("{al}__{tr}", al=config["alignment"]["method"], tr=config["trimming"]["method"]),
-		trimal_params = config["trimming"]["options"]["trimal"],
-		aliscore_params = config["trimming"]["options"]["aliscore"],
-		bmge_params = config["trimming"]["options"]["bmge"]
+		algn_trim = get_trimmer_params
 	shell:
 		"""
 		echo "combo\t$(head -n 1 {input.filtered[0]} | cut -f 1,4-)" > {output.stats}
@@ -380,18 +296,12 @@ rule filter_align:
 		combs="{params.algn_trim}"
 		echo "aligner\ttrimmer\ttrimming_params\tdupseq\tcutoff\tminsp\tseq_type\tmin_parsimony_sites" > results/statistics/trim-filter-overview.txt
 		for combination in ${{combs}}; do
-			if [[ $combination == *"trimal"* ]]; then
-				out=$combination"__{params.trimal_params}"
-			elif [[ $combination == *"aliscore"* ]]; then
-				out=$combination"__{params.aliscore_params}"
-			elif [[ $combination == *"bmge"* ]]; then
-				out=$combination"__{params.bmge_params}"
-			else
-				out=$combination"__no parameters"
-			fi
-			out=$out"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}"
-			echo $out | sed 's/__/\t/g' >> results/statistics/trim-filter-overview.txt
+			out=$combination"__{params.dupseq}__{params.cutoff}__{params.minsp}__{params.seq_type}__{params.min_parsimony_sites}"
+			echo $out | sed 's/__/\t/g' | sed 's/§/ /g' >> results/statistics/trim-filter-overview.txt
 		done  
 		echo "$(date) - phylociraptor filter-align done." >> results/statistics/runlog.txt
 		touch {output.checkpoint}
 		"""	
+
+for method in config["trimming"]["method"]:
+	include: "trimmers/" + method + ".smk"

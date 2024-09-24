@@ -21,6 +21,8 @@ def get_concatenate_params(wildcards):
 		return "results/phylogeny/quicktree/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.njtree.quicktree-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
 	elif os.environ["MODE"] == "mltree":
 		return "results/phylogeny/raxml/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.mltree.raxml-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
+	elif os.environ["MODE"] == "bitree":
+		return "results/phylogeny/phylobayes/bootstrap-cutoff-"+wildcards.bootstrap+"/parameters.bitree.phylobayes-"+wildcards.aligner+"-"+wildcards.alitrim+"."+wildcards.hash+".yaml"
 
 rule concatenate:
 	input:

@@ -32,7 +32,6 @@ latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
 debug = False #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
-rphylocontainer="docker://reslp/rphylogenetics:4.0.3-strict-versions"
 
 def now():
 	return time.strftime("%Y-%m-%d %H:%M") + " -"
@@ -48,7 +47,6 @@ def help_message(mes):
 	return mes
 
 def determine_submission_mode(flag):
-	cmd = []
 	if "serial" in flag:
 		return ["--cores" + flag.replace("serial","")]
 	elif "local" in flag:
@@ -59,8 +57,43 @@ def determine_submission_mode(flag):
 		return ["--cluster", 'bin/immediate-submit/immediate_submit.py {dependencies} %s' % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 
 def get_flags(flags):
+	if flags["config_file"]:
+		config_data = parse_config_file(flags["config_file"])
+	if flags["cluster"] == None and "cluster" not in config_data.keys():
+		print(now(), "ERROR: Please provide execution mode either in config file or -t/--cluster")
+		sys.exit(1)
+	# first check cluster setting
+	if "cluster" in config_data.keys() and flags["cluster"] == None: #this assumes a cluster setting is provided in the config file
+		if config_data["cluster"] != None and config_data["cluster"] != "": # the provided entry is assumed to be valid
+			flags["cluster"] = config_data["cluster"]
+		else: # the provided entry is empty => revert to default which is local
+			print(now(), "No cluster has been specified in the provided config file. Will revert to default (local).")
+			flags["cluster"] = "local"
+	if "cluster" not in config_data.keys() and flags["cluster"] == None: # this assumes that nothing was specified (neither in config nor in cli) 
+		flags["cluster"] = "local"
+
+	# now check cluster config file
+	if "local" not in flags["cluster"] and "serial" not in flags["cluster"]: # this assumes that cluster submission is desired. (no local or serial specified)
+		print(now(), "Cluster submission specified (" +flags["cluster"] + ")")
+		if flags["cluster_config"] == None: # no cluster-config file specified at CLI
+			if "cluster-config" in config_data.keys(): # 1. check if file is provided in config file
+				if config_data["cluster-config"] != None and config_data["cluster-config"] != "":
+					flags["cluster_config"] = config_data["cluster-config"]
+					print(now(), "Using cluster config file: " + flags["cluster_config"])
+			else:
+				print(now(), "WARNING: No cluster config file specified. Will use default template for cluster type:", cluster_config_defaults[flags["cluster"]])
+				flags["cluster_config"] = cluster_config_defaults[flags["cluster"]]
+		else:
+				print(now(), "Using cluster config file: " + flags["cluster_config"])
+
+
+
+					
+
+
+	else:
+		print(now(), "Local job execution specified (" + flags["cluster"] + ")")
 	mapdict ={
-	#"t": '--cluster "bin/immediate_submit.py {dependencies} ', "cluster": '--cluster "bin/immediate_submit.py {dependencies} ',
 	"c": "--cluster-config", "cluster_config": "--cluster-config",
 	"FORCE": "-F",
 	"force": "-f",
@@ -69,16 +102,6 @@ def get_flags(flags):
 	cmd = []
 	if debug:
 		print(now(), "DEBUG: flags: ", flags)
-	if flags["cluster_config"] == None and not "serial" in flags["cluster"] and not "local" in flags["cluster"]: #in case no cluster config file was specified, get default value
-		ccf = cluster_config_defaults[flags["cluster"]]
-		flags["cluster_config"] = ccf
-		print(now(), "INFO: No cluster config file specified. Will try to use default file: %s" % ccf)	
-	else:
-		ccf = flags["cluster_config"]
-		if ccf != None:
-			if not os.path.isfile(ccf):
-				print(now(), "ERROR: Specified cluster config file:", ccf, "not found.")
-				sys.exit(1)
 	for flag in flags.keys():
 		if flag in mapdict.keys() and flags[flag] != None:
 			if flag == "t" or flag == "cluster": #handle cluster specification
@@ -86,21 +109,21 @@ def get_flags(flags):
 				arg = arg + " "+flags[flag]+'"'
 				cmd.append(arg) 
 			if flag == "c" or flag == "cluster_config": #handle cluster config file
-				#print("here")
-				#arg = mapdict[flag]
-				#arg = arg + " " + flags[flag]
 				cmd.append(mapdict[flag])
-				cmd.append(ccf)
+				cmd.append(flags["cluster_config"])
 			else:
 				if flags[flag]:
 					cmd.append(mapdict[flag])
-	
+	cmd += determine_submission_mode(flags["cluster"])
+	if debug:
+		print(now(), "DEBUG: Flags from get_flags:", cmd)	
+
 	return cmd
 
 def check_required_files(runmode, previous_runmode, args):
 	if args.debug:
 		print(now(), "DEBUG: Checking required files for:", runmode, "as they should be present")
-	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file, wd=os.getcwd()) 
+	hashes = collect_hashes(previous_runmode, parse_config_file(args.config_file), args.config_file, wd=os.getcwd(), debug=args.debug) 
 	currenthash = hashes[previous_runmode]["global"]
 	for f in outfile_dict[runmode]:
 		if currenthash != "":
@@ -192,7 +215,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 	char = ""
 	nline = 0
 	curr_task = 0
-	verbose = True # there are some problems with the progress bar functionality, until this is fixed verbose is the default.
+	#verbose = True # there are some problems with the progress bar functionality, until this is fixed verbose is the default.
 	if not os.path.isdir("log/phylociraptor"):
 		os.mkdir("log/phylociraptor")
 	if "-n" in cmd:
@@ -209,11 +232,11 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.lstrip().startswith("wildcards:"):
 					yield "\tParameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Nothing"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if result.startswith("Job counts"):
 					jobcounts = True
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
@@ -245,7 +268,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("sbatch") or line.startswith("qsub"):
 					yield "\t%s\n" % line
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Singularity"):
@@ -262,7 +285,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("rule"):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
@@ -289,7 +312,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.lstrip().startswith("wildcards:"):
 					yield "\tParameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
 			else: # this is the quiet mode with progressbar
@@ -310,7 +333,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Runnning: ", 100)
 				if line.startswith("Nothing to be done"):
-					yield now() + " There is nothing to do. If you want to force a rerun of this step try: -f or --force\n"
+					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
 				line=""
@@ -349,9 +372,38 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+ [singularity_bindpoints]
 
 def parse_config_file(cf):
+	if not os.path.isfile(cf):
+		print(now(), "Specified config file not found:", cf)
+		sys.exit(1)
 	with open(cf) as f:
     		data = yaml.load(f, Loader=yaml.FullLoader)
 	return data
+
+def get_container(container):
+	containerfile = "data/containers.yaml"
+	if not os.path.isfile(containerfile):
+		print(now(), "The containers file is missing:", containerfile)
+		print(now(), "Unable to continue.")
+		sys.exit(1)
+	with open(containerfile) as f:
+		data = yaml.load(f, Loader=yaml.FullLoader)
+		if container in data.keys():
+			return data[container]
+		else:
+			print(now(), "Container", container, "not found in containersfile:", containerfile)
+			print(now(), "Unable to continue with requested command.")
+			sys.exit(1)
+		
+
+def check_help_and_config(params, helpmsg):
+	if params.help: # help is specified
+		print(help_message(helpmsg))
+		sys.exit(0)
+	if params.config_file == "data/config.yaml":
+		print(now(), "No config file specified, will use default:", params.config_file)
+	else:
+		print(now(), "Will use the specified config file:", params.config_file)
+
 
 	
 pars = argparse.ArgumentParser(usage=help_message(default_help))
@@ -381,8 +433,8 @@ class PhyloParser(argparse.ArgumentParser):
 		super().__init__(**kwargs)
 		self.add_argument("-f", "--force", action="store_true" )
 		self.add_argument("-F", "--FORCE", action="store_true" )
-		self.add_argument("-t", "--cluster",  action="store", default="local")
-		self.add_argument("-c", "--cluster-config", action="store")
+		self.add_argument("-t", "--cluster",  action="store", default=None)
+		self.add_argument("-c", "--cluster-config", action="store", default=None)
 		self.add_argument("--dry", action="store_true")
 		self.add_argument("-h", "--help", action="store_true")
 		self.add_argument("--verbose", action="store_true", default=False)	
@@ -417,9 +469,7 @@ if args.command == "setup":
 
 	setup_args = setup_parser.parse_args(args.arguments)
 	debug = check_debug(setup_args.debug) #check if debug is enabled
-	if setup_args.help or len(sys.argv) <= 2:
-		print(help_message(setup_help))
-		sys.exit(0)
+	check_help_and_config(setup_args, setup_help) 	
 	
 	check_required_software()
 	
@@ -429,7 +479,6 @@ if args.command == "setup":
 	else:
 		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(setup_args))
-	cmd += determine_submission_mode(setup_args.cluster)
 
 	# check for overrides of config file parameters	
 	if setup_args.config_file:
@@ -459,13 +508,10 @@ elif args.command=="orthology":
 	orthology_parser.add_argument("--additional_params", action="store")
 	orthology_args = orthology_parser.parse_args(args.arguments)
 	debug = check_debug(orthology_args.debug) #check if debug is enabled
-	if orthology_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(orthology_help))
-		sys.exit(0)
+	check_help_and_config(orthology_args, orthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], orthology_args)
 	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(orthology_args.cluster)
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
@@ -502,14 +548,11 @@ elif args.command=="filter-orthology":
 	
 	forthology_args = forthology_parser.parse_args(args.arguments)	
 	debug = check_debug(forthology_args.debug) #check if debug is enabled
-	if forthology_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(forthology_help))
-		sys.exit(0)
+	check_help_and_config(forthology_args, forthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], forthology_args)
 	
 	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "filter_orthology", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(forthology_args.cluster)
 	cmd += get_flags(vars(forthology_args))
 	
 	# check for overrides of config file parameters	
@@ -557,14 +600,11 @@ elif args.command=="align":
 	align_parser.add_argument("--parameters", action="store")
 	align_args = align_parser.parse_args(args.arguments)	
 	debug = check_debug(align_args.debug) #check if debug is enabled
-	if align_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(align_help))
-		sys.exit(0)
+	check_help_and_config(align_args, align_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], align_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "align", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(align_args.cluster)
 	cmd += get_flags(vars(align_args))
 
 	# check for overrides of config file parameters	
@@ -603,14 +643,11 @@ elif args.command=="filter-align":
 	
 	falign_args = falign_parser.parse_args(args.arguments)	
 	debug = check_debug(falign_args.debug) #check if debug is enabled
-	if falign_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(falign_help))
-		sys.exit(0)
+	check_help_and_config(falign_args, falign_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], falign_args)
 
 	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "filter_align", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(falign_args.cluster)
 	cmd += get_flags(vars(falign_args))
 	
 	# check for overrides of config file parameters	
@@ -641,14 +678,12 @@ elif args.command=="speciestree":
 	sptree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	sptree_args = sptree_parser.parse_args(args.arguments)	
 	debug = check_debug(sptree_args.debug) #check if debug is enabled
-	if sptree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(sptree_help))
-		sys.exit(0)
+	
+	check_help_and_config(sptree_args, sptree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], sptree_args)
 
 	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "speciestree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(sptree_args.cluster)
 	cmd += get_flags(vars(sptree_args))
 	
 	# check for overrides of config file parameters	
@@ -669,14 +704,11 @@ elif args.command=="njtree":
 	njtree_args = njtree_parser.parse_args(args.arguments)	
 	debug = check_debug(njtree_args.debug) #check if debug is enabled
 
-	if njtree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(njtree_help))
-		sys.exit(0)
+	check_help_and_config(njtree_args, njtree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
 	cmd = ["snakemake", "-s", "rules/njtree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(njtree_args.cluster)
 	cmd += get_flags(vars(njtree_args))
 	
 	# check for overrides of config file parameters	
@@ -696,14 +728,36 @@ elif args.command=="mltree":
 	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	tree_args = tree_parser.parse_args(args.arguments)	
 	debug = check_debug(tree_args.debug) #check if debug is enabled
-	if tree_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(tree_help))
-		sys.exit(0)
+	check_help_and_config(tree_args, tree_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
 	cmd = ["snakemake", "-s", "rules/mltree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(tree_args.cluster)
+	cmd += get_flags(vars(tree_args))
+	
+	# check for overrides of config file parameters	
+	if tree_args.config_file:
+		cmd += check_config_file(tree_args.config_file)
+	
+	cmd += get_additional_snakemake_flags(tree_args.sm_args, tree_args.rerun, tree_args.unlock)
+	cmd += get_additional_singularity_flags(tree_args.si_args)
+	
+	
+	for line in execute_command(cmd, tree_args.verbose, config=tree_args.config_file):
+                print(line, end="\r")
+	if debug:
+		print(now(),"DEBUG:", " ".join(cmd))
+elif args.command=="bitree":
+	print(now(), "Welcome to phylociraptor bitree v%s" % version)
+	tree_parser = PhyloParser(add_help=False)
+	tree_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
+	tree_args = tree_parser.parse_args(args.arguments)	
+	debug = check_debug(tree_args.debug) #check if debug is enabled
+	check_help_and_config(tree_args, bitree_help) 	
+	check_required_software()
+	check_required_files(args.command, previous_steps[args.command], tree_args)
+
+	cmd = ["snakemake", "-s", "rules/bitree.smk", "--use-singularity", "-r", "bitree", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(tree_args))
 	
 	# check for overrides of config file parameters	
@@ -724,14 +778,11 @@ elif args.command=="modeltest":
 	model_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	model_args = model_parser.parse_args(args.arguments)	
 	debug = check_debug(model_args.debug) #check if debug is enabled
-	if model_args.help or len(sys.argv) <= 2: # help is specified
-		print(help_message(model_help))
-		sys.exit(0)
+	check_help_and_config(model_args, model_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], model_args)
 
 	cmd = ["snakemake", "-p", "-s", "rules/modeltest.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
-	cmd += determine_submission_mode(model_args.cluster)
 	cmd += get_flags(vars(model_args))
 	
 	# check for overrides of config file parameters	
@@ -799,7 +850,7 @@ elif args.command == "check":
 	check_parser.add_argument("--debug", action="store_true", dest="debug", default=False)
 	check_args = check_parser.parse_args(args.arguments)
 	debug = check_debug(check_args.debug) #check if debug is enabled
-	
+		
 	if check_args.help: 
 		print(help_message(check_help))
 		sys.exit(0)
@@ -931,11 +982,13 @@ elif args.command == "util":
 					for trimmer in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"]:
 						for aligner in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer]:
 							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/species_tree.tre")
+			## TODO: Add logic for bitrees here to get all combinations!!
 			# now check which files are there in the file system:
 			iqtree_trees = glob.glob("results/phylogeny/iqtree/bootstrap-cutoff-*/*/concat.contree")
 			raxml_trees =  glob.glob("results/phylogeny/raxml/bootstrap-cutoff-*/*/raxmlng.raxml.support")
 			astral_trees = glob.glob("results/phylogeny/astral/bootstrap-cutoff-*/*/species_tree.tre")
-			all_trees = iqtree_trees + raxml_trees + astral_trees
+			bi_trees = glob.glob("results/phylogeny/phylobayes/bootstrap-cutoff-*/*/phylobayes.con.tre")
+			all_trees = iqtree_trees + raxml_trees + astral_trees + bi_trees
 			all_trees = [tree for tree in all_trees if tree in combinations] #keep only files which are specified in config file.
 			all_trees = ",".join(all_trees)
 		else:
@@ -1015,7 +1068,7 @@ elif args.command == "util":
 		else:
 			single = "no"
 
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-tree.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-tree.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.outprefix, single]
 
 		if debug and qs_args.verbose:
@@ -1052,7 +1105,7 @@ elif args.command == "util":
 			print(now(), "Hint: You need to provide the treelist file.")
 			sys.exit(1)
 		
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-conflict.R"]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-conflict.R"]
 		cmd += [os.getcwd(), qs_args.seed, all_trees, qs_args.outgroup, qs_args.lineagefile, qs_args.level, qs_args.quartetfile, qs_args.treelist]
 
 		if debug and qs_args.verbose:
@@ -1073,7 +1126,7 @@ elif args.command == "util":
 			print(now(), "Hint: You have to provide the similarity matrix file created with phylociraptor util estimate-conflict with -m/--simmatrix")
 			print(help_message(util_plot_similarity_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, str(qs_args.decimalplaces)]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-heatmap.R", os.getcwd(), qs_args.simmatrix, qs_args.treelist, str(qs_args.decimalplaces)]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):
@@ -1093,7 +1146,7 @@ elif args.command == "util":
 			print(now(), "You have to provide the treelist file created with phylociraptor util estimate-conflict with -r/--treelist")
 			print(help_message(util_plot_pca_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), rphylocontainer, "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):
@@ -1135,7 +1188,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-q", "--quiet", action="store_true", default=False)
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help:
-			print(help_message(util_modify_busco_help))
+			print(help_message(util_manage_jobs_help))
 			sys.exit(0)
 		if not qs_args.logfile:
 			list_of_files = glob.glob('log/phylociraptor/*')
@@ -1150,6 +1203,156 @@ elif args.command == "util":
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, None, True):
+			print(line, end="\r")
+	if which_util == "tracecomp":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-x","--burnin", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		tracefiles=[]
+		for folder in folderlist:
+			tracefiles += glob.glob(folder + "chain-*/*.trace")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			tracefiles = [tracefile for chain in whichchains for tracefile in tracefiles if chain in tracefile]
+				
+		print(now(), "Found "+ str(len(tracefiles)) +" trace files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("phylobayes"), "tracecomp"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile, ".contdiff")
+			cmd += ["-o", qs_args.outfile]
+		cmd += tracefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
+			print(line, end="\r")
+	if which_util == "bpcomp":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-c","--cutoff", action="store", default=None)
+		qs_parser.add_argument("-x", "--burnin", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		treefiles=[]
+		for folder in folderlist:
+			treefiles += glob.glob(folder + "chain-*/*.treelist")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			treefiles = [treefile for chain in whichchains for treefile in treefiles if chain in treefile]
+		print(now(), "Found "+ str(len(treefiles)) +" treelist files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("phylobayes"), "bpcomp"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.cutoff:
+			print(now(), "Will use provided partition probability cutoff:", qs_args.burnin)
+			cmd += ["-c", qs_args.cutoff]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile + ".con.tre and", qs_args.outfile + ".bplist")
+			cmd += ["-o", qs_args.outfile]
+		else:
+			folder = set(folderlist)
+			if len(folder) == 1:
+				folder = next(iter(folder))
+				print(now(), "Will write output to file:", folder+ "phylobayes.con.tre and", folder + "phylobayes.bplist")
+				cmd += ["-o", folder+"phylobayes"]
+		cmd += treefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
+			print(line, end="\r")
+	if which_util == "viewtrace":
+		qs_parser = UtilParser(add_help=False)
+		qs_parser.add_argument("-x", "--burnin", action="store", default=None)
+		qs_parser.add_argument("-o","--outfile", action="store", default=None)
+		qs_parser.add_argument("-p", "--path", action="store", default=None)
+		qs_parser.add_argument("--chains", action="store", default=None)
+		qs_parser.add_argument("--config-file", dest="configfile", action="store", default="data/config.yaml")
+		qs_args = qs_parser.parse_args(args.arguments) 
+		if qs_args.help:
+			print(help_message(util_tracecomp_help))
+			sys.exit(0)
+		hashes= {}
+		hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
+
+		parameters = parse_config_file(qs_args.configfile)
+		if not qs_args.path:
+			print(now(), "Will search for phylobayes output folders according to values provided in config file:", qs_args.configfile)
+			folderlist = []
+			for al in parameters["alignment"]["method"]:
+				for tr in parameters["trimming"]["method"]:
+					for bs in parameters["genetree_filtering"]["bootstrap_cutoff"]:
+						folderlist.append("results/phylogeny/phylobayes/bootstrap-cutoff-" + str(bs) + "/" + al + "-" + tr + "." + hashes["bitree"]["bitree"]["per"][str(bs)]["phylobayes"]["iqtree"][tr][al]+"/")
+			print(now(), "Found "+ str(len(folderlist)) +" folders with phylobayes results.")
+		else:
+			print(now(), "Will search for phylobayes output in:", qs_args.path)
+			folderlist.append(qs_args.path)
+		tracefiles=[]
+		for folder in folderlist:
+			tracefiles += glob.glob(folder + "chain-*/*.trace")
+		if qs_args.chains:
+			print(now(), "Will only analyse chains:", qs_args.chains)
+			whichchains = ["chain-" + chain for chain in qs_args.chains.split(",")]
+			tracefiles = [tracefile for chain in whichchains for tracefile in tracefiles if chain in tracefile]
+				
+		print(now(), "Found "+ str(len(tracefiles)) +" trace files from phylobayes.")
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("gnuplot"), "gnuplot", "-p", "-e", "'set", "terminal", "dumb", "size", "120,", "30;", "set", "autoscale;", "plot", "\'-\'", "using", "1:4", "with", "lines", "notitle'"] 
+		if qs_args.burnin:
+			print(now(), "Will use provided burnin:", qs_args.burnin)
+			cmd += ["-x", qs_args.burnin]
+		if qs_args.outfile:
+			print(now(), "Will write output to file:", qs_args.outfile, ".contdiff")
+			cmd += ["-o", qs_args.outfile]
+		cmd += tracefiles
+		if debug and qs_args.verbose:
+			print(cmd)
+		for line in execute_command(cmd, False, None, True):
 			print(line, end="\r")
 else:
 	print("Runmode not recognized: %s" % args.command)

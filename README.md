@@ -13,7 +13,7 @@
 
 # phylociraptor - Rapid phylogenomic tree calculator 
 
-Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference. 
+Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO or OrthoFinder to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference using state of the art software. 
 
 ## Citation:
 
@@ -46,18 +46,22 @@ On a HPC cluster:
 Orthology inference:
 
 - BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
+- OrthoFinder 2.5.5 (https://github.com/davidemms/OrthoFinder)
 
 Alignment:
 
 - Clustal-Omega 1.2.4 (http://www.clustal.org/omega/)
 - MAFFT 7.464 (https://mafft.cbrc.jp/alignment/software/)
 - MUSCLE 5.1 (https://drive5.com/muscle5/)
+- T-Coffee 13.46.0.919e8c6b (https://github.com/cbcrg/tcoffee)
+- PRANK v150803 (https://ariloytynoja.github.io/prank-msa/)
 
 Trimming:
 
 - trimAl 1.4.1 (http://trimal.cgenomics.org/)
 - Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
 - BMGE 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
+- ClipKit 2.3.0 (https://github.com/JLSteenwyk/ClipKIT)
 
 Tree inference:
 
@@ -65,6 +69,7 @@ Tree inference:
 - RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
 - ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
 - Quicktree 2.5 (https://github.com/khowe/quicktree)
+- Phylobayes-MPI 1.9 (https://github.com/bayesiancook/pbmpi)
 
 
 ## Installing phylociraptor
@@ -112,6 +117,7 @@ Commands:
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate species trees
 	njtree			Calculate Neighbor-Joining trees
+        bitree                  Calculate Bayesian-inference phylogenomic trees
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run

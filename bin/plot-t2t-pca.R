@@ -5,7 +5,7 @@ suppressMessages(library(ape))
 suppressMessages(library(reshape2))
 suppressMessages(library(tidyverse))
 suppressMessages(library(parallel))
-
+suppressMessages(library(RColorBrewer))
 args <- commandArgs(trailingOnly=TRUE)
 
 wd <- args[1]
@@ -143,8 +143,8 @@ Sys.time()
 complete_df <- do.call("cbind", dists)
 complete_df <- t(complete_df)
 
-#complete_df <- t(complete_df) 
- for (i in 1:12) {
+# make sure everyting is saved as numeric values
+for (i in 1:ncol(complete_df)) {
    complete_df[,i] <- as.numeric(complete_df[,i])
  }
 
@@ -177,7 +177,10 @@ plotdf$treebuilder <- treebuilders
 plotdf$bootstrap_cutoff <- bootstrapcutoffs
 plotdf$aligner_trimmer <- alitrim
 
-p <- ggplot(data = plotdf, aes(x=PC1, y=PC2, label=treenames, color=aligner_trimmer, shape=treebuilder, size=bootstrap_cutoff)) + geom_point() +xlab(paste0("PC1 (", PC1Variance, "%)")) +ylab(paste0("PC2 (", PC2Variance,"%)")) +ggtitle(paste0("Similarity of trees based on tip to tip distance matrices.\nBased on ", ndistances, " distances between tips."))+ scale_shape_manual(values = c(15, 16, 17, 18))+ scale_color_brewer(palette="Set1")
+cols <- colorRampPalette(brewer.pal(length(alitrim), "Set1"))(length(alitrim))
+names(cols) <- sort(alitrim)
+
+p <- ggplot(data = plotdf, aes(x=PC1, y=PC2, label=treenames, color=aligner_trimmer, shape=treebuilder, size=bootstrap_cutoff)) + geom_point() +xlab(paste0("PC1 (", PC1Variance, "%)")) +ylab(paste0("PC2 (", PC2Variance,"%)")) +ggtitle(paste0("Similarity of trees based on tip to tip distance matrices.\nBased on ", ndistances, " distances between tips."))+ scale_shape_manual(values = c(15, 16, 17, 18))+ scale_color_manual(values=cols)
 
 pdf(file=paste0("tip2tip-PCA-",ndistances,".pdf"))
 print(p)

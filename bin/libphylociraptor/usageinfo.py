@@ -35,6 +35,7 @@ Commands:
 	mltree			Calculate Maximum-Likelihood phylogenomic trees
 	speciestree		Calculate species tree
 	njtree			Calculate Neighbor-Joining tree
+	bitree			Calculate Bayesian-inference phylogenomic trees
 
 	report			Create a HTML report of the run
 	check			Quickly check status of the run
@@ -170,6 +171,14 @@ Usage: phylociraptor njtree <arguments>
 	--config-file           Custom config-file path. (Default: data/config.yaml)
 """
 
+bitree_help = """
+phylociraptor bitree - Will calculate trees using bayesian inference.
+
+Usage: phylociraptor bitree <arguments>
+
+""" + standard_arguments + additional_arguments + """
+	--config-file           Custom config-file path. (Default: data/config.yaml)
+"""
 
 model_help = """
 phylociraptor modeltest - Will perform substitution model tests and calculate a gene tree for each alignment.
@@ -211,7 +220,7 @@ phylociraptor util - Utilities for a-posteriori analyses of phylociraptor result
 
 Usage: phylociraptor util <arguments>
 
-Argumemts:
+Utilities:
 	get-lineage		retrieve full lineage information for all included samples.
 	estimate-conflict	estimate conflict between trees based on the occurence of tip quartets.
 	plot-tree		plot one or more trees.
@@ -221,6 +230,8 @@ Argumemts:
 	modify-busco		modify the used BUSCO set.
 				Can be run after phylociraptor setup is finished.
 	manage-jobs		List and cancel jobs of past cluster submissions.
+	tracecomp		Compare phylobayes output created with bitree.
+	bpcomp			Create phylobayes consensus trees.
 	-h, --help              Display help.
 
 """
@@ -385,3 +396,40 @@ Optional Arguments:
 	--quiet			Suppress on-screen output.
 """
 
+util_tracecomp_help = """
+
+phylociraptor util tracecomp - Compares phylobayes chain output created with bitree.
+
+Usage: phylociraptor util tracecomp <arguments>
+	
+Optional Arguments:
+	--config-file 		Relative custom config-file path. (Default: data/config.yaml)
+	-x, --burnin		Burnin for chains. Default: 0.2 (20% of chain)
+	-o, --outfile		Output filename (Default: None; Results will be writte on screen)
+	-p, --path		Restrict search for phylobayes output to directory.
+				Ignore config file. (Default: None)
+	--chains		Select chains which should be compared seperated by comma. 
+				(e.g. --chains 1,2,4) (Default: all) 
+
+This uses the tracecomp tool provided by phylobayes.
+"""
+
+util_bpcomp_help = """
+
+phylociraptor util bpcomp - Creates consenus trees from phylobayes chain output created with bitree.
+
+Usage: phylociraptor util bpcomp <arguments>
+	
+Optional Arguments:
+	--config-file 		Relative custom config-file path. (Default: data/config.yaml)
+	-c, --cutoff		Only use partitions with max prob > cutoff. (default 0.5)	
+	-x, --burnin		Burnin for chains. Default: 0.1 (10% of chain).
+	-o, --outfile		Output path and filename (Default: None; Results will be written in the 
+				respective reults directory)
+	-p, --path		Restrict search for phylobayes output to directory.
+				Ignore config file. (Default: None)
+	--chains		Select chains which should be compared seperated by comma. 
+				(e.g. --chains 1,2,4) (Default: all) 
+
+This uses the bpcomp tool provided by phylobayes.
+"""

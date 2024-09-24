@@ -27,6 +27,8 @@ download_genomes:
    mem: 2G
 rename_assemblies:
    job-name: renasse
+rename_protein_sets:
+   job-name: reprose
 download_busco_set:
    job-name: dlbuscoset
 get_genome_download_statistics:
@@ -37,6 +39,9 @@ setup:
 #### orthology ####
 busco:
    job-name: rBUSCO
+   mem: 30G
+orthofinder:
+   job-name: rOF
    mem: 30G
 aggregate_orthology:
    job-name: aggorth 
@@ -72,6 +77,10 @@ muscle:
    job-name: mus
    time: "02:00:00"
    mem: 10G
+tcoffee:
+   job-name: tco
+   time: "02:00:00"
+   mem: 10G
 aggregate_alignments:
    job-name: aggalgn
    mem: 4G
@@ -98,6 +107,10 @@ aliscore:
    time: "24:00:00"
 bmge:
    job-name: bmge
+   mem: 20G
+   time: "24:00:00"
+clipkit:
+   job-name: clipkit
    mem: 20G
    time: "24:00:00"
 get_trimmed_statistics:
@@ -169,6 +182,15 @@ quicktree:
    mem: 16G
 njtree:
    job-name: NJTREE
+###############
+#### bitree #### 
+phylobayes:
+   job-name: pb
+   time: "05:00:00"
+   mem: 100G
+bitree:
+   job-name: bitree
+   time: "00:10:00"
 ################
 #### Utility rules ####
 concatenate:

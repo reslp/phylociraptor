@@ -42,6 +42,7 @@ alignment:
         mafft: "--quiet --auto"
         clustalo: ""
         muscle: ""
+        tcoffee: ""
 
 # possible trimming options: trimal, aliscore
 trimming: 
@@ -50,6 +51,8 @@ trimming:
         trimal: "-gappyout"
         aliscore: ""
         bmge: ""
+        clipkit: ""
+    minsp: 4
     min_parsimony_sites: 50
     max_rcv_score: 0.2
 

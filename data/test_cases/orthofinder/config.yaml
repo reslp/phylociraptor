@@ -1,14 +1,14 @@
 # general settings:
-species: "data/data.plathy.csv"
+species: "data/small-example.tsv"
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 20 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
 seed: "1987" #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
  
 # settings related to busco
 orthology:
-    method: "busco"
-    threads: 10
-    exclude: "data/exclude.focus_Neodermata.csv"
+    method: "orthofinder"
+    threads: 20
+    exclude: ""
     busco_options:
         set: "metazoa_odb10"
         version: "5.2.1" #possible is "3.0.2" or "5.2.1"
@@ -16,7 +16,7 @@ orthology:
         augustus_species: #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
         additional_parameters: ""
     orthofinder_options:
-        params: "-of"
+        params: "-os -M msa -T iqtree"
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----
@@ -29,33 +29,30 @@ orthology:
 filtering:
     dupseq: "persample"
     cutoff: 0.2
-    minsp: 30
+    minsp: 4
     seq_type: "aa"
-    exclude_orthology: "data/exclude.focus_Neodermata.csv" #"data/exclude.small_outgroup.csv"
+    exclude_orthology: #"data/exclude.small_outgroup.csv"
 
-# settings related to creating alignments
-# possible options: clustalo, mafft, muscle, tcoffee
+# settings related to alignment and trimming
 alignment:
-    method: ["clustalo","mafft","muscle"] #, "clustalo", "muscle"]
+    method: ["clustalo"] #,"mafft","muscle"] #, "clustalo", "muscle"]
     threads: 2
     options:
         mafft: "--quiet --auto"
         clustalo: ""
         muscle: ""
         tcoffee: ""
-        prank: ""
 
-# settings related to alignment trimming and filtering
-# possible trimming options: trimal, aliscore, bmge, clipkit
+# possible trimming options: trimal, aliscore
 trimming: 
-    method: ["trimal", "aliscore", "bmge"] 
+    method: ["trimal", "clipkit"] #, "aliscore", "bmge"] 
     options:
         trimal: "-gappyout"
         aliscore: ""
         bmge: ""
         clipkit: ""
-    minsp: 4 # 4 is the minimum number of taxa needed by the modeltest step.
-    min_parsimony_sites: 50
+    minsp: 4
+    min_parsimony_sites: 0
     max_rcv_score: 1 # Relative composition variability. Between 0 (filtering everything) and 1 (filter nothing).
 
 # settings related to phylogenetic inference
@@ -69,7 +66,7 @@ modeltest:
          iqtree: ""
 
 genetree_filtering:
-    bootstrap_cutoff: [50,60,70,80] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
+    bootstrap_cutoff: [0] # Minimum mean Bootstrap support gene trees need to have to be included in the species tree. Default: 0 = No cutoff (all trees will be included)
 
 speciestree:
     method: ["astral"]
@@ -96,15 +93,3 @@ njtree:
     options:
         quicktree: ""
 
-bitree:
-    method: ["phylobayes"]
-    threads:
-        phylobayes: 12 
-    chains:
-        phylobayes: 4
-    generations:
-        phylobayes: 10000
-    sampling:
-        phylobayes: 10
-    options:
-        phylobayes: "-cat -gtr"

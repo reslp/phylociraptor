@@ -15,6 +15,8 @@ download_genomes:
    mem: 12gb
 rename_assemblies:
    N: renasse
+rename_protein_sets:
+   N: reprose
 download_busco_set:
    N: dlbuscoset
 get_genome_download_statistics:
@@ -26,6 +28,9 @@ setup:
 run_busco:
    N: rBUSCO
    mem: 12gb
+orthofinder:
+   N: rOF
+   mem: 30gb
 aggregate_orthology:
    N: aggorth 
 extract_orthology_table:
@@ -51,6 +56,9 @@ mafft:
 clustalo:
    N: clo
    mem: 10gb
+tcoffee: 
+   N: tco
+   mem: 10gb
 aggregate_alignments:
    N: aggalgn
    mem: 10gb
@@ -65,6 +73,9 @@ trimal:
    mem: 10gb
 aliscore:
    N: aliscore
+   mem: 10gb
+clipkit:
+   N: clipkit
    mem: 10gb
 get_trimmed_statistics:
    N: gettristat
@@ -107,6 +118,13 @@ aggregate_gene_trees:
    N: agg_genetrees
 speciestree:
    N: SPECIESTREE
+###############
+#### bitree #### 
+phylobayes:
+   N: pb
+   mem: 100gb
+bitree:
+   job-name: bitree
 #####################
 #### njtree ####
 quicktree:

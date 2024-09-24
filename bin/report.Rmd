@@ -143,7 +143,14 @@ base_size <- 12
 
 # Setup
 
+```{python, echo=FALSE}
+orthomethod = config_data["orthology"]["method"]
+
+```
+
 ```{r genomes, echo=FALSE}
+# this information here is only need if BUSCO has been used
+# because only then genomes could have been downloaded.
 if (file.exists(failed_genome_downloads_file))
 {
   if (file.size(failed_genome_downloads_file) > 0) {
@@ -176,23 +183,24 @@ total <- length(failed) + length(success) + length(local)
 
 ```
 
-
+`r if(!py$orthomethod == "busco"){"\\begin{comment}"}`
 **Location of genomes files:** 
-
 ```
 results/assemblies
 ```
-
 **Total number of included genomes:** `r total`    
 **Locally provided genomes:** `r length(local)`    
 **Successfully downloaded genomes:** `r length(success)`    
 **Failed species downloads:** `r length(failed)`    
 **Not downloaded:**<br />`r failed`    
-
 **Information on successfully downloaded genomes:**
+`r if(!py$orthomethod == "busco"){"\\end{comment}"}`
+
+
 ```{r genome_stats, echo=F, out.height=500}
+
 info <- ""
-if (file.exists(downloaded_genomes_statistics_file))
+if (file.exists(downloaded_genomes_statistics_file) && py$orthomethod == "busco")
 {
   if (file.size(downloaded_genomes_statistics_file) != 0) {
      data <- read.csv(downloaded_genomes_statistics_file, sep="\t", header=T, row.names=NULL)
@@ -203,11 +211,14 @@ if (file.exists(downloaded_genomes_statistics_file))
   
   datatable(data, class="display" ,rownames=F, extensions = c('Buttons',"FixedColumns"), options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), scrollX=T, fixedColumns=list(leftColumns=1))
 ) 
+} else if (py$orthomethod == "orthofinder") {
+  info <- "Setup for runmode orthofinder was successful."
+
 } else {
   info <- "*No information about downloaded genomes found. Did you run phylociraptor setup ?*"
 }
-
 ```
+
 `r info`
 
 
@@ -226,6 +237,8 @@ forthology_hash = all_hashes["filter-orthology"]["filter-orthology"]["global"]
 ```
 
 # Orthology
+
+Used orthology method: `r py$orthomethod`
 
 Analysis hash for step orthology: `r py$orthology_hash`\
 Analysis hash for step filter-orthology: `r py$forthology_hash`
@@ -281,8 +294,9 @@ if (file.exists(orthology_filtering_genes_file)) {
 }
 
 ```
-Orthologous genes were inferred using BUSCO.
 
+
+`r if(py$orthomethod == "orthofinder") {"\\begin{comment}"}`
 **Location of BUSCO results:** 
 
 ```
@@ -338,7 +352,28 @@ if (file.exists(busco_overview_image)) {
   include_graphics(busco_overview_image)
 } 
 ```
+`r if(py$orthomethod == "orthofinder") {"\\end{comment}"}`
 
+
+
+`r if(py$orthomethod == "busco") {"\\begin{comment}"}`
+
+**Location of Orthofinder results:**
+
+```
+results/orthology/orthofinder/orthofinder-`r py$orthology_hash`/orthofinder-results-`r py$orthology_hash`
+```
+
+```{r results="asis", echo=FALSE}
+# this is just a quick way to display some summary statistics for the orthofinder run. This needs to be improved!
+for (line in readLines(paste0("../results/orthology/orthofinder/orthofinder-",py$orthology_hash, "/orthofinder-results-", py$orthology_hash, "/Comparative_Genomics_Statistics/Statistics_Overall.tsv"))) {
+	cat(paste0(line, "<br>"))
+  } 
+```
+
+**Careful:** The number of single copy orthologs identified by Orthofinder may not correspond to the number in the alignment step. This is because phylociraptor allows for missing data while Orthofinder does not. For example a gene may be missing in one species but has a single copy in all other species. Such a gene would not show up as single copy ortholog in Orthofinder but it will still be included in phylociraptor given that the parameters are set accordingly.
+
+`r if(py$orthomethod == "busco") {"\\end{comment}"}`
 
 ```{python, echo=FALSE}
 aligners = []
@@ -625,20 +660,28 @@ filterhash = all_hashes["filter-align"]["filter-align"]["global"]
 ```
 
 ```{r ext-figures, echo=FALSE, fig.width = 11.7, message=FALSE, warning=FALSE}
-#f <- list.files(path="../results/statistics/", pattern="filtered-alignments-stats.7451266150", full.names=T)
 f <- paste0("../results/statistics/filtered-alignments-stats.",py$filterhash,".txt")
-#filter-mafft-trimal.250586f87f
 if (identical(f, character(0)) == FALSE && file.exists(f) == TRUE) {
 	data <- read.csv(f, sep='\t', row.names=NULL)
 	data$alignment <- NULL  # this is wrongly formatted in the csv. needs to be corrected
 	colnames(data) <- c("combination", "alignment", "length", "nseqs", "nparsimony", "nvariable", "nfixed", "rcv")	
 	plotlist <- list()
 	i <- 1
-	cols <- c("#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#cccccc")
+	#cols <- c("#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#cccccc", "#000000" , "#000000" ,"#000000" ,"#000000" ,"#000000" ,"#000000")
+	# get unqiue number of models in dataset and create colors for them:
+	combs <- length(unique(data$combination))
+	cols <- c()
+	if (combs <= 11) {
+		# prettier colors when there are not too many different models
+		cols <- brewer.pal(combs, "BrBG")		
+	} else {
+		# we need more colors
+		color <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+		cols <- sample(color, combs)
+	}
 	for (col in colnames(data))
 	{
 	  if (col == "combination" || col == "alignment") {next}
-	
 	  p <- ggplot(data,aes(x=.data[[col]]))+ geom_density(aes(color = combination), show.legend = FALSE)+stat_density(aes(x=.data[[col]], color=combination), geom="line",position="identity") + scale_color_manual(values=cols)
 	  p <- p + ggtitle(paste0(col)) 
 	  plotlist[[i]] <- p

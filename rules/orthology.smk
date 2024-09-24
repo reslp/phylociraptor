@@ -17,36 +17,47 @@ with open("data/containers.yaml", "r") as yaml_stream:
     containers = yaml.safe_load(yaml_stream)
 
 #determine whether some species in the csv file have specified a busco mode that is not the default according to the config file
-def get_busco_mode(wildcards):
+def get_orthology_mode(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
 	sp.replace(" ", "_")
 	#first check of mode column exists:
-	if "mode" in list(sample_data.columns):
-		print("(phylociraptor): INFO: Will check for custom provided BUSCO mode given in .csv file for species:", sp)
-		if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any(): #check if value was actually provided
-			print("(phylocirpator): No BUSCO mode value was provided for" , sp , "- will use the default:",config["orthology"]["busco_options"]["mode"]) 
-			if not config["orthology"]["busco_options"]["version"].startswith("5.") and config["orthology"]["busco_options"]["mode"] == "transcriptome":
-				print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+	if "mode" in list(sample_data.columns): 
+		if config["orthology"]["mode"] == "busco":
+			print("(phylociraptor): INFO: Will check for custom provided BUSCO mode given in .csv file for species:", sp)
+			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any(): #check if value was actually provided
+				print("(phylocirpator): No BUSCO mode value was provided for" , sp , "- will use the default:",config["orthology"]["busco_options"]["mode"]) 
+				if not config["orthology"]["busco_options"]["version"].startswith("5.") and config["orthology"]["busco_options"]["mode"] == "transcriptome":
+					print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+					sys.exit(1)
+				elif not config["orthology"]["busco_options"]["version"].startswith("5.") and config["orthology"]["busco_options"]["mode"] == "protein":
+					print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+					sys.exit(1)
+				else:	
+					return config["orthology"]["busco_options"]["mode"]
+			else:
+				mode = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
+				if mode == "transcriptome" and not config["orthology"]["busco_options"]["version"].startswith("5."):
+					print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
+					sys.exit(1)
+				elif mode == "protein" and not config["orthology"]["busco_options"]["version"].startswith("5."):
+					print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+					sys.exit(1)
+				else:		
+					return mode 
+		if config["orthology"]["mode"] == "orthofinder":
+			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any():
+				print("(phylocirpator): No value was provided. To use Orthofinder you will need to provide sets of protein sequences and use protein in the mode column of your datafile")
+				print("(phylociraptor): Will exit now...")
 				sys.exit(1)
-			elif not config["orthology"]["busco_options"]["version"].startswith("5.") and config["orthology"]["busco_options"]["mode"] == "protein":
-				print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
+			elif config["orthology"]["busco_options"]["mode"] != "protein":
+				print("(phylociraptor): Wrong mode value provided for", sp, ". If Orthofinder should be use all input data must be sets of proteins. Please check your data file.")
+				print("(phylociraptor): Will exit now...")
 				sys.exit(1)
-			else:	
-				return config["orthology"]["busco_options"]["mode"]
-		else:
-			mode = sample_data.loc[sample_data["species"] == sp, "mode"].to_string(index=False)
-			if mode == "transcriptome" and not config["orthology"]["busco_options"]["version"].startswith("5."):
-				print("phylociraptor: ERROR: Incompatible parameters. Transcriptome mode only workes with BUSCO 5. Please check your config files. Exiting.")
-				sys.exit(1)
-			elif mode == "protein" and not config["orthology"]["busco_options"]["version"].startswith("5."):
-				print("phylociraptor: ERROR: Incompatible parameters. Protein mode only workes with BUSCO 5. Please check your config files. Exiting.")
-				sys.exit(1)
-			else:		
-				return mode 
+			else:
+				return mode
 	else:
 		print("phylocirpator: INFO: mode column not found, will use default busco mode as specified config file for", sp)		
 		return config["orthology"]["busco_options"]["mode"]
-	
 
 def get_assemblies(wildcards):
 	sp = "{wildcards.species}".format(wildcards=wildcards)
@@ -92,6 +103,10 @@ def select_species(dir="results/assemblies"):
 				hashes.append(get_hash(nondefault))
 	return [sps, hashes]
 
+def get_orthofinder_input(wildcards):
+	return glob.glob("results/renamed-protein-sets/*.faa")
+
+
 species = select_species()
 	
 
@@ -102,15 +117,15 @@ current_hash = hashes["orthology"]["global"]
 ###############
 rule read_params_global:
 	input:
-		compare("results/orthology/busco/parameters.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
+		compare("results/orthology/parameters.orthology."+current_hash+".yaml", configfi, optional=[config['species']])
 	output:
-		"results/orthology/busco/parameters.orthology."+current_hash+".yaml"
+		"results/orthology/parameters.orthology."+current_hash+".yaml"
 	shell:
 		"""
 		bin/read_write_yaml.py {input[0]} {output} species orthology,method orthology,exclude orthology,busco_options,set orthology,busco_options,version orthology,busco_options,mode orthology,busco_options,augustus_species orthology,busco_options,additional_parameters
 		"""
 
-if config["orthology"]["busco_options"]["version"] == "3.0.2":
+if config["orthology"]["method"] == "busco" and config["orthology"]["busco_options"]["version"] == "3.0.2":
 	rule busco:
 		input:
 			assembly = get_assemblies,
@@ -133,7 +148,7 @@ if config["orthology"]["busco_options"]["version"] == "3.0.2":
 			sp = config["orthology"]["busco_options"]["augustus_species"],
 			additional_params = config["orthology"]["busco_options"]["additional_parameters"],
 			species = lambda wildcards: wildcards.species,
-			mode = get_busco_mode,
+			mode = get_orthology_mode,
 			augustus_config_in_container = "/opt/conda/config",
 			set = config["orthology"]["busco_options"]["set"]
 		singularity:
@@ -204,7 +219,7 @@ if config["orthology"]["busco_options"]["version"] == "3.0.2":
 			touch {output.checkpoint}
 			"""
 
-if config["orthology"]["busco_options"]["version"] == "5.2.1":
+elif config["orthology"]["method"] == "busco" and config["orthology"]["busco_options"]["version"] == "5.2.1":
 	rule busco:
 		input:
 			assembly = get_assemblies,
@@ -230,7 +245,7 @@ if config["orthology"]["busco_options"]["version"] == "5.2.1":
 			sp = config["orthology"]["busco_options"]["augustus_species"],
 			additional_params = config["orthology"]["busco_options"]["additional_parameters"],
 			species = lambda wildcards: wildcards.species,
-			mode = get_busco_mode, 
+			mode = get_orthology_mode, 
 			augustus_config_in_container = "/usr/local/config",
 			set = config["orthology"]["busco_options"]["set"]
 		singularity:
@@ -304,45 +319,98 @@ if config["orthology"]["busco_options"]["version"] == "5.2.1":
 			touch {output.checkpoint}
 			"""
 
-rule aggregate_orthology:
-	input:
-		checks = expand("results/checkpoints/busco."+str(config["orthology"]["busco_options"]["set"])+"/busco_{species}.{hash}.done", zip, species=species[0], hash=species[1]),
-		params = rules.read_params_global.output
-	output:
-		check = "results/checkpoints/busco."+config["orthology"]["busco_options"]["set"]+"."+current_hash+".done",
-		dir = directory("results/orthology/busco/busco_runs."+config["orthology"]["busco_options"]["set"]+"."+current_hash)
-	params:
-		set = config["orthology"]["busco_options"]["set"]
-	shell:
-		"""
-		mkdir {output.dir}
-		for c in {input.checks}
-		do
-			sp_mo=$(basename $c | sed 's/^busco_//' | sed 's/\.done$//')
-			ln -s ../../../../results/orthology/busco/busco_runs.{params.set}/$sp_mo {output.dir}/
-		done
-		touch {output.check}
-		"""
-
-rule extract_orthology_table:
-	input:
-		busco_set = "results/orthology/busco/busco_set/"+config["orthology"]["busco_options"]["set"],
-		busco_dir = rules.aggregate_orthology.output.dir
-	output:
-		busco_table = "results/orthology/orthology_table."+current_hash+".txt",
-	benchmark:
-		"results/statistics/benchmarks/extract_orthology_table."+current_hash+".txt"
-	singularity:
-		containers["biopython"]
-	shell:
-		"""
-		python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {input.busco_dir}/ -o {output.busco_table}
-		echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
-		for file in $(ls {input.busco_dir}/*/run_busco/short_summary_busco.txt);
-		do  
-			name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); 
-			printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
-		"""
+elif config["orthology"]["method"] == "orthofinder":
+	rule orthofinder:
+		input: get_orthofinder_input
+		output: "results/checkpoints/orthofinder.{hash}.done"
+		container: containers["orthofinder"]
+		params:
+			force = "yes",
+			proteinsets = "results/renamed-protein-sets/",
+			addorthoparams = config["orthology"]["orthofinder_options"]["params"],
+			hash = current_hash
+		threads: config["orthology"]["threads"]
+		shell:
+			"""
+			if [[ -d results/orthology/orthofinder/orthofinder-{params.hash} ]]; then
+				echo "Orthofinder results folder already exists: results/orthology/orthofinder/orthofinder-{params.hash}"
+				if [[ "{params.force}" == "yes" ]]; then
+					echo "Mode set to force, will remove old results first: results/orthology/orthofinder/orthofinder-{params.hash}"
+					rm -rf results/orthology/orthofinder/orthofinder-{params.hash}
+					echo "Will start new orthofinder run"
+					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash}
+					touch {output}
+				else
+					exit 1
+				fi
+			else 
+				mkdir -p results/orthology/orthofinder
+				echo "Will start new orthofinder run"
+				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash} {params.addorthoparams}
+				touch {output}
+			fi
+			cd results/orthology/orthofinder/orthofinder-{params.hash}
+			ln -s $(find . -type d -name Results*) orthofinder-results-{params.hash}
+			"""
+		
+		
+if config["orthology"]["method"] == "busco":
+	rule aggregate_orthology:
+		input:
+			checks = expand("results/checkpoints/busco."+str(config["orthology"]["busco_options"]["set"])+"/busco_{species}.{hash}.done", zip, species=species[0], hash=species[1]),
+			params = rules.read_params_global.output
+		output:
+			check = "results/checkpoints/busco."+config["orthology"]["busco_options"]["set"]+"."+current_hash+".done",
+			dir = directory("results/orthology/busco/busco_runs."+config["orthology"]["busco_options"]["set"]+"."+current_hash)
+		params:
+			set = config["orthology"]["busco_options"]["set"]
+		shell:
+			"""
+			mkdir {output.dir}
+			for c in {input.checks}
+			do
+				sp_mo=$(basename $c | sed 's/^busco_//' | sed 's/\.done$//')
+				ln -s ../../../../results/orthology/busco/busco_runs.{params.set}/$sp_mo {output.dir}/
+			done
+			touch {output.check}
+			"""
+	
+	rule extract_orthology_table:
+		input:
+			busco_set = "results/orthology/busco/busco_set/"+config["orthology"]["busco_options"]["set"],
+			busco_dir = rules.aggregate_orthology.output.dir
+		output:
+			busco_table = "results/orthology/orthology_table."+current_hash+".txt",
+		benchmark:
+			"results/statistics/benchmarks/extract_orthology_table."+current_hash+".txt"
+		singularity:
+			containers["biopython"]
+		shell:
+			"""
+			python bin/extract_busco_table.py --hmm {input.busco_set}/hmms --busco_results {input.busco_dir}/ -o {output.busco_table}
+			echo "species\tcomplete\tsingle_copy\tduplicated\tfragmented\tmissing\ttotal" > results/statistics/busco_summary.txt
+			for file in $(ls {input.busco_dir}/*/run_busco/short_summary_busco.txt);
+			do  
+				name=$(echo $file | sed 's#results/busco/##' | sed 's#/run_busco/short_summary_busco.txt##'); 
+				printf $name; cat $file | grep -P '\t\d' | awk -F "\t" '{{printf "\t"$2}}' | awk '{{print}}'; done >> results/statistics/busco_summary.txt
+			"""
+else:
+	rule extract_orthology_table:
+		input:
+			"results/checkpoints/orthofinder." + current_hash + ".done",
+			params = rules.read_params_global.output
+		output:
+			"results/orthology/orthology_table." + current_hash + ".txt"
+		params:
+			of = "results/orthology/orthofinder/orthofinder-" + current_hash + "/orthofinder-results-"+ current_hash + "/Orthogroups/Orthogroups.GeneCount.tsv"
+		singularity:
+			containers["biopython"]
+		shell:
+			"""
+			bin/extract_orthofinder_table.py --of {params.of} -o {output}
+			"""
+			
+	
 rule orthology:
 	input:
 		"results/orthology/orthology_table."+current_hash+".txt",

@@ -39,6 +39,7 @@ alignment:
         mafft: "--quiet --auto" #in case no additional parameters should be used, empty quotes need to be specified.
         clustalo: 
         muscle: 
+        tcoffee:
 
 # possible trimming options: trimal, aliscore, bmge
 trimming: 
@@ -47,6 +48,8 @@ trimming:
         trimal: "-gappyout"
         aliscore: ""
         bmge: ""
+        clipkit: ""
+    minsp: 4
     min_parsimony_sites: 4
     max_rcv_score: 0.3
 
