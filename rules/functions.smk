@@ -11,7 +11,7 @@ with open("data/containers.yaml", "r") as yaml_stream:
 
 #configfi=str(sys.argv[sys.argv.index("--configfile")+1])
 configfi=os.environ["CONFIG"]
-print("CONFIGFILE:", configfi)
+print(now(), "CONFIGFILE:", configfi)
 
 def get_modeltest_checkpoint(wildcards):
 	return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"

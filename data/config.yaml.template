@@ -46,7 +46,7 @@ alignment:
         prank: ""
 
 # settings related to alignment trimming and filtering
-# possible trimming options: trimal, aliscore, bmge, clipkit
+# possible trimming options: trimal, aliscore, bmge, clipkit, untrimmed (perform no trimming)
 trimming: 
     method: ["trimal", "aliscore", "bmge"] 
     options:

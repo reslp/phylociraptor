@@ -3,6 +3,7 @@ import subprocess
 import glob
 import yaml
 
+
 ruleorder: read_params_global > read_params_per 
 
 # get list of containers to use:
@@ -266,6 +267,9 @@ def get_trimmer_params(wildcards):
 	out = []
 	for comb in algn_trim:
 		trimmer = comb.split("_")[-1]
+		if trimmer == "untrimmed":
+			config["trimming"]["options"][trimmer] = ""
+			#out.append(comb + "__no§parameters") # this is a little weird hack because of the bash for loop below. but it works.
 		if config["trimming"]["options"][trimmer] == None or config["trimming"]["options"][trimmer] == "":
 			out.append(comb + "__no§parameters") # this is a little weird hack because of the bash for loop below. but it works.
 		else:

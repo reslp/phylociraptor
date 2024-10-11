@@ -74,18 +74,18 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	my_dict = check_parameters(my_dict)	
 	dic_list = string_of_dict_paths.split(" ")
 	for d in dic_list:
-		if debug:
-			print(now(), "HASHING:", d)
+		#if debug:
+		#	print(now(), "HASHING:", d)
 		read = ""
 		if d.startswith("<"):
 			(read,d) = d.split(">")
 		l = d.split(",")
-		if debug:
-			print(now(), "HASHING:", l)
+		#if debug:
+		#	print(now(), "HASHING:", l)
 		lev = len(l)
 		if len(l) == 1:
-			if debug:
-				print(now(), "HASHING: level 1")
+			#if debug:
+			#	print(now(), "HASHING: level 1")
 			string = str(my_dict[l[0]])
 			dict_to_hash[l[0]] = string
 			if read:
@@ -93,8 +93,8 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 				dict_to_hash[l[0]] = {string: read_file_from_yaml(read, string, wd=wd)}
 
 		if len(l) == 2:
-			if debug:
-				print(now(), "HASHING: level 2")
+			#if debug:
+			#	print(now(), "HASHING: level 2")
 			string = str(my_dict[l[0]][l[1]])
 			if not l[0] in dict_to_hash:
 				dict_to_hash[l[0]] = {l[1]: string}
@@ -105,8 +105,8 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 				dict_to_hash[l[0]][l[1]] = {string: read_file_from_yaml(read, string, wd=wd)}
 
 		if len(l) == 3:
-			if debug:
-				print(now(), "HASHING: level 3")
+			#if debug:
+			#	print(now(), "HASHING: level 3")
 			if isinstance(my_dict[l[0]][l[1]], list):
 				string = l[2]
 				if not l[0] in dict_to_hash:
@@ -130,9 +130,9 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	combined = str(previous+str(ordered))
 	hash = hashlib.shake_256(combined.encode()).hexdigest(5)
 	if debug:
-		print(now(), "HASHING FINAL: "+str(dict_to_hash))
-		print(now(), "HASHING: Ordered string:")
-		print(now(), "HASHING:", str(ordered))
+		#print(now(), "HASHING FINAL: "+str(dict_to_hash))
+		#print(now(), "HASHING: Ordered string:")
+		#print(now(), "HASHING:", str(ordered))
 		print(now(), "HASHING: Combined:")
 		print(now(), "HASHING:", combined)
 		print(now(), "HASHING: Hash:")
