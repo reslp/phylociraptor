@@ -6,7 +6,6 @@ from libphylociraptor.usageinfo import *
 from libphylociraptor.outfiles import *
 from libphylociraptor.hashing import *
 from libphylociraptor.check import *
-import time
 import subprocess
 import argparse
 import glob
@@ -30,11 +29,9 @@ except:
 njobs = "10000"
 latency_wait = "10" #in seconds
 singularity_bindpoints = "-B $(pwd)/.usr_tmp/:/usertmp"
-debug = False #turn debugging mode on (True) and off (False)
+debug = True #turn debugging mode on (True) and off (False)
 cluster_config_defaults= {"slurm": "data/cluster-config-SLURM.yaml.template", "sge":"data/cluster-config-SGE.yaml.template", "torque":"data/cluster-config-TORQUE.yaml.template"}
 
-def now():
-	return time.strftime("%Y-%m-%d %H:%M") + " -"
 
 def progressbar(it, progress, prefix="", size=60, file=sys.stdout):
 	count = len(it)
@@ -376,7 +373,12 @@ def parse_config_file(cf):
 		print(now(), "Specified config file not found:", cf)
 		sys.exit(1)
 	with open(cf) as f:
-    		data = yaml.load(f, Loader=yaml.FullLoader)
+		data = yaml.load(f, Loader=yaml.FullLoader)
+		for key in ["align", "trimming", "modeltest"]: # check if all entries in different categories also have an options field in the yaml file.
+			if key in data.keys():
+				for k in data[key]["method"]:
+					if k not in data[key]["options"].keys():
+						data[key]["options"][k] = ""
 	return data
 
 def get_container(container):
@@ -881,7 +883,7 @@ elif args.command == "check":
 		else:
 			if step_status[previous_steps[mode]] == 1:
 				check_is_running(mode=mode, previous_mode=previous_steps[mode], hashes=all_hashes[mode], previous_hashes=all_hashes[previous_steps[mode]], debug=check_args.debug, verbose=check_args.verbose)		
-				print(" ", mode, " ...", '\033[91m' , "INCOMPLETE", '\033[0m')
+				print(" ", mode, " ...", '\033[91m' , "INCOMPLETE / RUNNING", '\033[0m')
 			else:
 				print(" ", mode, " ...", '\033[93m', "NOT EVALUATED", '\033[0m', "(preceeding step [" + previous_steps[mode] + "] not finished)")	
 	print("\n"+now(), "phylociraptor check is done.\n")

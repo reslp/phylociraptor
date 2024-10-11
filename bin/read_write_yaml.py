@@ -5,6 +5,11 @@ import yaml
 
 with open(sys.argv[1], "r") as yaml_stream:
 	config = yaml.safe_load(yaml_stream)
+	for key in ["align", "trimming", "modeltest"]: # check if all entries in different categories also have an options field in the yaml file.
+		if key in config.keys():
+			for k in config[key]["method"]:
+				if k not in config[key]["options"].keys():
+					config[key]["options"][k] = ""
 #	for key in config:
 #		print(key,config[key])
 
