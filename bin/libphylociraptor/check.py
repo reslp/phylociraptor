@@ -144,8 +144,7 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 			return
 		for trimmer in hashes[mode]["per"].keys():
 			for aligner in hashes[mode]["per"][trimmer].keys():
-				alitrim = aligner + "-" + trimmer + "." + hashes[mode]["per"][trimmer][aligner]		
-				#print("results/alignments/full/" + aligner + "."+previous_hashes[previous_mode]["per"][aligner])			
+				alitrim = aligner + "-" + trimmer + "." + hashes[mode]["per-trimming"][trimmer][aligner]		
 				genes = []
 				if os.path.isdir("results/alignments/full/" + aligner + "."+previous_hashes[previous_mode]["per"][aligner]):
 					genes = [al.split("/")[-1].split(".")[0].split("_")[0] for al in glob.glob("results/alignments/full/" + aligner + "." + previous_hashes[previous_mode]["per"][aligner] + "/*.fas")]
@@ -177,14 +176,14 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 					finished_alignments = [os.path.basename(al).split("_")[0] for al in glob.glob("results/alignments/filtered/" + alitrim + "/*.fas")]
 					missing = [al for al in genes if al not in finished_alignments]
 					if missing:
-						print("\tMissing", alitrim, "filtered alignments for", len(missing), "of", len(genes), "genes.")
+						print("\tFound", len(genes) - len(missing) ,"filtered alignments for", alitrim)
 						if verbose:
-							print("\t These filtered alignments are missing:")
+							print("\t These filtered alignments are missing or did not survive filtering:")
 							print("\t", ",".join(missing))
 					else:
 						print("\t"+str(len(genes)),"filtered alignments for", alitrim, "done.")
 				else:
-					print("\tMissing", alitrim, "filtered alignments for", len(genes), "of", len(genes), "genes.")
+					print("\tFound", len(genes) - len(missing), "filtered alignments for", alitrim)
 	if mode == "modeltest":
 		if not os.path.isdir("results/checkpoints/modeltest"):
 			print("Modeltesting has not yet started")
