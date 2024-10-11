@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 try: 
 	import pandas as pd
 	import hashlib
@@ -9,6 +10,9 @@ except ModuleNotFoundError:
 	print("Usually this is solved by installing snakemake.")
 	sys.exit(1)
 
+def now():
+	return time.strftime("%Y-%m-%d %H:%M") + " -"
+
 def hello_from_hashing():
 	print("Hello from libphylociraptor hashing")
 	return "hello again: this was returned from calling a function in the hashing library."
@@ -17,16 +21,16 @@ def read_file_from_yaml(read, file, debug=False, wd=""):
 	import pandas as pd
 	if file == None or file == "":
 		if debug:
-			print("File not found! It is none.")
+			print(now(), "HASHING: File not found! It is none.")
 		return []
 	file = wd + "/" + file
 	if not os.path.exists(file):
 		if debug:
-			print("File not found! Does not exist:", file)
+			print(now(), "HASHING: File not found! Does not exist:", file)
 		return []
 	if file:
 		if debug:
-			print("reading in file:", file, read)
+			print(now(), "HASHING: reading in file:", file, read)
 		if len(read) > 0:
 			df = pd.read_csv(file)
 			lis = read.split(",")
@@ -40,6 +44,11 @@ def read_file_from_yaml(read, file, debug=False, wd=""):
 
 
 def check_parameters(d): #this functions will test parameters to make sure all empty strings are set to None. Otherwise different hashes will be calculated
+	for key in ["align", "trimming", "modeltest"]: # check if all entries in different categories also have an options field in the yaml file.
+		if key in d.keys():
+			for k in d[key]["method"]:
+				if k not in d[key]["options"].keys():
+					d[key]["options"][k] = ""
 	for k, v in d.items():
 		if v == None: # check if value is None (it is not specified in the yaml file)
 			d[k] = ""
@@ -55,10 +64,10 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	if not string_of_dict_paths and not yamlfile:
 		hash = hashlib.shake_256(str(collections.OrderedDict(previous)).encode()).hexdigest(5)
 		if debug:
-			print("### DIRECT HASH ###:", hash)
+			print(now(),"HASHING: ### DIRECT HASH ###:", hash)
 		return hash
 	if debug:
-		print("### GET HASH: "+string_of_dict_paths,yamlfile+" ###")
+		print(now(), "HASHING: ### GET HASH: "+string_of_dict_paths,yamlfile+" ###")
 	dict_to_hash = {}
 	with open(yamlfile) as f:
 		my_dict = yaml.safe_load(f)
@@ -66,17 +75,17 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	dic_list = string_of_dict_paths.split(" ")
 	for d in dic_list:
 		if debug:
-			print(d)
+			print(now(), "HASHING:", d)
 		read = ""
 		if d.startswith("<"):
 			(read,d) = d.split(">")
 		l = d.split(",")
 		if debug:
-			print(l)
+			print(now(), "HASHING:", l)
 		lev = len(l)
 		if len(l) == 1:
 			if debug:
-				print("level 1")
+				print(now(), "HASHING: level 1")
 			string = str(my_dict[l[0]])
 			dict_to_hash[l[0]] = string
 			if read:
@@ -85,7 +94,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 
 		if len(l) == 2:
 			if debug:
-				print("level 2")
+				print(now(), "HASHING: level 2")
 			string = str(my_dict[l[0]][l[1]])
 			if not l[0] in dict_to_hash:
 				dict_to_hash[l[0]] = {l[1]: string}
@@ -97,7 +106,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 
 		if len(l) == 3:
 			if debug:
-				print("level 3")
+				print(now(), "HASHING: level 3")
 			if isinstance(my_dict[l[0]][l[1]], list):
 				string = l[2]
 				if not l[0] in dict_to_hash:
@@ -121,14 +130,14 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	combined = str(previous+str(ordered))
 	hash = hashlib.shake_256(combined.encode()).hexdigest(5)
 	if debug:
-		print("\nFINAL: "+str(dict_to_hash))
-		print("Ordered string:")
-		print(str(ordered))
-		print("Combined:")
-		print(combined)
-		print("\nHash:")
-		print(hash)
-		print("### DONE HASH ###")
+		print(now(), "HASHING FINAL: "+str(dict_to_hash))
+		print(now(), "HASHING: Ordered string:")
+		print(now(), "HASHING:", str(ordered))
+		print(now(), "HASHING: Combined:")
+		print(now(), "HASHING:", combined)
+		print(now(), "HASHING: Hash:")
+		print(now(), "HASHING:", hash)
+		print(now(), "### DONE HASH ###")
 	return hash
 
 
@@ -147,31 +156,29 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 
 	if mode == "orthology":
 		if debug:
-			print("Gathered hashes until 'orthology':", hashes['orthology'],"\n")
+			print(now(), "HASHING: Gathered hashes until 'orthology':", hashes['orthology'],"\n")
 		return hashes
 	
 	#filter-orthology
 	hashes['filter-orthology'] = {"global": "", "per": {}}
 	if not os.path.isfile("results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml") and not check:
-		if debug:
-			print("Please doublecheck if the stage 'orthology' was run with the parameters currently specified in "+configfi)
-			print("I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml")
+		print(now(), "HASHING: Please doublecheck if the stage 'orthology' was run with the parameters currently specified in "+configfi)
+		print(now(), "HASHING: I am looking for: results/orthology/busco/params.orthology."+hashes['orthology']["global"]+".yaml")
 		sys.exit()
 	else:
 		hashes['filter-orthology']["global"] = get_hash(hashes['orthology']["global"], "filtering,dupseq filtering,cutoff filtering,minsp filtering,seq_type filtering,exclude_orthology", configfi, debug=debug, wd=wd)
 
 	if mode == "filter-orthology":
 		if debug:
-			print("Gathered hashes until 'filter-orthology'")
-			print(hashes['filter-orthology'])
+			print(now(), "HASHING: Gathered hashes until 'filter-orthology'")
+			print(now(), "HASHING: ", hashes['filter-orthology'])
 		return hashes
 
 	#align
 	hashes['align'] = {"global": "", "per": {}}
 	if not os.path.isfile("results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml") and not check:
-		if debug:
-			print("Please doublecheck if the stage 'filter-orthology' was run with the parameters currently specified in "+configfi)
-			print("I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml")
+		print(now(), "HASHING: Please doublecheck if the stage 'filter-orthology' was run with the parameters currently specified in "+configfi)
+		print(now(), "HASHING: I am looking for: results/orthology/busco/params.filter-orthology."+hashes['filter-orthology']["global"]+".yaml")
 		sys.exit()
 	else:
 		hashes['align']["global"] = get_hash(hashes['filter-orthology']["global"], "alignment,options alignment,method", configfi, debug=debug, wd=wd)
@@ -180,16 +187,15 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 
 	if mode == "align":
 		if debug:
-			print("Gathered hashes until 'align'")
-			print(hashes['align'])
+			print(now(), "HASHING: Gathered hashes until 'align'")
+			print(now(), "HASHING: ", hashes['align'])
 		return hashes
 
 	#filter-alignment
 	hashes['filter-align'] = {"global": "", "per-trimming": {}, "per": {}}
 	if not os.path.isfile("results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml") and not check:
-		if debug:
-			print("Please doublecheck if the stage 'align' was run with the parameters currently specified in "+configfi)
-			print("I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
+		print(now(), "HASHING: Please doublecheck if the stage 'align' was run with the parameters currently specified in "+configfi)
+		print(now(), "HASHING: I am looking for: results/alignments/full/parameters.align."+hashes['align']["global"]+".yaml")
 		sys.exit()
 	else:
 		hashes['filter-align']["global"] = get_hash(hashes['align']["global"], "trimming,method trimming,options trimming,min_parsimony_sites trimming,max_rcv_score", configfi, debug=debug, wd=wd)
@@ -199,18 +205,16 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 			for a in hashes['align']["per"].keys():
 				hashes['filter-align']["per-trimming"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t, configfi, debug=debug, wd=wd)
 				hashes['filter-align']["per"][t][a] = get_hash(hashes['align']["per"][a], "trimming,options,"+t+" trimming,min_parsimony_sites trimming,max_rcv_score", configfi, debug=debug, wd=wd)
-
 	if mode == "filter-align":
 		if debug:
-			print("Gathered hashes until 'filter-align'")
-			print(hashes['filter-align'])
+			print(now(), "HASHING: Gathered hashes until 'filter-align'")
+			print(now(), "HASHING: ", hashes['filter-align'])
 		return hashes
 
 	#modeltest
 	hashes['modeltest'] = {"global": "", "per": {}}
 	if not os.path.isfile("results/alignments/trimmed/parameters.filter-align."+hashes['filter-align']["global"]+".yaml") and not check:
-		if debug:
-			print("Please doublecheck if the stage 'filter-align' was run with the parameters currently specified in "+configfi, debug=debug)
+		print(now(), "HASHING: Please doublecheck if the stage 'filter-align' was run with the parameters currently specified in "+configfi)
 		sys.exit()
 	else:
 		hashes['modeltest']["global"] = get_hash(hashes['filter-align']["global"], "seed modeltest,method modeltest,options modeltest,bootstrap", configfi, debug=debug, wd=wd)
@@ -223,16 +227,15 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 
 	if mode == "modeltest":
 		if debug:
-			print("Gathered hashes until 'modeltest'")
-			print(hashes['modeltest'])
+			print(now(), "HASHING: Gathered hashes until 'modeltest'")
+			print(now(), "HASHING: ", hashes['modeltest'])
 		return hashes
 
 	hashes['speciestree'] = {"global": "", "per": {}}
 	#speciestree
 	if mode == "speciestree":
 		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
-			if debug:
-				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
+			print(now(), "HASHING: Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
 			hashes['speciestree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff speciestree,method speciestree,options speciestree,include", configfi, debug=debug, wd=wd)
@@ -248,9 +251,9 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 							for a in hashes['align']["per"].keys():
 								hashes['speciestree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" speciestree,options,"+i+" speciestree,include", configfi, debug=debug, wd=wd)
 		if debug:
-			print("Gathered hashes until 'speciestree'")
+			print(now(), "HASHING: Gathered hashes until 'speciestree'")
 			#print(hashes['tree_inference'])
-			print(hashes)
+			print(now(), "HASHING: ", hashes)
 		return hashes
 
 	###################################
@@ -258,8 +261,7 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 	hashes['mltree'] = {"global": "", "per": {}}
 	if mode == "mltree":
 		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
-			if debug:
-				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
+			print(now(), "HASHING: Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
 			hashes['mltree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff mltree,method mltree,bootstrap mltree,options", configfi, debug=debug, wd=wd)
@@ -275,16 +277,15 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 							for a in hashes['align']["per"].keys():
 								hashes['mltree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" mltree,bootstrap,"+i+" mltree,options,"+i, configfi, debug=debug, wd=wd)
 		if debug:
-			print("Gathered hashes until 'mltree'")
-			print(hashes['mltree'])
+			print(now(), "HASHING: Gathered hashes until 'mltree'")
+			print(now(), "HASHING: ", hashes['mltree'])
 		return hashes
 
 	#bitree	
 	hashes['bitree'] = {"global": "", "per": {}}
 	if mode == "bitree":
 		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
-			if debug:
-				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
+			print(now(), "HASHING: Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
 			hashes['bitree']["global"] = get_hash(hashes['modeltest']["global"], "seed genetree_filtering,bootstrap_cutoff bitree,method bitree,chains bitree,options", configfi, debug=debug, wd=wd)
@@ -300,15 +301,14 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 							for a in hashes['align']["per"].keys():
 								hashes['bitree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "seed genetree_filtering,bootstrap_cutoff,"+c+" bitree,chains,"+i+" bitree,options,"+i, configfi, debug=debug, wd=wd)
 		if debug:
-			print("Gathered hashes until 'bitree'")
-			print(hashes['bitree'])
+			print(now(), "HASHING: Gathered hashes until 'bitree'")
+			print(now(), "HASHING: ", hashes['bitree'])
 		return hashes
 	#njtree	
 	hashes['njtree'] = {"global": "", "per": {}}
 	if mode == "njtree":
 		if not os.path.isfile("results/modeltest/parameters.modeltest."+hashes['modeltest']["global"]+".yaml") and not check:
-			if debug:
-				print("Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
+			print(now(), "HASHING: Please doublecheck if the stage 'modeltest' was run with the parameters currently specified in "+configfi)
 			sys.exit()
 		else:
 			hashes['njtree']["global"] = get_hash(hashes['modeltest']["global"], "genetree_filtering,bootstrap_cutoff njtree,method njtree,options", configfi, debug=debug, wd=wd)
@@ -324,8 +324,8 @@ def collect_hashes(mode, config, configfi, debug=False, check=True, wd=""):
 							for a in hashes['align']["per"].keys():
 								hashes['njtree']["per"][c][i][m][t][a] = get_hash(hashes['modeltest']["per"][m][t][a], "genetree_filtering,bootstrap_cutoff,"+c+" njtree,options,"+i, configfi, debug=debug, wd=wd)
 		if debug:
-			print("Gathered hashes until 'njtree'")
-			print(hashes['njtree'])
+			print(now(), "HASHING: Gathered hashes until 'njtree'")
+			print(now(), "HASHING: ", hashes['njtree'])
 		return hashes
 
 def trigger(current_yaml, config_yaml, optional=[], debug=False):
@@ -333,7 +333,7 @@ def trigger(current_yaml, config_yaml, optional=[], debug=False):
 	if not os.path.isfile(current_yaml):
 		# that's the simplest case - output file is not yet there
 		if debug:
-			print("File "+current_yaml+" is not there")
+			print(now(), "HASHING: File "+current_yaml+" is not there")
 		if optional:
 			lis = [config_yaml] + optional
 			return lis
@@ -346,7 +346,7 @@ def trigger(current_yaml, config_yaml, optional=[], debug=False):
 		# could be that the file has changed but not in the parts that are relevant for the current step.
 		# in this case we don't want it to be triggered so we return the current yaml file, which does not have a newer time stamp, so nothing happens
 		if debug:
-			print("File "+current_yaml+" is there")
+			print(now(), "HASHING: File "+current_yaml+" is there")
 		return current_yaml
 
 		#this part actually reads in the two yaml files and compares the relevant parts
@@ -364,7 +364,7 @@ def trigger(current_yaml, config_yaml, optional=[], debug=False):
 
 def compare(yaml_one, yaml_two, optional=[], debug=False):
 	if debug:
-		print("Comparing:", yaml_one, "vs. ", yaml_two)
+		print(now(), "HASHING: Comparing:", yaml_one, "vs. ", yaml_two)
 	return [trigger(yaml_one, yaml_two, optional=optional, debug=debug)]
 
 def get_all_keys(d):
@@ -415,33 +415,33 @@ def find_top(t, against, debug=False):
 		if len(path) == 1:
 			if not isinstance(t[path[0]], dict):
 				if debug:
-					print("1 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]])
+					print(now(), "HASHING: 1 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]])
 		if len(path) == 2:
 			if not isinstance(t[path[0]][path[1]], dict):
 				if debug:
-					print("2 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]][path[1]])
-					print("config: "+str(against[path[0]][path[1]]))
+					print(now(), "HASHING: 2 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]][path[1]])
+					print(now(), "HASHING: config: "+str(against[path[0]][path[1]]))
 				from_file = str(t[path[0]][path[1]])
 				from_config = str(against[path[0]][path[1]])
 				if from_file == from_config:
 					if debug:
-						print("EQUAL")
+						print(now(), "HASHING: EQUAL")
 				else:
 					if debug:
-						print("NOT EQUAL")
+						print(now(), "HASHING: NOT EQUAL")
 					return False
 		if len(path) == 3:
 			if not isinstance(t[path[0]][path[1]][path[2]], dict):
 				if debug:
-					print("3 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]][path[1]][path[2]])
-					print("config: "+str(against[path[0]][path[1]][path[2]]))
+					print(now(), "HASHING: 3 - key: "+x+" - "+str(search(t, x))+" - "+t[path[0]][path[1]][path[2]])
+					print(now(), "HASHING: config: "+str(against[path[0]][path[1]][path[2]]))
 				from_file = str(t[path[0]][path[1]][path[2]])
 				from_config = str(against[path[0]][path[1]][path[2]])
 				if from_file == from_config:
 					if debug:
-						print("EQUAL")
+						print(now(), "HASHING: EQUAL")
 				else:
 					if debug:
-						print("NOT EQUAL")
+						print(now(), "HASHING: NOT EQUAL")
 					return False
 	return True
