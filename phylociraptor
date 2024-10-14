@@ -6,6 +6,7 @@ from libphylociraptor.usageinfo import *
 from libphylociraptor.outfiles import *
 from libphylociraptor.hashing import *
 from libphylociraptor.check import *
+from libphylociraptor.filehandling import *
 import subprocess
 import argparse
 import glob
@@ -125,11 +126,13 @@ def check_required_files(runmode, previous_runmode, args):
 	for f in outfile_dict[runmode]:
 		if currenthash != "":
 			f = f.replace("HASH", currenthash)
-		if not os.path.isfile(f):
+		if not os.path.isfile(f) and runmode != "mltree":
 			print(now(), "ERROR: Some files are missing preventing this part to run.")
 			print(now(), "Did you run ", previous_runmode, "which is required by this step?")
 			print(now(), "Missing file:", f)
 			sys.exit(1)
+		elif not os.path.isfile(f) and runmode == "mltree":
+			print(now(), "INFO: phylociraptor modeltest was not run, will use specified model for mltree.")
 		else:
 			if args.debug:
 				print(now(), "DEBUG: File found:", f)
@@ -367,19 +370,6 @@ def get_additional_singularity_flags(flags):
 		return ["--singularity-args"]+[singularity_bindpoints +" " + flags]
 	else:
 		return ["--singularity-args"]+ [singularity_bindpoints]
-
-def parse_config_file(cf):
-	if not os.path.isfile(cf):
-		print(now(), "Specified config file not found:", cf)
-		sys.exit(1)
-	with open(cf) as f:
-		data = yaml.load(f, Loader=yaml.FullLoader)
-		for key in ["align", "trimming", "modeltest"]: # check if all entries in different categories also have an options field in the yaml file.
-			if key in data.keys():
-				for k in data[key]["method"]:
-					if k not in data[key]["options"].keys():
-						data[key]["options"][k] = ""
-	return data
 
 def get_container(container):
 	containerfile = "data/containers.yaml"

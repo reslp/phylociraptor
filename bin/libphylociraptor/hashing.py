@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from .filehandling import *
 try: 
 	import pandas as pd
 	import hashlib
@@ -69,8 +70,7 @@ def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=Fals
 	if debug:
 		print(now(), "HASHING: ### GET HASH: "+string_of_dict_paths,yamlfile+" ###")
 	dict_to_hash = {}
-	with open(yamlfile) as f:
-		my_dict = yaml.safe_load(f)
+	my_dict = parse_config_file(yamlfile)
 	my_dict = check_parameters(my_dict)	
 	dic_list = string_of_dict_paths.split(" ")
 	for d in dic_list:
