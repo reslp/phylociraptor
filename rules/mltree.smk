@@ -20,6 +20,7 @@ modeltest_hashes = hashes['modeltest']["per"]
 tinference_hashes = hashes['mltree']["per"]
 current_hash = hashes['mltree']["global"]
 previous_hash = hashes['modeltest']["global"]
+previous_alitrim_hash = hashes['filter-align']["global"]
 
 print(hashes["modeltest"])
 
@@ -71,7 +72,7 @@ rule partition_alignment:
 		datatype = config["filtering"]["seq_type"]
 	shell:
 		"""
-		if [[ -f {params.wd}/{params.models} && {params.wd}/checkpoints/modeltest.done ]]; then
+		if [[ -f {params.wd}/{params.models} ]]; then
 			echo "$(date) - 'phylociraptor modeltest' finished successfully before. Will run raxml with best models." >> {params.wd}/results/statistics/runlog.txt
 			awk 'FNR==NR{{a[$1"_aligned_trimmed.fas"]=$2;next}}{{print $0"\\t"a[$1]}}' {params.models} results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/statistics.txt | awk -F"\\t" 'NR>1{{split($1,b,"_"); print $10", " b[1]"="$2"-"$3}}' > results/phylogeny/concatenate/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/partitions_unformated.txt
 		else
@@ -132,6 +133,7 @@ rule prepare_iqtree:
 		params:
 			wd = os.getcwd(),
 			models = get_best_models,
+			modelsfile = get_best_models_filename,
 			alidir = get_alignment_dir, 
 			genes = get_input_genes
 		shell:
@@ -144,18 +146,25 @@ rule prepare_iqtree:
 			done
 			
 			echo "$(date) - Will create NEXUS partition file with model information now." >> {params.wd}/results/statistics/runlog.txt
-			echo "#nexus" > {output.nexus}
-			echo "begin sets;" >> {output.nexus}
-			i=1
-			charpart=""
-			for gene in $(echo "{params.genes}")
-			do
-				cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{print "charset part"i" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> {output.nexus}
-				charpart=$charpart$(cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{printf($2":part"i", ")}}' | sed 's/\\(.*\\), /\\1, /')
-				i=$((++i))
-			done
-			echo "charpartition mine = "$charpart";" >> {output.nexus}
-			echo "end;" >> {output.nexus} concat.nex
+			if [[ -f {params.wd}/{params.models} ]]; then
+				echo "$(date) - 'phylociraptor modeltest' finished successfully before for {wildcards.aligner} and {wildcards.alitrim}. Will run iqtree with best models." >> {params.wd}/results/statistics/runlog.txt
+				echo "#nexus" > {output.nexus}
+				echo "begin sets;" >> {output.nexus}
+				i=1
+				charpart=""
+					for gene in $(echo "{params.genes}")
+					do
+						cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{print "charset part"i" = algn/"$1"_aligned_trimmed.fas:*;"}}' >> {output.nexus}
+						charpart=$charpart$(cat {params.wd}/{params.models} | grep $gene | awk -v i=$i '{{printf($2":part"i", ")}}' | sed 's/\\(.*\\), /\\1, /')
+						i=$((++i))
+					done
+				echo "charpartition mine = "$charpart";" >> {output.nexus}
+				echo "end;" >> {output.nexus} #concat.nex
+			else
+				echo "$(date) - 'phylociraptor modeltest' was not run before for {wildcards.aligner} and {wildcards.alitrim}. Will run iqtree with a general model." >> {params.wd}/results/statistics/runlog.txt
+				touch {output.nexus}
+			fi
+				# insert code for specified model here
 			echo "$(date) - nexus file for iqtree written." >> {params.wd}/results/statistics/runlog.txt
 			"""
 rule iqtree:
@@ -184,8 +193,16 @@ rule iqtree:
 		shell:
 			"""
 			cd results/phylogeny/iqtree/bootstrap-cutoff-{wildcards.bootstrap}/{wildcards.aligner}-{wildcards.alitrim}.{wildcards.hash}/
-			iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {params.wd}/{log}
-			statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
+			if [[ -s concat.nex ]]; then
+				# file contains model info
+				iqtree -p concat.nex --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {params.wd}/{log}
+				statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
+			else # file is empty iqtree should rely on the user specifying model(s).
+				echo "Modeltest does not seem to have been run. IQ-Tree will therefore run without the best models and partitioning scheme from phylociraptor modeltest"
+				genes=$(ls algn/*.fas | tr "\n" ",") 
+				iqtree -s $genes --prefix concat -bb {params.bb} -nt {threads} $(if [[ "{params.seed}" != "None" ]]; then echo "-seed {params.seed}"; fi) {params.additional_params} 2>&1 | tee {params.wd}/{log}
+				statistics_string="iqtree\t{wildcards.aligner}\t{wildcards.alitrim}\t{params.bb}\t{wildcards.bootstrap}\t$(ls algn | wc -l)\t$(cat concat.contree)"
+			fi
 			echo -e $statistics_string > {params.wd}/{output.statistics}	
 			touch {params.wd}/{output.checkpoint}
 			"""

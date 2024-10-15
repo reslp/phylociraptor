@@ -14,17 +14,27 @@ configfi=os.environ["CONFIG"]
 print(now(), "CONFIGFILE:", configfi)
 
 def get_modeltest_checkpoint(wildcards):
-	return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"
+	if os.path.exists("results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"):
+		return "results/checkpoints/modeltest/aggregate_best_models_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".done"
+	else:
+		return []
 
 def get_input_genes(wildcards):
 	bs_cutoff = int(wildcards.bootstrap)
 	list_of_genes = []
-	with open("results/modeltest/genetree_filter_" + wildcards.aligner + "_" + wildcards.alitrim + "."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt") as file:
-		for line in file:
-			gene = line.split("\t")[0]
-			bs_value = int(line.strip().split("\t")[-1])
-			if bs_value >= bs_cutoff:
-				list_of_genes.append(gene)
+	if os.path.exists("results/modeltest/genetree_filter_" + wildcards.aligner + "_" + wildcards.alitrim + "."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt"):
+		# path when modeltest was run before
+		with open("results/modeltest/genetree_filter_" + wildcards.aligner + "_" + wildcards.alitrim + "."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt") as file:
+			for line in file:
+				gene = line.split("\t")[0]
+				bs_value = int(line.strip().split("\t")[-1])
+				if bs_value >= bs_cutoff:
+					list_of_genes.append(gene)
+	else:
+		# path when modeltest was not run
+		if os.path.exists("results/alignments/filtered/" + wildcards.aligner + "-" + wildcards.alitrim + "." + trimmer_hashes[wildcards.alitrim][wildcards.aligner] + "/"):
+			alignments = glob.glob("results/alignments/filtered/" + wildcards.aligner + "-" + wildcards.alitrim + "." + trimmer_hashes[wildcards.alitrim][wildcards.aligner] + "/*.fas")
+			list_of_genes = [alignment.split("_")[0].split("/")[-1] for alignment in alignments]
 	return list_of_genes		
 
 def get_aligners():

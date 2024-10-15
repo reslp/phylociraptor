@@ -11,10 +11,18 @@ def get_genetree_stats(wildcards):
 	return "results/modeltest/genetree_filter_"+wildcards.aligner+"_"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".txt"
 
 def previous_params_per(wildcards):
-	return "results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"
+	if os.path.exists("results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"):
+		# path for using alignments with modeltest
+		return "results/modeltest/parameters.modeltest."+wildcards.aligner+"-"+wildcards.alitrim+"."+modeltest_hashes["iqtree"][wildcards.alitrim][wildcards.aligner]+".yaml"
+	else: # path for using alignments without modeltest
+		return "results/alignments/filtered/" + wildcards.aligner + "-" + wildcards.alitrim + "." +  trimmer_hashes[wildcards.alitrim][wildcards.aligner] + "/parameters.filter-align." + wildcards.aligner + "-"  + wildcards.alitrim + "." + trimmer_hashes[wildcards.alitrim][wildcards.aligner] + ".yaml"
 
 def previous_params_global(wildcards):
-	return "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
+	if os.path.exists("results/modeltest/parameters.modeltest."+previous_hash+".yaml"):
+		# path for using alignments with modeltest
+		return "results/modeltest/parameters.modeltest."+previous_hash+".yaml"
+	else: # path for using alignments without modeltest
+		return "results/alignments/trimmed/parameters.filter-align." + previous_alitrim_hash + ".yaml"
 
 def get_concatenate_params(wildcards):
 	if os.environ["MODE"] == "njtree":
