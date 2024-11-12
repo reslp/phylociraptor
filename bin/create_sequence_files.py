@@ -89,7 +89,7 @@ gene_file = open(args.gene_stats, "w").close()
 if args.mode == "orthofinder": # this is for orthofinder mode
 	gene_file = open(args.gene_stats, "a")
 	for gene in buscos:
-		print("Writing sequence file: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
+		#print("Writing sequence file: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
 		with open(args.busco_results + gene + ".fa", "r") as seqfile:
 			with open(args.outdir + "/" + gene + "_all.fas", "w") as outfile:
 				outstring = ""
@@ -100,16 +100,16 @@ if args.mode == "orthofinder": # this is for orthofinder mode
 					else:
 						outstring = outstring + line + "\n"
 				
-			if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-				if args.fixaa:
-					if 'J' in outstring or 'Z' in outstring or '*' in outstring:
-						print("replacing stuff:\n", outstring)
-						outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
-		
-				print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
-				outfile.write(outstring)
-			else:
-				print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+				if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+					if args.fixaa:
+						if 'J' in outstring or 'Z' in outstring or '*' in outstring:
+							print("replacing stuff:\n", outstring)
+							outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
+			
+					print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+					outfile.write(outstring)
+				else:
+					print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 	gene_file.close()
 if args.mode == "busco": #this if for busco mode
 	for i in range(len(buscos)):
