@@ -96,7 +96,7 @@ if args.mode == "orthofinder": # this is for orthofinder mode
 				for line in seqfile:
 					line = line.strip()
 					if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
-						oustring = outstring + line.rsplit("_", 1)[0] + "\n"
+						outstring = outstring + line.rsplit("_", 1)[0] + "\n"
 					else:
 						outstring = outstring + line + "\n"
 				
