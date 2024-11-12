@@ -106,10 +106,10 @@ if args.mode == "orthofinder": # this is for orthofinder mode
 						print("replacing stuff:\n", outstring)
 						outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
 		
-				print(busco + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+				print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 				outfile.write(outstring)
 			else:
-				print(busco + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+				print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 	gene_file.close()
 if args.mode == "busco": #this if for busco mode
 	for i in range(len(buscos)):
