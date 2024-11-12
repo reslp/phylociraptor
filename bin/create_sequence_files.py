@@ -84,6 +84,13 @@ genome_file.close()
 buscos = list(busco_overview.columns.values)
 buscos.remove("percent_complete")
 
+def fixaa(outstring):
+	if 'J' in outstring or 'Z' in outstring or '*' in outstring:
+		print("replacing stuff:\n", outstring)
+		outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
+	return outstring
+	
+
 target=int(args.batchid)
 gene_file = open(args.gene_stats, "w").close()
 if args.mode == "orthofinder": # this is for orthofinder mode
@@ -91,25 +98,22 @@ if args.mode == "orthofinder": # this is for orthofinder mode
 	for gene in buscos:
 		#print("Writing sequence file: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
 		with open(args.busco_results + gene + ".fa", "r") as seqfile:
-			with open(args.outdir + "/" + gene + "_all.fas", "w") as outfile:
-				outstring = ""
-				for line in seqfile:
-					line = line.strip()
-					if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
-						outstring = outstring + line.rsplit("_", 1)[0] + "\n"
-					else:
-						outstring = outstring + line + "\n"
-				
-				if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-					if args.fixaa:
-						if 'J' in outstring or 'Z' in outstring or '*' in outstring:
-							print("replacing stuff:\n", outstring)
-							outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
-			
-					print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
-					outfile.write(outstring)
+			outstring = ""
+			for line in seqfile:
+				line = line.strip()
+				if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
+					outstring = outstring + line.rsplit("_", 1)[0] + "\n"
 				else:
-					print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+					if args.fixaa:
+						outstring = outstring + fixaa(line) + "\n"
+			
+			if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
+				print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+				outfile = open(args.outdir + "/" + gene + "_all.fas", "w")
+				outfile.write(outstring)
+				outfile.close()
+			else:
+				print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
 	gene_file.close()
 if args.mode == "busco": #this if for busco mode
 	for i in range(len(buscos)):
@@ -148,7 +152,7 @@ if args.mode == "busco": #this if for busco mode
 						print(busco, "not found for", species)
 						continue
 		if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-			if args.fixaa:
+			if args.fixaa: # maybe this needs to be changed??
 				if 'J' in outstring or 'Z' in outstring or '*' in outstring:
 					print("replacing stuff:\n", outstring)
 					outstring = "\n".join([l.replace("U","X").replace("Z","X").replace("J","X").replace("*","") if not ">" in l else l for l in outstring.split("\n")])
