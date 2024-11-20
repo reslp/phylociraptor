@@ -17,12 +17,12 @@ aligner_hash = hashes["align"]["per"]
 previous_hash = hashes['filter-orthology']["global"]
 
 
-BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs_deduplicated." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas")
 
 def determine_concurrency_limit():
-	fname = "results/orthology/orthology/single-copy-orthologs."+previous_hash
+	fname = "results/orthology/orthology/single-copy-orthologs_deduplicated."+previous_hash
 	if os.path.isdir(fname):
-		ngenes = glob.glob("results/orthology/single-copy-orthologs." + previous_hash + "/*.fas")
+		ngenes = glob.glob("results/orthology/single-copy-orthologs_deduplicated." + previous_hash + "/*.fas")
 		ngenes = len(ngenes)
 		if ngenes < config["concurrency"]:
 			return range(1, ngenes + 1)
