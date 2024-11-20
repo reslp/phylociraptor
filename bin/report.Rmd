@@ -364,11 +364,17 @@ if (file.exists(busco_overview_image)) {
 results/orthology/orthofinder/orthofinder-`r py$orthology_hash`/orthofinder-results-`r py$orthology_hash`
 ```
 
-```{r busco_summary, results="asis", echo=FALSE}
+```{r orthofinder_summary, results="asis", echo=FALSE}
 # this is just a quick way to display some summary statistics for the orthofinder run. This needs to be improved!
-for (line in readLines(paste0("../results/orthology/orthofinder/orthofinder-",py$orthology_hash, "/orthofinder-results-", py$orthology_hash, "/Comparative_Genomics_Statistics/Statistics_Overall.tsv"))) {
-	cat(paste0(line, "<br>"))
-  } 
+orthofinder_file=paste0("../results/orthology/orthofinder/orthofinder-",py$orthology_hash, "/orthofinder-results-", py$orthology_hash, "/Comparative_Genomics_Statistics/Statistics_Overall.tsv")
+
+if (file.exists(orthofinder_file)) {
+	for (line in readLines()) {
+		cat(paste0(line, "<br>"))
+  	} 
+} else {
+	cat("Orthofinder statistics file not found. Maybe Orthofinder was not used? <br>")
+}
 ```
 
 **Careful:** The number of single copy orthologs identified by Orthofinder may not correspond to the number in the alignment step. This is because phylociraptor allows for missing data while Orthofinder does not. For example a gene may be missing in one species but has a single copy in all other species. Such a gene would not show up as single copy ortholog in Orthofinder but it will still be included in phylociraptor given that the parameters are set accordingly.
