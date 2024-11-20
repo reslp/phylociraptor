@@ -143,7 +143,7 @@ base_size <- 12
 
 # Setup
 
-```{python, echo=FALSE}
+```{python getorthomethod, echo=FALSE}
 orthomethod = config_data["orthology"]["method"]
 
 ```
@@ -223,7 +223,7 @@ if (file.exists(downloaded_genomes_statistics_file) && py$orthomethod == "busco"
 
 
 
-```{python, echo=FALSE}
+```{python getorthologyhash, echo=FALSE}
 busco_set = config_data["orthology"]["busco_options"]["set"]
 #enable this for debugging hash related problems
 #for mode in steps_to_check:
@@ -243,7 +243,7 @@ Used orthology method: `r py$orthomethod`
 Analysis hash for step orthology: `r py$orthology_hash`\
 Analysis hash for step filter-orthology: `r py$forthology_hash`
 
-```{r, echo=FALSE, results="asis"}
+```{r orthology, echo=FALSE, results="asis"}
 # orthology statistics file:
 #busco_set_dir <- list.dirs("../results/orthology/busco/busco_set/",recursive=F)
 busco_overview_file <- paste0("../results/orthology/busco/busco_set/",py$busco_set,"/dataset.cfg")
@@ -346,7 +346,7 @@ if (file.exists(busco_summary_file))
 
 ```
 
-```{r, include=TRUE, fig.align="center", echo=F}
+```{r busco_overview, include=TRUE, fig.align="center", echo=F}
 #out.width="1.0\\linewidth"
 if (file.exists(busco_overview_image)) {
   include_graphics(busco_overview_image)
@@ -364,7 +364,7 @@ if (file.exists(busco_overview_image)) {
 results/orthology/orthofinder/orthofinder-`r py$orthology_hash`/orthofinder-results-`r py$orthology_hash`
 ```
 
-```{r results="asis", echo=FALSE}
+```{r busco_summary, results="asis", echo=FALSE}
 # this is just a quick way to display some summary statistics for the orthofinder run. This needs to be improved!
 for (line in readLines(paste0("../results/orthology/orthofinder/orthofinder-",py$orthology_hash, "/orthofinder-results-", py$orthology_hash, "/Comparative_Genomics_Statistics/Statistics_Overall.tsv"))) {
 	cat(paste0(line, "<br>"))
@@ -375,7 +375,7 @@ for (line in readLines(paste0("../results/orthology/orthofinder/orthofinder-",py
 
 `r if(py$orthomethod == "busco") {"\\end{comment}"}`
 
-```{python, echo=FALSE}
+```{python detalitrim, echo=FALSE}
 aligners = []
 taligners = []
 faligners = []
@@ -775,7 +775,7 @@ if (identical(f, character(0)) == FALSE && file.exists(f) == TRUE) {
 
 # Modeltesting
 
-```{python, echo=FALSE}
+```{python getmodeltesthash, echo=FALSE}
 faligners = []
 gtfilter = []
 for trimmer in all_hashes["modeltest"]["modeltest"]["per"]["iqtree"]:
@@ -982,7 +982,7 @@ function copytree(id) {
 results/phylogeny/
 ```
 
-```{python, echo=FALSE}
+```{python getmltreehash, echo=FALSE}
 mltreestats = []
 for bscutoff in all_hashes["mltree"]["mltree"]["per"]:
 	for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"]:
@@ -1051,7 +1051,7 @@ function copyspeciestree(id) {
 
 # Speciestree
 
-```{python, echo=FALSE}
+```{python getsptreehash, echo=FALSE}
 sptreestats = []
 for bscutoff in all_hashes["speciestree"]["speciestree"]["per"]:
 	for trimmer in all_hashes["speciestree"]["speciestree"]["per"][bscutoff]["astral"]["iqtree"]:
@@ -1100,7 +1100,7 @@ if (length(files) > 0) {
 
 # Log
 
-```{r, echo=FALSE}
+```{r log, echo=FALSE}
 if (file.exists(runlog_file))
 {
   runlog <- read_file(runlog_file)
