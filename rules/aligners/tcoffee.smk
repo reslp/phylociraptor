@@ -1,7 +1,7 @@
 rule tcoffee:
 		input:
 			"results/alignments/full/tcoffee.{hash}/parameters.align.tcoffee.{hash}.yaml",
-			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs_deduplicated." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/tcoffee.{hash}/{busco}_aligned.fas",
 		benchmark:

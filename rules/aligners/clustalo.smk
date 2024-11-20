@@ -1,7 +1,7 @@
 rule clustalo:
 		input:
 			"results/alignments/full/clustalo.{hash}/parameters.align.clustalo.{hash}.yaml",
-			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs_deduplicated." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/clustalo.{hash}/{busco}_aligned.fas",
 		benchmark:

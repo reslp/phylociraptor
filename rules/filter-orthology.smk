@@ -134,8 +134,8 @@ else:
 			table = "results/orthology/orthology_table."+previous_hash+".txt",
 			params = rules.read_params_global.output
 		output:
-			sequence_dir=directory("results/orthology/single-copy-orthologs." + current_hash + "/"),
-			checkpoint = "results/checkpoints/create_sequence_files_1-1." + current_hash + ".done",
+			sequence_dir=directory("results/orthology/single-copy-orthologs_deduplicated." + current_hash + "/"),
+			checkpoint = "results/checkpoints/create_sequence_files_1-1." + current_hash + ".done", # this is not paralellized for orthofinde hence only the single file.
 			genome_statistics = "results/statistics/orthology_filtering/orthology_filtering_genomes_statistics_1-1." + current_hash + ".txt",
 			gene_statistics = "results/statistics/orthology_filtering/orthology_filtering_gene_statistics_1-1." + current_hash + ".txt",
 			dubseq_check = "results/checkpoints/remove_duplicated_sequence_files."+current_hash+".done" # this is to create the same structure as for the busco part.

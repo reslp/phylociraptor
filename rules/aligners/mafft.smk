@@ -1,7 +1,7 @@
 rule mafft:
 		input:
 			"results/alignments/full/mafft.{hash}/parameters.align.mafft.{hash}.yaml",
-			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs_deduplicated." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/mafft.{hash}/{busco}_aligned.fas",
 		benchmark:

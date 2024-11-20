@@ -1,7 +1,7 @@
 rule muscle:
 		input:
 			"results/alignments/full/muscle.{hash}/parameters.align.muscle.{hash}.yaml",
-			sequence_file = "results/orthology/single-copy-orthologs." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
+			sequence_file = "results/orthology/single-copy-orthologs_deduplicated." + hashes["filter-orthology"]["global"] + "/{busco}_all.fas",
 		output:
 			alignment = "results/alignments/full/muscle.{hash}/{busco}_aligned.fas",
 		benchmark:
