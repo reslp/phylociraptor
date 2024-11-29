@@ -102,7 +102,7 @@ rule get_alignment_statistics:
 		pars_sites = config["trimming"]["min_parsimony_sites"],
 		nbatches = config["concurrency"],
 		set = config["orthology"]["busco_options"]["set"],
-		orthology_hash = hashes['filter-orthology']["global"],
+		orthology_hash = hashes['orthology']["global"],
 		mode = config["orthology"]["method"]
 	log:	"log/align/{aligner}_{batch}_get_aligment_statistics.{hash}.txt"
 	singularity: containers["concat"] 
