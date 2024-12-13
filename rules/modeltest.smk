@@ -20,7 +20,7 @@ previous_hash = hashes['filter-align']["global"]
 modeltest_hashes = hashes['modeltest']["per"]
 current_hash = hashes['modeltest']["global"]
 
-BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs."+filter_orthology_hash+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
 
 def previous_params_global(wildcards):
 	return "results/alignments/trimmed/parameters.filter-align."+previous_hash+".yaml"
