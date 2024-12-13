@@ -28,7 +28,7 @@ def compare_speciestree(wildcards):
 	return [trigger("results/phylogeny/{inference}/bootstrap-cutoff-{bootstrap}/parameters.speciestree.{inference}-{aligner}-{alitrim}.{hash}.yaml".format(bootstrap=wildcards.bootstrap, inference=wildcards.inference, aligner=wildcards.aligner, alitrim=wildcards.alitrim, hash=wildcards.hash), configfi)]	
 ########################
 
-BUSCOS, = glob_wildcards("results/orthology/busco/busco_sequences_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
+BUSCOS, = glob_wildcards("results/orthology/single-copy-orthologs_deduplicated."+filter_orthology_hash+"/{busco}_all.fas")
 
 def return_trees(wildcards):
 	lis = []
