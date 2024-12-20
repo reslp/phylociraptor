@@ -317,7 +317,7 @@ results/orthology/busco/busco_runs/`r py$busco_set`.`r py$orthology_hash`
 
 **Orthology overview table:**  
 ```{r busco_stats, echo=FALSE, message=F, fig.width=8, warning=F, results="asis"}
-if (file.exists(busco_summary_file))
+if (file.exists(busco_summary_file) && py$orthomethod != "orthofinder")
 {	
   data <- read.table(busco_summary_file, sep="\t", header=T)
   data <- data[ order(data$species), ]
