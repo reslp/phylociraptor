@@ -75,14 +75,22 @@ echo "Modify dataset.cfg"
 cat $buscodir/dataset.cfg | sed -e "s/number_of_BUSCOs=.*/number_of_BUSCOs=$(for i in $buscos; do echo $i; done | wc -l)/" > $buscotmp/dataset.cfg
 
 echo "Creating a new directory for the modified BUSCO set:"
-echo "$buscodir-seed-$seed-genes-$ng"
-mv $buscotmp "$buscodir-seed-$seed-genes-$ng"
+if [[ $buscodir == *"odb10"* ]]; then
+	buscodir="${buscodir/_odb10/}"
+	echo "$buscodir-seed-$seed-genes-$ng""_odb10"
+	mv $buscotmp "$buscodir-seed-$seed-genes-$ng""_odb10"
+	newname=$(basename "$buscodir-seed-$seed-genes-$ng""_odb10")
+else
+	echo "$buscodir-seed-$seed-genes-$ng"
+	mv $buscotmp "$buscodir-seed-$seed-genes-$ng"
+	newname=$(basename "$buscodir-seed-$seed-genes-$ng")
+fi
 
 echo "A Backup of the original BUSCO set directory will be kept in results/orthology/busco/busco_set/$2"
 
 echo "IMPORTANT: To use the modified BUSCO set make sure to change your config.yaml file:"
 echo "Change line in section busco_options to:"
-echo "		set: \"$2-seed-$seed-genes-$ng\""
+echo "		set: \"$newname\""
 echo
 
 
