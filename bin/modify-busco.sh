@@ -81,9 +81,7 @@ mv $buscotmp "$buscodir-seed-$seed-genes-$ng"
 echo "A Backup of the original BUSCO set directory will be kept in results/orthology/busco/busco_set/$2"
 
 echo "IMPORTANT: To use the modified BUSCO set make sure to change your config.yaml file:"
-echo "Change line in section busco_options:"
-echo '		set: "fungi_odb9"'	
-echo "to"
+echo "Change line in section busco_options to:"
 echo "		set: \"$2-seed-$seed-genes-$ng\""
 echo
 
