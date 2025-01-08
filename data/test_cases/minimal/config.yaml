@@ -10,11 +10,13 @@ orthology:
     threads: 2
     exclude: 
     busco_options:
-        set: "fungi_odb9" # the name of the BUSCO set to be used
-        version: "3.0.2"
+        set: "fungi_odb10" # the name of the BUSCO set to be used
+        version: "5.2.1"
         mode: "genome"
         augustus_species: saccharomyces
         additional_parameters: ""
+    orthofinder_options:
+        params: ""
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----
@@ -40,6 +42,7 @@ alignment:
         clustalo: 
         muscle: 
         tcoffee:
+        prank:
 
 # possible trimming options: trimal, aliscore, bmge
 trimming: 
@@ -49,9 +52,9 @@ trimming:
         aliscore: ""
         bmge: ""
         clipkit: ""
-    minsp: 4
-    min_parsimony_sites: 4
-    max_rcv_score: 0.3
+    minsp: 4 # 4 is the minimum number of taxa needed by the modeltest step.
+    min_parsimony_sites: 4 # minimum number of parismony informatives sites in each alignment 
+    max_rcv_score: 0.3 # Relative composition variability. Between 0 (filtering everything) and 1 (filter nothing).
 
 # settings related to phylogenetic inference
 # phylogenetic method options include iqtree, raxmlng for a concatenated (supermatrix) reconstruction  and astral for species tree reconstruction
@@ -90,3 +93,16 @@ njtree:
         quicktree: 10
     options:
         quicktree: ""
+
+bitree:
+    method: ["phylobayes"]
+    threads:
+        phylobayes: 12 
+    chains:
+        phylobayes: 4
+    generations:
+        phylobayes: 10000
+    sampling:
+        phylobayes: 10
+    options:
+        phylobayes: "-cat -gtr"

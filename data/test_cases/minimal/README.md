@@ -7,10 +7,10 @@ This minimal test dataset consists of six fungal genomes.
 Results generated from this run:
 
 - 6 fungal genome assemblies downloaded
-- 10 single-copy orthologs identified in each genome
-- 20 multiple sequence alignments using mafft (n=10) and clustal omega (n=10)
-- 24 trimmed alignments using trimal and aliscore/alicut (could have been 40, but 16 were eliminated by our filters)
-- 24 maximum-likelihood gene trees calculated with iqtree
+- 10 single-copy orthologs identified in each genome (using BUSCO5)
+- 18 multiple sequence alignments using mafft and clustal omega. (Could have been 20 but two orthologs are missing in too many genomes)
+- 36 trimmed and filtered alignments using trimal and aliscore/alicut (could have been 40, but 4 were eliminated by our filters)
+- 36 maximum-likelihood gene trees calculated with iqtree
 - 12 concatenated maximum-likelihood phylogenies using 3 different bootstrap-cutoff values
 - 12 species trees using 3 different bootstrap-cutoff values
 - 1 comprehensive report of our analyses in HTML format
@@ -33,7 +33,7 @@ For this minimal example we need to modify the busco set to include only a small
 To reduce the busco set to only 10 genes run this command in the phylocirpator directory:
 
 ```
-./phylociraptor util modify-busco -b fungi_odb9 -n 10 --seed 42
+./phylociraptor util modify-busco -b fungi_odb10 -n 10 --seed 42
 ```
 
 This should take only a few seconds. 
@@ -42,7 +42,7 @@ To resume with the new, reduced BUSCO set make a copy of the settings file and m
 
 ```
 cp data/test_cases/minimal/config.yaml data/config.yaml 
-sed -i 's/fungi_odb9/fungi_odb9-seed-42-genes-10/' data/config.yaml
+sed -i 's/fungi_odb10/fungi-seed-42-genes-10_odb10/' data/config.yaml
 ```
 
 ### Run orthology to indentify single-copy orthologs:
