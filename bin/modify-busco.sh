@@ -70,6 +70,11 @@ echo "Copy ancestral sequence files"
 cp $buscodir/ancestral $buscotmp/
 cp $buscodir/ancestral_variants $buscotmp/
 
+if [[ -f $buscodir/refseq_db.faa.gz ]]; then
+	echo "Copy refseq_db.faa.gz file"
+	cp $buscodir/refseq_db.faa.gz $buscotmp/
+fi
+
 echo "Modify dataset.cfg"
 
 cat $buscodir/dataset.cfg | sed -e "s/number_of_BUSCOs=.*/number_of_BUSCOs=$(for i in $buscos; do echo $i; done | wc -l)/" > $buscotmp/dataset.cfg
