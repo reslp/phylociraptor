@@ -794,6 +794,7 @@ elif args.command=="report":
 	report_parser.add_argument("-h", "--help", action="store_true")
 	report_parser.add_argument("--verbose", action="store_true", default=False)
 	report_parser.add_argument("--figure", action="store_true", default=False)
+	report_parser.add_argument("--seperate", action="store_true", default=False)
 	report_parser.add_argument("--debug", action="store_true", default=False)
 	report_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
 	report_args = report_parser.parse_args(args.arguments)
@@ -810,9 +811,13 @@ elif args.command=="report":
 	#	sys.exit(0)
 
 	if report_args.figure:
-		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", "./bin/report_figure.R", report_args.config_file]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3", "Rscript", "./bin/report_figure.R"]
 		if report_args.config_file:
 			cmd += [report_args.config_file]
+		if report_args.seperate:
+			cmd += ["yes"]
+		else:
+			cmd += ["no"]
 	else:
 		rcommand = """ rmarkdown::render('./bin/report.Rmd') """
 		cmd = ["singularity", "exec", "-B", os.getcwd(), "docker://reslp/rmarkdown:4.0.3","Rscript", "-e", rcommand, os.getcwd()]

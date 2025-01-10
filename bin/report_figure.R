@@ -7,7 +7,7 @@ setwd(paste0(wd,"/bin"))
 library(yaml)
 config_file_path <- paste0("../",args[1])
 config_data <- read_yaml(paste0("../",args[1]))
-
+seperate <- args[2]
 library(patchwork)
 library(RColorBrewer)
 library(ggpubr)
@@ -329,17 +329,21 @@ if (length(dirs)==0) {
 colnames(trimmed_alignment_statistics) <- c("combination", "total", "pass", "fail")
 trimmed_alignment_statistics$total <- NULL
 trimmed_alignment_statistics_melted <- melt(trimmed_alignment_statistics, id="combination")
-trimmed_alignment_statistics_melted$combination <- gsub("-", "\n",trimmed_alignment_statistics_melted$combination)
+trimmed_alignment_statistics_melted$aligner <- sapply(strsplit(trimmed_alignment_statistics_melted$combination, split = "-"), function(x) x[1]) 
+trimmed_alignment_statistics_melted$trimmer <- sapply(strsplit(trimmed_alignment_statistics_melted$combination, split = "-"), function(x) x[2]) 
 
 trimmed_alignment_statistics_melted$value <- as.numeric(trimmed_alignment_statistics_melted$value)
 
 
-colnames(trimmed_alignment_statistics_melted) <- c("combination", "status", "no. of alignments")
+colnames(trimmed_alignment_statistics_melted) <- c("combination", "status", "no. of alignments", "aligner", "trimmer")
 trimmed_alignment_statistics_melted <- within(trimmed_alignment_statistics_melted, `status` <- factor(`status`, levels=c("total", "pass", "fail")))
 
+
+
+
 trimmed_alignments_plot <- 
-  ggplot(trimmed_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=combination)) + 
-  geom_bar(position="dodge", stat="identity")+ ggtitle("trimmed") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
+  ggplot(trimmed_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=trimmer)) + 
+  geom_bar(position="dodge", stat="identity")+ ggtitle("trimmed") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors) + facet_wrap( ~ aligner, strip.position = "bottom", scales = "free_x", nrow=1)
 trimmed_alignments_plot <- trimmed_alignments_plot + theme(axis.title.x = element_blank(), legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5, size=8))
 trimmed_alignments_plot <- trimmed_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
 trimmed_alignments_plot <- trimmed_alignments_plot + theme(legend.position = "none")
@@ -383,15 +387,17 @@ if (length(dirs)==0) {
 colnames(filtered_alignment_statistics) <- c("combination", "total", "pass", "fail")
 filtered_alignment_statistics$total <- NULL
 filtered_alignment_statistics_melted <- melt(filtered_alignment_statistics, id="combination")
+filtered_alignment_statistics_melted$aligner <- sapply(strsplit(filtered_alignment_statistics_melted$combination, split = "-"), function(x) x[1]) 
+filtered_alignment_statistics_melted$trimmer <- sapply(strsplit(filtered_alignment_statistics_melted$combination, split = "-"), function(x) x[2]) 
 filtered_alignment_statistics_melted$combination <- gsub("-", "\n",filtered_alignment_statistics_melted$combination)
 
 filtered_alignment_statistics_melted$value <- as.numeric(filtered_alignment_statistics_melted$value)
-colnames(filtered_alignment_statistics_melted) <- c("combination", "status", "no. of alignments")
+colnames(filtered_alignment_statistics_melted) <- c("combination", "status", "no. of alignments", "aligner", "trimmer")
 filtered_alignment_statistics_melted <- within(filtered_alignment_statistics_melted, `status` <- factor(`status`, levels=c("total", "pass", "fail")))
 
 filtered_alignments_plot <- 
-  ggplot(filtered_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=combination)) + 
-  geom_bar(position="dodge", stat="identity")+ ggtitle("filtered") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors)
+  ggplot(filtered_alignment_statistics_melted, aes(fill=status, y=`no. of alignments`, x=trimmer)) + 
+  geom_bar(position="dodge", stat="identity")+ ggtitle("filtered") + theme_minimal() + theme(legend.position="bottom",legend.title = element_blank())  + scale_fill_manual(values=colors) + facet_wrap( ~ aligner, strip.position = "bottom", scales = "free_x", nrow=1)
 filtered_alignments_plot <- filtered_alignments_plot + theme(axis.title.x = element_blank(),legend.margin=margin(0,0,0,0, "cm"), legend.key.size = unit(4, "pt"), text=element_text(size=7), axis.title.y=element_blank(), axis.text.y=element_blank(),axis.text.x = element_text(angle=60, vjust=1, hjust=1),plot.title = element_text(hjust = 0.5))
 filtered_alignments_plot <- filtered_alignments_plot + scale_y_continuous(limits = c(0, maxtotal)) + theme(legend.position="none")
 filtered_alignments_plot<- filtered_alignments_plot + theme(legend.position = "none")
@@ -522,12 +528,14 @@ if (length(files) > 0) {
   genetree_data_combined <- do.call(multi_merge2, list(dat))
   colnames(genetree_data_combined) <- c("gene", titles)		
 }
-
 genetree_data_combined_melted <- melt(genetree_data_combined)
 colnames(genetree_data_combined_melted) <- c("gene", "combination", "mean bootstrap support per tree") 
+genetree_data_combined_melted$aligner <- sapply(strsplit(as.character(genetree_data_combined_melted$combination), split = "-"), function(x) x[1]) 
+genetree_data_combined_melted$trimmer <- sapply(strsplit(as.character(genetree_data_combined_melted$combination), split = "-"), function(x) x[2]) 
+
 genetree_data_combined_melted$combination <- gsub("-", "\n", genetree_data_combined_melted$combination)
-genetree_plot <- ggplot(data=genetree_data_combined_melted, aes(x=combination, y=`mean bootstrap support per tree`, fill=combination)) + geom_violin() + theme_minimal() + theme(legend.position="none")  + scale_fill_brewer(palette="Spectral")
-genetree_plot <- genetree_plot + theme(axis.title.x = element_blank(), text=element_text(size=7))
+genetree_plot <- ggplot(data=genetree_data_combined_melted, aes(x=trimmer, y=`mean bootstrap support per tree`)) + geom_violin() + geom_jitter(height = 0, width = 0.1, size=0.5) + theme(legend.position="none") + theme_minimal() + facet_wrap( ~ aligner, strip.position = "bottom", scales = "free_x", nrow=1)
+genetree_plot <- genetree_plot + theme(axis.title.x = element_blank(), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1))
 genetree_plot <- annotate_figure(genetree_plot, top="genetrees")
 
 
@@ -584,7 +592,20 @@ additional_info <- ggplot() +theme_void() +
 additional_info <- annotate_figure(additional_info, top="overview")
 
 cat("Save report file...\n")
-pdf(file="report-figure.pdf", width=11.3, height=8.7)
-p <- ggarrange(plotsetup, plotortho,combined_alignment_plot,modeltest_plots,genetree_plot,additional_info, ncol=3, nrow=2,labels="AUTO")
-p
-dev.off()
+if (seperate == "yes") {
+	cat("Will save each plot as seperate page in PDF...\n")
+	pdf(file="report-figure.pdf", width=8.7, height=8.7)
+		print(plotsetup)
+		print(plotortho)
+		print(combined_alignment_plot)
+		print(modeltest_plots)
+		print(genetree_plot)
+		print(additional_info)
+	dev.off()
+} else {
+
+	pdf(file="report-figure.pdf", width=11.3, height=8.7)
+		p <- ggarrange(plotsetup, plotortho,combined_alignment_plot,modeltest_plots,genetree_plot,additional_info, ncol=3, nrow=2,labels="AUTO")
+		print(p)
+	dev.off()
+}

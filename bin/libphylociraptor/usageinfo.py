@@ -198,6 +198,7 @@ Argumemts:
 	--verbose               Display more output.
 	--figure		Create a single figure report.
 				This only works after modeltest has finished.
+	--seperate		This will split report into several pages. Only works with --figure.
 	--config-file           Relative custom config-file path. Only required for --figure (Default: data/config.yaml)
 	-h, --help              Display help.
 
