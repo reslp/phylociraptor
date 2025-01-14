@@ -12,7 +12,7 @@ source_suffix = ['.rst', '.md']
 # -- Project information -----------------------------------------------------
 
 project = "phylociraptor"
-copyright = "2024, Philipp Resl and Christoph Hahn"
+copyright = "2025, Philipp Resl and Christoph Hahn"
 author = "Philipp Resl and Christoph Hahn"
 
 # -- Extensions --------------------------------------------------------------
