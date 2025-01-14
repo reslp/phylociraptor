@@ -7,6 +7,13 @@
 Welcome to phylociraptor's documentation!
 =========================================
 
+.. image:: images/logo.png
+   :width: 200px 
+
+.. image:: images/phylociraptor.png
+   :width: 600px
+
+
 
 .. image:: https://img.shields.io/github/stars/reslp/phylociraptor?style=social
    :alt: githubstars

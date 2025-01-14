@@ -33,6 +33,7 @@ html_title = project
 # !! MARKER !!
 
 html_theme = "sphinx_rtd_theme"
+html_logo = "images/logo.png"
 #html_theme = "furo"
 html_static_path = ['_static']
 
