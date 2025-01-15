@@ -11,6 +11,7 @@ from io import StringIO
 from io import TextIOWrapper
 import glob
 import shutil
+import numpy as np
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
@@ -97,23 +98,34 @@ if args.mode == "orthofinder": # this is for orthofinder mode
 	gene_file = open(args.gene_stats, "a")
 	for gene in buscos:
 		#print("Writing sequence file: ", args.busco_results + gene + ".fa =>", args.outdir + "/" + gene + "_all.fas")
-		with open(args.busco_results + gene + ".fa", "r") as seqfile:
-			outstring = ""
-			for line in seqfile:
-				line = line.strip()
-				if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
-					outstring = outstring + line.rsplit("_", 1)[0] + "\n"
-				else:
-					if args.fixaa:
-						outstring = outstring + fixaa(line) + "\n"
+		single_count = np.sum(busco_overview[gene] == 1)
+		if (single_count >= int(args.minsp)):
+			print("OG: "+gene+" was single copy in "+str(single_count)+" taxa")
+			taxon_list = busco_overview.loc[busco_overview[gene] == 1].index.tolist()
+			with open(args.busco_results + gene + ".fa", "r") as seqfile:
+				outstring = ""
+				keep = 0
+				for line in seqfile:
+					line = line.strip()
+					if line.startswith(">"): # this is to get rid of the gene ids added before orthofinder is run
+						if line.rsplit("_", 1)[0].replace(">","") in taxon_list:
+							outstring = outstring + line.rsplit("_", 1)[0] + "\n"
+							keep = 1
+						else:
+							keep = 0
+					else:
+						if keep:
+							if args.fixaa:
+								outstring = outstring + fixaa(line) + "\n"
+							else:
+								outstring = outstring + line + "\n"
 			
-			if outstring.count(">") >= int(args.minsp):	# only keep sequences if total number is larger than specified cutoff above.		
-				print(gene + "\t" + "OK" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+				print(gene + "\t" + "OK" + "\t" + str(single_count) +"\t" + str(int(args.minsp)), file=gene_file)
 				outfile = open(args.outdir + "/" + gene + "_all.fas", "w")
 				outfile.write(outstring)
 				outfile.close()
-			else:
-				print(gene + "\t" + "FAILED" + "\t" + str(outstring.count(">")) +"\t" + str(int(args.minsp)), file=gene_file)
+		else:
+			print(gene + "\t" + "FAILED" + "\t" + str(single_count) +"\t" + str(int(args.minsp)), file=gene_file)
 	gene_file.close()
 if args.mode == "busco": #this if for busco mode
 	for i in range(len(buscos)):
