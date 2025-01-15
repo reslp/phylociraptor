@@ -89,7 +89,6 @@ rule phylobayes:
 		else
 			echo "Output does not exist. Will start new chain..."
 			mpirun -np {params.threads} $PARAMS pb_mpi {params.options} -x {params.sampling} {params.generations} -d $(basename {input.alignment}) $CHAINNAME
-		generations = config["bitree"]["generations"]["phylobayes"],
 		fi
 		#done
 		touch {output.internalcheck}
