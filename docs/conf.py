@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import datetime
 
 #sys.path.append(os.path.join(os.environ["SAMPLE_DOCS_LOCATION"], "demo"))
 #print("", sys.path[-1], "", sep="\n" + "-" * 80 + "\n")
@@ -32,11 +33,28 @@ html_title = project
 #       written as part of the site generation pipeline for this project.
 # !! MARKER !!
 
-html_theme = "sphinx_rtd_theme"
+#html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
+#html_theme = "sphinxawesome_theme"
 html_logo = "images/logo_small.png"
-html_theme_options = {'logo_only': True}
+html_theme_options = {'logo_only': True, "sidebar_hide_name": True,}
 #html_theme = "furo"
 html_static_path = ['_static']
+
+#html_context = {'css_files': ['_static/custom.css']}
+html_css_files = ["custom.css"]
+
+html_sidebars = {
+    "**": [
+        "sidebar/scroll-start.html",
+        "sidebar/brand.html",
+        "sidebar/navigation.html",
+        "sidebar/scroll-end.html",
+    ]
+}
+
+#def setup(app):
+#    app.add_css_file('custom.css')
 
 # -- General configuration ---------------------------------------------------
 
@@ -51,10 +69,11 @@ html_static_path = ['_static']
 #]
 extensions = ['recommonmark']
 
-html_css_files = ["theme.css"]
+date = datetime.now()
+copyright = "2021-{year}, Philipp Resl and Christoph Hahn".format(year=date.timetuple()[0])
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['templates']
+templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

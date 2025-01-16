@@ -3,6 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. role:: raw-html(raw)
+    :format: html
+
+
 ==========
 Welcome to 
 ==========
@@ -12,6 +16,7 @@ Welcome to
    :width: 600px
 
 
+:raw-html:`<br />` 
 
 .. image:: https://img.shields.io/github/stars/reslp/phylociraptor?style=social
    :alt: githubstars
@@ -49,6 +54,7 @@ If you run into problems with phylociraptor please follow these steps:
 2. Check the `known-issues <getting-help/problems.html>`_ page if your problems is already known.
 3. Search the `issue tracker <https://github.com/reslp/phylociraptor/issues>`_ if other people are having the same problem.
 4. Post an `issue <https://github.com/reslp/phylociraptor/issues>`_  on GitHub describing your problem.  
+
 
 .. toctree::
    :caption: First steps
