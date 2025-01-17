@@ -5,6 +5,8 @@
 Quickstart
 ==================
 
+This section will give you a quick overview of how to setup and run phylociraptor. You may also look at our :doc:`tutorial <minimal>` which gives an example of how to analyze a very small dataset from start to finish.
+
 -----------------------
 Set up your analysis
 -----------------------

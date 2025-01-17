@@ -16,9 +16,9 @@
 .. _docker: https://docker.com/
 
  
-=====================
-Setup phylocirpator
-=====================
+=====
+Setup
+=====
 
 ----------------
 Requirements

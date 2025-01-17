@@ -2,6 +2,8 @@
 .. role:: bash(code)
    :language: bash
 
+.. _utilities:
+
 =============================================
 A posteriori analyses with phylociraptor util
 =============================================

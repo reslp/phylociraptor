@@ -29,6 +29,14 @@ This is the content of the results folder when every step of phylociraptor has f
 
 We will go through every folder now in alphabethical order.
 
+
+.. caution::
+
+   If you compare what is written here to your own phylociraptor results you will notice many directory- and filenames additionally contain combinations of numbers and letters.
+   These so-called `hashes <https://en.wikipedia.org/wiki/Hash_function>`_ are used to track files and folder of analyses created with different parameter combinations from the config file. This is necessary to make analyses reproducible down to every set parameter in your analysis. For simplicity we have omitted hashes here.
+
+ 
+
 ----------
 alignments
 ----------

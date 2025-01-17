@@ -1,9 +1,9 @@
 
-============
-About
-============
+===================
+About phylociraptor
+===================
 
-Phylociraptor is a bioinformatics pipeline to create **phylogenomic trees** for a specified set of species using different alignment, trimming and tree reconstruction methods. Installation is simple with only two dependencies. 
+Phylociraptor is a tool to create **phylogenomic trees** for a specified set of species using different orthology, alignment, trimming and tree reconstruction methods. Installation is simple with only two dependencies. 
 It is very scalable and runs on Linux/Unix machines, servers as well as HPC clusters. 
 
 ----------------------------------------------------------------------
@@ -17,6 +17,7 @@ Phylociraptor performs every step of a typical phylogenomic analysis.
 * It calculates gene-trees for each alignment.
 * It creates a species tree from gene-trees using ASTRAL.
 * It creates Neighbor-Joining trees using quicktree.
+* It creates bayesian trees with phylobayes-mpi.
 * It calculates the best substitution model for single-gene alignments.
 * It automatically produces all input and runs iqtree and raxml to create concatenated Maximum-Likelihood phylogenies.
 * It provides extensive reports for each analysis step combined in a single HTML file which can be viewed in a Web Browser.
@@ -40,6 +41,8 @@ dependencies:
 **Orthology inference:**
 
 * BUSCO 3.0.2, 5.2.1  - `https://busco.ezlab.org/ <https://busco.ezlab.org/>`_
+* Orthofinder 2.5.5 - `https://github.com/davidemms/OrthoFinder <https://github.com/davidemms/OrthoFinder>`_
+
 
 **Alignment:**
 
@@ -47,6 +50,7 @@ dependencies:
 * clustalo 1.2.4 - `http://www.clustal.org/omega/ <http://www.clustal.org/omega/>`_
 * muscle 5.1 - `https://drive5.com/muscle5/ <https://drive5.com/muscle5/>`_
 * tcoffee 13.46.0.919e8c6b - `https://github.com/cbcrg/tcoffee <https://github.com/cbcrg/tcoffee>`_
+* prank v150803 - `http://wasabiapp.org/software/prank/ <http://wasabiapp.org/software/prank/>`_
 
 **Trimming:**
 
@@ -61,5 +65,11 @@ dependencies:
 * raxml-ng 1.1 - `https://github.com/amkozlov/raxml-ng <https://github.com/amkozlov/raxml-ng>`_
 * astral 5.7.1 - `https://github.com/smirarab/ASTRAL <https://github.com/smirarab/ASTRAL>`_
 * quicktree 2.5 - `https://github.com/khowe/quicktree <https://github.com/khowe/quicktree>`_
+* phylobayes-mpi 1.9 (commit 3c77656) - `https://github.com/bayesiancook/pbmpi <https://github.com/bayesiancook/pbmpi>`_
 
+**Downstream analysis**
 
+* Extensive reporting in HTML and PDF formats
+* Create publication ready figures of trees
+* Compare different topologies
+* much :doc:`more <../indepth/util>`

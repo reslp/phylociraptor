@@ -21,6 +21,11 @@ On a HPC cluster (when utilizing parallel job execution):
 
 * SGE, SLURM or TORQUE job scheduling system
 
+.. warning::
+
+	We strongly recommend that you use the snakemake version suggested above (6.0.2). Using other versions could lead to complications.
+
+
 -------------------------
 Obtaining phylocirator
 -------------------------
@@ -48,6 +53,7 @@ The probably best way is to clone the repository directly using git (if availabl
 		mltree			Calculate Maximum-Likelihood phylogenomic trees
 		speciestree		Calculate gene trees and species tree
 		njtree			Calculate Neighbor-Joining tree
+                bitree                  Calculate Bayesian-inference phylogenomic trees
 
 		report			Create a HTML report of the run
                 check                   Quickly check status of the run
@@ -63,11 +69,7 @@ The probably best way is to clone the repository directly using git (if availabl
 		To run orthology inferrence for a set of genomes on a SLURM cluster:
 		./phylociraptor orthology -t slurm -c data/cluster-config-SLURM.yaml
 	
-		To filter alignments overwriting the number of parsimony informative sites set in the config file:
-		./phylciraptor filter-align --npars_cutoff 12
 	
-	phylociraptor: error: the following arguments are required: command, arguments
-
 .. note::
 
     If you don't have git available, you can also download phylociraptor directly as ZIP file and unpack it to the desired location.

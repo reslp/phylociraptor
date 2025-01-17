@@ -1,11 +1,8 @@
-```         
-                      __          __           _                  __           
-               ____  / /_  __  __/ /___  _____(_)________ _____  / /_____  _____
-              / __ \/ __ \/ / / / / __ \/ ___/ / ___/ __ `/ __ \/ __/ __ \/ ___/
-             / /_/ / / / / /_/ / / /_/ / /__/ / /  / /_/ / /_/ / /_/ /_/ / /    
-            / .___/_/ /_/\__, /_/\____/\___/_/_/   \__,_/ .___/\__/\____/_/     
-           /_/          /____/                         /_/                      
-```
+
+<p float="left">
+  <img src="/docs/images/logo.png" width="200" />
+  <img src="/docs/images/phylociraptor.png" width="600" /> 
+</p>
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/reslp/phylociraptor) ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/reslp/phylociraptor) ![GitHub](https://img.shields.io/github/license/reslp/phylociraptor) [![DOI](https://zenodo.org/badge/258200660.svg)](https://zenodo.org/badge/latestdoi/258200660)
 

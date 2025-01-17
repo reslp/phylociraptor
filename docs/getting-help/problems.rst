@@ -100,7 +100,7 @@ There are several possible ways to solve this:
 Segmentation fault (core dumped) in raxml-ng
 --------------------------------------------
 
-While this error can have different causes it is known that raxmlng can have problems with alignments that have many more taxa than sites in the alignment. See `here https://github.com/amkozlov/raxml-ng/issues/122`_ on the official raxmlng Github Page. In phylociraptor this situation may occur if you have a large dataset while imposing a very high average bootstrap cutoff value. This can lead to only very few alignments for tree calculation while the number of taxa in the alignments is still very high. A solution might be to reduce the mean bootstrap cutoff value, so that more alignments are available for tree calculation. It is a good idea to create a report after the modeltesting step has been run to visualize possible cutoff values.
+While this error can have different causes it is known that raxmlng can have problems with alignments that have many more taxa than sites in the alignment. See `here <https://github.com/amkozlov/raxml-ng/issues/122>`_ on the official raxmlng Github Page. In phylociraptor this situation may occur if you have a large dataset while imposing a very high average bootstrap cutoff value. This can lead to only very few alignments for tree calculation while the number of taxa in the alignments is still very high. A solution might be to reduce the mean bootstrap cutoff value, so that more alignments are available for tree calculation. It is a good idea to create a report after the modeltesting step has been run to visualize possible cutoff values.
 
 
 ---------------------------------------
@@ -116,6 +116,6 @@ My Maximum Likelihood trees don't complete
 It is usually a good idea to check the respective log files in the :bash:`log` directory. On HPC systems with batch job submission there is usually a wall-time limit preventing jobs to run only for a maximum amount of time.
 Especially with larg phylogenomic datasets this limit can be reached quite easily. The solution to this problem is specific to the cluster environment and you may have to contact your local HPC support team for advice on how to extend the wall time limit.
 
-On SLURM based systems another solution is to add the line :bash:`dependency: "singleton"` to the iqtree or raxmlng (depending on what you use) section in your cluster config file. Next you can run the phylociraptor mltree step several times. The singleton dependency setting will tell SLURM to create a chain of jobs that have the same name. Look `here https://slurm.schedmd.com/sbatch.html`_ for additional details.
+On SLURM based systems another solution is to add the line :bash:`dependency: "singleton"` to the iqtree or raxmlng (depending on what you use) section in your cluster config file. Next you can run the phylociraptor mltree step several times. The singleton dependency setting will tell SLURM to create a chain of jobs that have the same name. Look `here <https://slurm.schedmd.com/sbatch.html>`_ for additional details.
  
 
