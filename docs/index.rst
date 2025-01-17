@@ -91,4 +91,3 @@ If you run into problems with phylociraptor please follow these steps:
    getting-help/faqs.rst
    getting-help/tips.rst
    getting-help/contact.rst
-   getting-help/citation.rst
