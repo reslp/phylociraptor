@@ -15,6 +15,7 @@ decimals <- as.numeric(args[4])
 
 verbose <- FALSE
 
+
 setwd(wd)
 cat(paste("Working directory: ", getwd(), "\n"))
 
@@ -64,6 +65,13 @@ if (treelistfile == "none") {
   #remove rows and columns of tree which are not in the treelist file
   data <- data[treelist$V1,]
   data <- data[,treelist$V1]
+  if (nrow(data) <= 10) { # more sensitive plot size, recalculate
+  	pwidth <- 1 * nrow(data)
+  	pheight <- 0.75 * nrow(data)
+  } else {
+  	pwidth <- 0.38 * nrow(data)
+  	pheight <- 0.25 * nrow(data)
+  }
   treelist$V2 <- newtreenames
   colnames(data) <- treelist$V2[match(colnames(data), treelist$V1)]
   rownames(data) <- treelist$V2[match(rownames(data), treelist$V1)]
