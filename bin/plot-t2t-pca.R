@@ -51,12 +51,12 @@ colnames(treelist) <- c("tree", "path")
 cat("Reading trees from treelist file.\n")
 if (select != "none") {
 	cat("Will only select trees based on specifications in --select:", select, "\n")
+	sel <- str_split(select, ",")[[1]]
+	treelist <- filter(treelist, grepl(paste(sel, collapse="|"), path))
 }
 
 trees <- list()
 i <- 1
-sel <- str_split(select, ",")[[1]]
-treelist <- filter(treelist, grepl(paste(sel, collapse="|"), path))
 
 for (treepath in treelist$path) {  
   trees[[i]]<-read.tree(treepath)
