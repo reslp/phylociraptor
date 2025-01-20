@@ -345,7 +345,13 @@ Optional Arguments:
 				When this file is provided, elements in heatmap will have 
 				more informative names. (Default: none)
 	-d, --decimalplaces	The number of decimal places which should be displayed in the
-				heatmap. default: 2. Possible values: 0 to 14.
+				heatmap. (Default: 2. Possible values: 0 to 14.)
+	-s, --select		Allows to subset the plotted trees. Values have to be seperated by commas:
+				For example:
+						--select T1,T2,T4,T13,T18 
+							(will only plot selected trees)
+						--select trimal,clipkit 
+							(will only plot trees based on these trimmers)
 	--quiet			Suppress on-screen output.
 
 """
