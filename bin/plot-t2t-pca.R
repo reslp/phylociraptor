@@ -190,10 +190,14 @@ names(cols) <- sort(alitrim)
 
 p <- ggplot(data = plotdf, aes(x=PC1, y=PC2, label=treenames, color=aligner_trimmer, shape=treebuilder, size=bootstrap_cutoff)) + geom_point() +xlab(paste0("PC1 (", PC1Variance, "%)")) +ylab(paste0("PC2 (", PC2Variance,"%)")) +ggtitle(paste0("Similarity of trees based on tip to tip distance matrices.\nBased on ", ndistances, " distances between tips."))+ scale_shape_manual(values = c(15, 16, 17, 18))+ scale_color_manual(values=cols)
 
-pdf(file=paste0("tip2tip-PCA-",ndistances,".pdf"))
+if (select != "none") {
+	selection <- paste0("-select-", select)
+} else { selection <- "" }
+
+pdf(file=paste0("tip2tip-PCA-",ndistances,selection,".pdf"))
 print(p)
 garbage <- dev.off()
 write.csv(file=paste0("pairwise-tip2tip-distance-matrix-",length(trees),"-trees.csv"), complete_df, sep=",", quote=FALSE)
 cat("PCA plotting is done.\n")
-cat('Output: tip2tip-PCA-*.pdf - PCA of tip to tip distances in trees. * will be the number of distances specified with --ndistances\n')
+cat('Output: tip2tip-PCA-*.pdf - PCA of tip to tip distances in trees. * will be the number of distances specified with --ndistances and info from --select (if specified)\n')
 cat('Output: pairwise-tip2tip-distance-matrix-*-trees.csv - tip2tip distance matrix used to create the PCA. * will be the number of trees in comparison.\n')
