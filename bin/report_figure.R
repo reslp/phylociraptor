@@ -383,7 +383,6 @@ if (length(dirs)==0) {
     filtered_alignment_statistics <- rbind(filtered_alignment_statistics, c(combination, nrow(data), above_rows, below_rows))
   }
 }
-
 colnames(filtered_alignment_statistics) <- c("combination", "total", "pass", "fail")
 filtered_alignment_statistics$total <- NULL
 filtered_alignment_statistics_melted <- melt(filtered_alignment_statistics, id="combination")
@@ -534,7 +533,7 @@ genetree_data_combined_melted$aligner <- sapply(strsplit(as.character(genetree_d
 genetree_data_combined_melted$trimmer <- sapply(strsplit(as.character(genetree_data_combined_melted$combination), split = "-"), function(x) x[2]) 
 
 genetree_data_combined_melted$combination <- gsub("-", "\n", genetree_data_combined_melted$combination)
-genetree_plot <- ggplot(data=genetree_data_combined_melted, aes(x=trimmer, y=`mean bootstrap support per tree`)) + geom_violin() + geom_jitter(height = 0, width = 0.1, size=0.5) + theme(legend.position="none") + theme_minimal() + facet_wrap( ~ aligner, strip.position = "bottom", scales = "free_x", nrow=1)
+genetree_plot <- ggplot(data=genetree_data_combined_melted, aes(x=trimmer, y=`mean bootstrap support per tree`, fill=aligner), stat="identity") + geom_violin() + theme(legend.position="none") + theme_minimal() + facet_wrap( ~ aligner, strip.position = "bottom", scales = "free_x", nrow=1) + scale_fill_brewer(palette="Set1", name="aligner")
 genetree_plot <- genetree_plot + theme(axis.title.x = element_blank(), text=element_text(size=7), axis.text.x = element_text(angle=60, vjust=1, hjust=1))
 genetree_plot <- annotate_figure(genetree_plot, top="genetrees")
 
