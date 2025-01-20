@@ -1136,6 +1136,7 @@ elif args.command == "util":
 		qs_parser.add_argument("-t", "--threads", action="store", default="1") 
 		qs_parser.add_argument("-n", "--ndistances", action="store", default="all")
 		qs_parser.add_argument("-s", "--seed", action="store", default="random")
+		qs_parser.add_argument("--select", action="store", default="none")
 		qs_args = qs_parser.parse_args(args.arguments) 
 		if qs_args.help: 
 			print(help_message(util_plot_pca_help))
@@ -1144,7 +1145,7 @@ elif args.command == "util":
 			print(now(), "You have to provide the treelist file created with phylociraptor util estimate-conflict with -r/--treelist")
 			print(help_message(util_plot_pca_help))
 			sys.exit(1)	
-		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed]
+		cmd = ["singularity", "exec", "-B", os.getcwd(), get_container("rphylo"), "Rscript", "bin/plot-t2t-pca.R", os.getcwd(), qs_args.treelist, qs_args.threads, qs_args.ndistances, qs_args.seed, qs_args.select]
 		if debug and qs_args.verbose:
 			print(cmd)
 		for line in execute_command(cmd, not qs_args.quiet, config=None):

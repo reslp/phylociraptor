@@ -6,6 +6,7 @@ suppressMessages(library(reshape2))
 suppressMessages(library(tidyverse))
 suppressMessages(library(parallel))
 suppressMessages(library(RColorBrewer))
+suppressMessages(library(dplyr))
 args <- commandArgs(trailingOnly=TRUE)
 
 wd <- args[1]
@@ -13,7 +14,7 @@ treelistfile <- args[2]
 threads <- strtoi(args[3])
 ndistances <- args[4]
 randomseed <- args[5]
-
+select <- args[6]
 verbose <- FALSE
 #if (quiet == "true") {
 #  verbose <- FALSE
@@ -27,11 +28,6 @@ setwd(wd)
 cat(paste("Working directory: ", getwd(), "\n"))
 cat("\nWill calculate tip 2 tip distances as a measure of tree similarity.\n")
 treelist <- read.csv(treelistfile, sep="\t", header=F)
-newtreenames <- c() 
-for (names in strsplit(treelist$V2,"/")){
-  newtreenames <-c(newtreenames, paste0(names[3], "-", strsplit(names[5], ".", fixed=T)[[1]][1], "-", strsplit(names[4], "-")[[1]][3]))
-}
-treelist$V2 <- newtreenames
 ### the melt_dist function is from: https://github.com/andersgs/harrietr/blob/master/R/melt_distance.R
 melt_dist <- function(dist, order = NULL, dist_name = 'dist') {
   if(!is.null(order)){
@@ -53,14 +49,26 @@ treelist <- read.csv(treelistfile, header=F, check.names=FALSE, sep="\t")
 colnames(treelist) <- c("tree", "path")
 
 cat("Reading trees from treelist file.\n")
+if (select != "none") {
+	cat("Will only select trees based on specifications in --select:", select, "\n")
+}
+
 trees <- list()
 i <- 1
-for (treepath in treelist$path) {
-  
+sel <- str_split(select, ",")[[1]]
+treelist <- filter(treelist, grepl(paste(sel, collapse="|"), path))
+
+for (treepath in treelist$path) {  
   trees[[i]]<-read.tree(treepath)
   i <- i + 1
 }
+
 cat(paste0("Found ", length(trees), " trees.\n"))
+newtreenames <- c() 
+for (names in strsplit(treelist$path,"/")){
+  newtreenames <-c(newtreenames, paste0(names[3], "-", strsplit(names[5], ".", fixed=T)[[1]][1], "-", strsplit(names[4], "-")[[1]][3]))
+}
+treelist$path <- newtreenames
 
 all_tips <- c()
 

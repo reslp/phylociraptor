@@ -370,6 +370,10 @@ Optional Arguments:
 	-s, --seed		Random seed for reproducibility. (Default: random)
 	-n, --ndistances	Number of tip2tip distances to be calculated. (Default: all)
 	-t, --threads		Number of threads for tip2tip distance analysis. (Default: 1)
+	--select		Allows to subset the plotted trees. Values have to be seperated by commas:
+				For example:
+						--select astral,iqtree 
+							(will only plot trees based on these treebuilders)
 	--quiet			Suppress on-screen output.
 
 """
