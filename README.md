@@ -12,11 +12,18 @@
 
 Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO or OrthoFinder to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference using state of the art software. 
 
-## Citation:
+Want to learn more about  ...
 
-If you use phylociraptor please cite our preprint, which is available [here](https://www.biorxiv.org/content/10.1101/2023.09.22.558970v1.article-info). 
+... [prereqisists and dependencies](#Prerequisites)  
+... [the phylociraptor workflow](#The phylociraptor workflow)  
+... [installation](#Installing phylociraptor)  
+... [the incorporated software](#Available tools)  
+... [the many customization possibilities](#Customization)  
+... [a posteri analyses of phylogenomic trees](#A posteriori analyses)  
+... [how to use docker](#Using Docker)  
+... [how to cite phylociraptor](#Citation)  
+... [study the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
 
-**Resl Philipp & Hahn Christoph** (2023) *Phylociraptor - A unified computational framework for reproducible phylogenomic inference* (Preprint) bioRxiv doi:10.1101/2023.09.22.558970
 
 
 ## Prerequisites
@@ -38,36 +45,65 @@ On a HPC cluster:
 - globally installed singularity 3.4.1+
 - SGE, SLURM or TORQUE job scheduling system
 
-## Available tools:
+## The phylociraptor workflow
 
-Orthology inference:
+**A typical run of phylociraptor looks like this:**
 
-- BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
-- OrthoFinder 2.5.5 (https://github.com/davidemms/OrthoFinder)
+<p float="left">
+  <img src="/docs/images/overview.png" width="800" />
+</p>
 
-Alignment:
+For more information including a short tutorial please refer to the [documentation](https://phylociraptor.readthedocs.io).
 
-- Clustal-Omega 1.2.4 (http://www.clustal.org/omega/)
-- MAFFT 7.464 (https://mafft.cbrc.jp/alignment/software/)
-- MUSCLE 5.1 (https://drive5.com/muscle5/)
-- T-Coffee 13.46.0.919e8c6b (https://github.com/cbcrg/tcoffee)
-- PRANK v150803 (https://ariloytynoja.github.io/prank-msa/)
+### 1. Setup the pipeline:
 
-Trimming:
+```
+$ ./phylociraptor setup -t local
+```
 
-- trimAl 1.4.1 (http://trimal.cgenomics.org/)
-- Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
-- BMGE 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
-- ClipKit 2.3.0 (https://github.com/JLSteenwyk/ClipKIT)
+### 2. Identify orthologous genes for all the genomes:
 
-Tree inference:
+```
+$ ./phylociraptor orthology -t local
+```
 
-- IQ-Tree 2.0.7 (http://www.iqtree.org/)
-- RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
-- ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
-- Quicktree 2.5 (https://github.com/khowe/quicktree)
-- Phylobayes-MPI 1.9 (https://github.com/bayesiancook/pbmpi)
+### 3. Filter orthologs using according to settings in the `config.yaml` file:
 
+```
+$ ./phylociraptor filter-orthology -t local
+```
+
+### 4. Create alignments and trim them:
+
+```
+$ ./phylociraptor align -t local
+```
+
+### 5. Filter alignments according to settings in the `config.yaml` file:
+
+```
+$ ./phylociraptor filter-align -t local
+```
+
+### 6. Run modeltesting for individual alignments:
+
+```
+$ ./phylociraptor modeltest -t local
+```
+
+### 7. Reconstruct phylogenies:
+
+```
+$ ./phylociraptor njtree -t local
+$ ./phylociraptor mltree -t local
+$ ./phylociraptor speciestree -t local
+```
+
+### 8. Create a report of the run:
+
+```
+$ ./phylociraptor report
+```
 
 ## Installing phylociraptor
 
@@ -132,62 +168,40 @@ Examples:
 
 ```
 
-## A quick introduction
+## Available tools
 
-For more information including a short tutorial please refer to the [documentation](https://phylociraptor.readthedocs.io).
+Orthology inference:
 
-**A typical run of phylociraptor would look like this:**
+- BUSCO 3.0.2, 5.2.1 (https://busco.ezlab.org/)
+- OrthoFinder 2.5.5 (https://github.com/davidemms/OrthoFinder)
 
-1. Setup the pipeline:
+Alignment:
 
-```
-$ ./phylociraptor setup -t local
-```
+- Clustal-Omega 1.2.4 (http://www.clustal.org/omega/)
+- MAFFT 7.464 (https://mafft.cbrc.jp/alignment/software/)
+- MUSCLE 5.1 (https://drive5.com/muscle5/)
+- T-Coffee 13.46.0.919e8c6b (https://github.com/cbcrg/tcoffee)
+- PRANK v150803 (https://ariloytynoja.github.io/prank-msa/)
 
-2. Identify orthologous genes for all the genomes:
+Trimming:
 
-```
-$ ./phylociraptor orthology -t local
-```
+- trimAl 1.4.1 (http://trimal.cgenomics.org/)
+- Aliscore/Alicut 2.31 (https://www.zfmk.de/en/research/research-centres-and-groups/aliscore; https://github.com/PatrickKueck/AliCUT)
+- BMGE 1.12 (https://bioweb.pasteur.fr/packages/pack@BMGE@1.12/)
+- ClipKit 2.3.0 (https://github.com/JLSteenwyk/ClipKIT)
 
-3. Filter orthologs using according to settings in the `config.yaml` file:
+Tree inference:
 
-```
-$ ./phylociraptor filter-orthology -t local
-```
+- IQ-Tree 2.0.7 (http://www.iqtree.org/)
+- RAxML-NG 1.1 (https://github.com/amkozlov/raxml-ng)
+- ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
+- Quicktree 2.5 (https://github.com/khowe/quicktree)
+- Phylobayes-MPI 1.9 (https://github.com/bayesiancook/pbmpi)
 
-4. Create alignments and trim them:
 
-```
-$ ./phylociraptor align -t local
-```
+## Customization
 
-5. Filter alignments according to settings in the `config.yaml` file:
-
-```
-$ ./phylociraptor filter-align -t local
-```
-
-6. Run modeltesting for individual alignments:
-
-```
-$ ./phylociraptor modeltest -t local
-```
-
-7. Reconstruct phylogenies:
-
-```
-$ ./phylociraptor njtree -t local
-$ ./phylociraptor mltree -t local
-$ ./phylociraptor speciestree -t local
-```
-
-7. Create a report of the run:
-
-```
-$ ./phylociraptor report
-```
-
+For a comprehensive overview of phylociraptors customization option please refer to our [documentation](https://phylociraptor.readthedocs.io).  
 **To customize the behavior of the pipeline to fit your needs you can edit the `config.yaml` file in the `data/` folder. Two things are mandatory:**
 
 1. You need to enter the correct name for the data.csv containing the species which should be included in the tree:
@@ -227,7 +241,7 @@ The basis of this file can be a CSV file directly downloaded from the [NCBI Geno
 It is important that the species names correspond exactly to the names under which a genome is deposited at NCBI. Therefore it makes sense to use a downloaded file from the NCBI Genome Browser and add local species to them. However, you can also run the pipeline with only your own assemblies without downloading anything. It is also possible to use transcriptome assemblies or sets of proteins. Please refer to the documentation for more information.
 
 
-## A posteriori analyses of trees calculated using phylociraptor
+## A posteriori analyses
 
 Phylociraptor provides several utilities to investigate tree similarity and plot trees. Please refer to the [documentation](https://phylociraptor.readthedocs.io) for additional details.
 
@@ -242,3 +256,8 @@ $ cd ./phylociraptor
 $ ./phylociraptor-docker
 ```
 
+## Citation
+
+If you use phylociraptor please cite our preprint, which is available [here](https://www.biorxiv.org/content/10.1101/2023.09.22.558970v1.article-info). 
+
+**Resl Philipp & Hahn Christoph** (2023) *Phylociraptor - A unified computational framework for reproducible phylogenomic inference* (Preprint) bioRxiv doi:10.1101/2023.09.22.558970
