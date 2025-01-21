@@ -14,8 +14,8 @@ Phylociraptor is a computational framework calculating phylogenomic trees for a 
 
 **Want to learn more about**  ...
 
-... [prereqisists and dependencies](#Prerequisites)  
 ... [the phylociraptor workflow](#The-phylociraptor-workflow)  
+... [prereqisists and dependencies](#Prerequisites)  
 ... [installation](#Installing-phylociraptor)  
 ... [the incorporated software](#Available-tools)  
 ... [the many customization possibilities](#Customization)  
@@ -24,26 +24,6 @@ Phylociraptor is a computational framework calculating phylogenomic trees for a 
 ... [how to cite phylociraptor](#Citation)  
 ... [the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
 
-
-
-## Prerequisites
-Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
-
-Local computer or solitary server:
-
-- Linux or MacOS operating system
-- globally installed singularity 3.4.1+
-- installed snakemake 6.0.2+ (best in an anaconda environment)
-
-or 
-
-- Docker (this is still experimental; see information below)
-
-On a HPC cluster:
-
-- installed snakemake 6.0.2+ (best in an anaconda environment)
-- globally installed singularity 3.4.1+
-- SGE, SLURM or TORQUE job scheduling system
 
 ## The phylociraptor workflow
 
@@ -104,6 +84,25 @@ $ ./phylociraptor speciestree -t local
 ```
 $ ./phylociraptor report
 ```
+
+## Prerequisites
+Phylociraptor was designed in such a way that it can run on desktop computers (although this is discouraged), solitary linux servers or large HPC clusters. Depending on the system setup, requirements are different: 
+
+Local computer or solitary server:
+
+- Linux or MacOS operating system
+- globally installed singularity 3.4.1+
+- installed snakemake 6.0.2+ (best in an anaconda environment)
+
+or 
+
+- Docker (this is still experimental; see information below)
+
+On a HPC cluster:
+
+- installed snakemake 6.0.2+ (best in an anaconda environment)
+- globally installed singularity 3.4.1+
+- SGE, SLURM or TORQUE job scheduling system
 
 ## Installing phylociraptor
 
