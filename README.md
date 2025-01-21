@@ -12,17 +12,17 @@
 
 Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO or OrthoFinder to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference using state of the art software. 
 
-Want to learn more about  ...
+**Want to learn more about**  ...
 
 ... [prereqisists and dependencies](#Prerequisites)  
-... [the phylociraptor workflow](#The phylociraptor workflow)  
-... [installation](#Installing phylociraptor)  
-... [the incorporated software](#Available tools)  
+... [the phylociraptor workflow](#The-phylociraptor-workflow)  
+... [installation](#Installing-phylociraptor)  
+... [the incorporated software](#Available-tools)  
 ... [the many customization possibilities](#Customization)  
-... [a posteri analyses of phylogenomic trees](#A posteriori analyses)  
-... [how to use docker](#Using Docker)  
+... [a posteri analyses of phylogenomic trees](#A-posteriori-analyses)  
+... [how to use docker](#Using-Docker)  
 ... [how to cite phylociraptor](#Citation)  
-... [study the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
+... [the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
 
 
 
