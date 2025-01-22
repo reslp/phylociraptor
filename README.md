@@ -15,14 +15,14 @@ Phylociraptor is a computational framework calculating phylogenomic trees for a 
 **Want to learn more about**  ...
 
 ... [the phylociraptor workflow](#The-phylociraptor-workflow)  
-... [prereqisists and dependencies](#Prerequisites)  
+... [prerequisistes and dependencies](#Prerequisites)  
 ... [installation](#Installing-phylociraptor)  
 ... [the incorporated software](#Available-tools)  
 ... [the many customization possibilities](#Customization)  
-... [a posteri analyses of phylogenomic trees](#A-posteriori-analyses)  
-... [how to use docker](#Using-Docker)  
+... [a-posteri analyses of phylogenomic trees](#A-posteriori-analyses)  
+... [how to use phylociraptor with docker](#Using-Docker)  
 ... [how to cite phylociraptor](#Citation)  
-... [the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
+... [all the details in the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
 
 
 ## The phylociraptor workflow
