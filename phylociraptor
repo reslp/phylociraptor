@@ -22,10 +22,10 @@ if sys.version_info[0] < 3:
 	raise Exception("Phylocripator requires Python 3. Will exit.")
 	exit(1)
 try:
-	if snakemake.__version__ != "6.0.2":
-		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
+	if snakemake.__version__ != "7.32.4":
+		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (7.32.4). This could lead to problems.")
 except:
-	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2.")
+	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v7.32.4.")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
@@ -515,7 +515,7 @@ elif args.command=="orthology":
 	check_help_and_config(orthology_args, orthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], orthology_args)
-	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "orthology", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
