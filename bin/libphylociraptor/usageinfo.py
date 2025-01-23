@@ -7,7 +7,7 @@ try:
 	with open(".version", "r") as file:
 		version = file.readline().strip("\n")
 except FileNotFoundError:
-	version = "unkown"
+	version = "unknown"
 
 phylociraptor = """
 			     Welcome to
