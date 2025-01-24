@@ -288,8 +288,8 @@ def check_is_running(mode="", previous_mode="", hashes={}, previous_hashes={}, d
 						for aligner in hashes[mode]["per"][bs]["phylobayes"]["iqtree"][trimmer].keys(): #not sure why iqtree is in this
 							alitrim = aligner + "-" + trimmer + "." + previous_hashes[previous_mode]["per"]["iqtree"][trimmer][aligner]
 							genes_to_check = [gene.split("/")[-1].split("_")[0] for gene in glob.glob("results/modeltest/"+alitrim+"/*.treefile")]
-							mltree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["phylobayes"]["iqtree"][trimmer][aligner]	
-							if os.path.isfile("results/phylogeny/phylobayes/bootstrap-cutoff-"+bs+"/"+mltree+"/concat.contree"):
+							bitree = aligner + "-" + trimmer + "." + hashes[mode]["per"][bs]["phylobayes"]["iqtree"][trimmer][aligner]	
+							if os.path.isfile("results/phylogeny/phylobayes/bootstrap-cutoff-"+bs+"/"+bitree+"/concat.contree"):
 								if verbose:
 									print("\tPhylobayes tree for", bitree, "done.")
 							else:
