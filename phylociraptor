@@ -23,7 +23,7 @@ if sys.version_info[0] < 3:
 	exit(1)
 try:
 	if snakemake.__version__ != "7.32.4":
-		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (7.32.4). This could lead to problems.")
+		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (7.32.4). This could lead to problems!")
 except:
 	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v7.32.4.")
 
@@ -195,15 +195,36 @@ def check_for_errors(result):
 def check_required_software():	
 	import shutil
 
-	apath = shutil.which("apptainer")
-	spath = shutil.which("singularitasdy")
-	if apath == None: # assume that we deal with singularity
+	# perform some checks about aapptainer and singularity
+	spath = shutil.which("singularity")
+
+	if os.path.islink(spath): #singularity is symlink
+		if "apptainer" in os.readlink(spath): # singularity links to apptainer => assume apptainer
+			which = "apptainer"
+		else: # in all other cases assume singularity
+			which = "singularity"
+	elif spath == None: # command was not found
+		print(now(), "ERROR: Singularity/Apptainer not found.")
+		sys.exit(1)
+	else: # assume singularity
+		which = "singularity"
+
+	if which == "singularity": # assume that we deal with singularity
 		try:
 			singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
 			print(now(), "Singularity version:", singularity_version)
 		except FileNotFoundError:
 			print(now(), "ERROR: Singularity command not found.")
 			sys.exit(1)
+	elif which == "apptainer": # assume that we deal with singularity
+		try:
+			singularity_version = str(subprocess.check_output(['apptainer', 'version']).decode('ascii').strip())
+			print(now(), "Apptainer version:", singularity_version)
+		except FileNotFoundError:
+			print(now(), "ERROR: Apptainer command not found.")
+			sys.exit(1)
+	else: # should be captured already above, but for safety
+			print(now(), "ERROR: Singularity/Apptainer not found.")
 	try:
 		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
 		print(now(), "Snakemake version:", snakemake_version)
