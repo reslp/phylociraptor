@@ -241,7 +241,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:"):
-					yield "\tParameters: %s\n" % line.split(":")[1]
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
@@ -276,24 +276,24 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now() + " Will submit task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:") and not debug:
-					yield "\tParameters:" + line.split(":")[1]
+					yield "\t\t   Parameters: " + line.split(":")[1]
 				if line.startswith("sbatch") or line.startswith("qsub"):
-					yield "\t%s\n" % line
+					yield "\t\t   Command: %s\n" % line
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Singularity"):
 					yield result
-				if result.startswith("Job counts"):
+				if result.startswith("total"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
-					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
-						njobs = int(result.split("\t")[1])
+					if result.startswith("total"): 
+						yield now()+" Total number of jobs to submit: %s\n" % result.split(" ")[-1].strip()
+						njobs = int(result.split(" ")[-1])
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("Nothing to be done"):
@@ -302,7 +302,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
-	else: # serial mode
+	else: # serial/local mode
 		if not isutil:
 			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
 			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
@@ -320,9 +320,9 @@ def execute_command(cmd, verbose, config, isutil=False):
 					container = line.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				if line.startswith("rule") and not debug:
-					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":") 
 				if line.lstrip().startswith("wildcards:"):
-					yield "\tParameters: %s\n" % line.split(":")[1]
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
@@ -330,15 +330,15 @@ def execute_command(cmd, verbose, config, isutil=False):
 			else: # this is the quiet mode with progressbar
 				#if check_for_errors(result):
 				#	yield check_for_errors(result)
-				if result.startswith("Job counts"):
+				if result.startswith("total"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough
-					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
-						njobs = int(result.split("\t")[1])
+					if result.startswith("total"): # the line with the total number of jobs has two elements
+						yield now()+" Total number of tasks to run: %s\n" % result.split(" ")[-1].strip()
+						njobs = int(result.split(" ")[-1])
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("rule"):
