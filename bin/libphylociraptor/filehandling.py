@@ -1,6 +1,7 @@
 import os
 import yaml
 import time
+import sys
 
 def now(): #defined here again so that we don't have to import the whole hashing module
         return time.strftime("%Y-%m-%d %H:%M") + " -"
