@@ -22,10 +22,10 @@ if sys.version_info[0] < 3:
 	raise Exception("Phylocripator requires Python 3. Will exit.")
 	exit(1)
 try:
-	if snakemake.__version__ != "6.0.2":
-		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended ( 6.0.2 ). This could lead to problems.")
+	if snakemake.__version__ != "7.32.4":
+		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (7.32.4). This could lead to problems!")
 except:
-	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2.")
+	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v7.32.4.")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
@@ -46,9 +46,15 @@ def help_message(mes):
 
 def determine_submission_mode(flag):
 	if "serial" in flag:
-		return ["--cores" + flag.replace("serial","")]
+		if flag.replace("serial","") == "":
+			return ["--cores" + "=1"]
+		else:
+			return ["--cores" + flag.replace("serial","")]
 	elif "local" in flag:
-		return ["--cores" + flag.replace("local", "")]
+		if flag.replace("local","") == "":
+			return ["--cores" + "=1"]
+		else:
+			return ["--cores" + flag.replace("local", "")]
 	elif "sge" in flag: # for SGE the dependencies need to be under quotes, because there are () characters in the dependency string.
 		return ["--cluster", "bin/immediate-submit/immediate_submit.py '{dependencies}' %s" % flag, "--immediate-submit", "--jobs", njobs, "--notemp"]
 	else:
@@ -187,12 +193,38 @@ def check_for_errors(result):
 
 
 def check_required_software():	
-	try:
-		singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
-		print(now(), "Singularity version:", singularity_version)
-	except FileNotFoundError:
-		print(now(), "ERROR: Singularity command not found.")
+	import shutil
+
+	# perform some checks about aapptainer and singularity
+	spath = shutil.which("singularity")
+
+	if os.path.islink(spath): #singularity is symlink
+		if "apptainer" in os.readlink(spath): # singularity links to apptainer => assume apptainer
+			which = "apptainer"
+		else: # in all other cases assume singularity
+			which = "singularity"
+	elif spath == None: # command was not found
+		print(now(), "ERROR: Singularity/Apptainer not found.")
 		sys.exit(1)
+	else: # assume singularity
+		which = "singularity"
+
+	if which == "singularity": # assume that we deal with singularity
+		try:
+			singularity_version = str(subprocess.check_output(['singularity', 'version']).decode('ascii').strip())
+			print(now(), "Singularity version:", singularity_version)
+		except FileNotFoundError:
+			print(now(), "ERROR: Singularity command not found.")
+			sys.exit(1)
+	elif which == "apptainer": # assume that we deal with singularity
+		try:
+			singularity_version = str(subprocess.check_output(['apptainer', 'version']).decode('ascii').strip())
+			print(now(), "Apptainer version:", singularity_version)
+		except FileNotFoundError:
+			print(now(), "ERROR: Apptainer command not found.")
+			sys.exit(1)
+	else: # should be captured already above, but for safety
+			print(now(), "ERROR: Singularity/Apptainer not found.")
 	try:
 		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
 		print(now(), "Snakemake version:", snakemake_version)
@@ -230,18 +262,19 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:"):
-					yield "\tParameters: %s\n" % line.split(":")[1]
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Nothing"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
-				if result.startswith("Job counts"):
+				if result.startswith("total"):
 					jobcounts = True
-				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
-					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of tasks for this step: %s\n" % result.split("\t")[1].strip() 
+				#elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+				#	if len(result.split("")) == 2: # the line with the total number of jobs has two elements
+					if nline <= 30:
+						yield now()+" Total number of tasks for this step: %s\n" % result.split(" ")[-1].strip() 
 				elif jobcounts and result == "":
 					jobcounts = False
 				line=""
@@ -264,24 +297,24 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now() + " Will submit task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:") and not debug:
-					yield "\tParameters:" + line.split(":")[1]
+					yield "\t\t   Parameters: " + line.split(":")[1]
 				if line.startswith("sbatch") or line.startswith("qsub"):
-					yield "\t%s\n" % line
+					yield "\t\t   Command: %s\n" % line
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 			else:
 				result = line
 				if result.startswith("Singularity"):
 					yield result
-				if result.startswith("Job counts"):
+				if result.startswith("total"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
-					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
-						njobs = int(result.split("\t")[1])
+					if result.startswith("total"): 
+						yield now()+" Total number of jobs to submit: %s\n" % result.split(" ")[-1].strip()
+						njobs = int(result.split(" ")[-1])
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("Nothing to be done"):
@@ -290,7 +323,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
 				line=""
-	else: # serial mode
+	else: # serial/local mode
 		if not isutil:
 			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
 			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
@@ -308,9 +341,9 @@ def execute_command(cmd, verbose, config, isutil=False):
 					container = line.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				if line.startswith("rule") and not debug:
-					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":")
+					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":") 
 				if line.lstrip().startswith("wildcards:"):
-					yield "\tParameters: %s\n" % line.split(":")[1]
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
@@ -318,15 +351,15 @@ def execute_command(cmd, verbose, config, isutil=False):
 			else: # this is the quiet mode with progressbar
 				#if check_for_errors(result):
 				#	yield check_for_errors(result)
-				if result.startswith("Job counts"):
+				if result.startswith("total"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough
-					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
-						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
-						njobs = int(result.split("\t")[1])
+					if result.startswith("total"): # the line with the total number of jobs has two elements
+						yield now()+" Total number of tasks to run: %s\n" % result.split(" ")[-1].strip()
+						njobs = int(result.split(" ")[-1])
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("rule"):
@@ -467,9 +500,9 @@ if args.command == "setup":
 	
 	if (setup_args.add_genomes):
 		print(now(),"Will only add genomes")
-		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "add_genomes", "--latency-wait", latency_wait]
+		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "add_genomes", "--latency-wait", latency_wait]
 	else:
-		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "-r", "setup", "--latency-wait", latency_wait]
+		cmd = ["snakemake","-p", "-s" , "rules/setup.smk", "--use-singularity", "setup", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(setup_args))
 
 	# check for overrides of config file parameters	
@@ -503,7 +536,7 @@ elif args.command=="orthology":
 	check_help_and_config(orthology_args, orthology_help) 	
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], orthology_args)
-	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "-r", "orthology", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/orthology.smk", "--use-singularity", "orthology", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(orthology_args))
 
 	# check for overrides of config file parameters	
@@ -544,7 +577,7 @@ elif args.command=="filter-orthology":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], forthology_args)
 	
-	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "-r", "filter_orthology", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/filter-orthology.smk", "--use-singularity", "filter_orthology", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(forthology_args))
 	
 	# check for overrides of config file parameters	
@@ -596,7 +629,7 @@ elif args.command=="align":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], align_args)
 
-	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "-r", "align", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/align.smk", "--use-singularity", "align", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(align_args))
 
 	# check for overrides of config file parameters	
@@ -639,7 +672,7 @@ elif args.command=="filter-align":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], falign_args)
 
-	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "-r", "filter_align", "--latency-wait", latency_wait]
+	cmd = ["snakemake","-p", "-s", "rules/filter-align.smk", "--use-singularity", "filter_align", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(falign_args))
 	
 	# check for overrides of config file parameters	
@@ -675,7 +708,7 @@ elif args.command=="speciestree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], sptree_args)
 
-	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "-r", "speciestree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p","-s", "rules/speciestree.smk", "--use-singularity", "speciestree", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(sptree_args))
 	
 	# check for overrides of config file parameters	
@@ -700,7 +733,7 @@ elif args.command=="njtree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], njtree_args)
 
-	cmd = ["snakemake", "-s", "rules/njtree.smk", "--use-singularity", "-r", "njtree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/njtree.smk", "--use-singularity", "njtree", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(njtree_args))
 	
 	# check for overrides of config file parameters	
@@ -724,7 +757,7 @@ elif args.command=="mltree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
-	cmd = ["snakemake", "-s", "rules/mltree.smk", "--use-singularity", "-r", "mltree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/mltree.smk", "--use-singularity", "mltree", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(tree_args))
 	
 	# check for overrides of config file parameters	
@@ -749,7 +782,7 @@ elif args.command=="bitree":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], tree_args)
 
-	cmd = ["snakemake", "-s", "rules/bitree.smk", "--use-singularity", "-r", "bitree", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-s", "rules/bitree.smk", "--use-singularity", "bitree", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(tree_args))
 	
 	# check for overrides of config file parameters	
@@ -774,7 +807,7 @@ elif args.command=="modeltest":
 	check_required_software()
 	check_required_files(args.command, previous_steps[args.command], model_args)
 
-	cmd = ["snakemake", "-p", "-s", "rules/modeltest.smk", "--use-singularity", "-r", "modeltest", "--latency-wait", latency_wait]
+	cmd = ["snakemake", "-p", "-s", "rules/modeltest.smk", "--use-singularity", "modeltest", "--latency-wait", latency_wait]
 	cmd += get_flags(vars(model_args))
 	
 	# check for overrides of config file parameters	
