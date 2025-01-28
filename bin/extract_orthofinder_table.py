@@ -13,7 +13,7 @@ if sys.version_info[0] < 3:
 pars = argparse.ArgumentParser(prog="extract_orthofinder_table.py", description = """This script will parse the Orthogroups.GeneCount.tsv file and transpose it. Optionally it will extract only orthogroups with one or zero genes per species.""", epilog = """written by Philipp Resl""")
 pars.add_argument('--of', dest="of_counts", required=True, help="Path to Orthogroups.GeneCount.tsv file.")
 pars.add_argument('-o', dest="out", required=True, help="Orthofinder table output file.")
-pars.add_argument('--strict', dest="strict", store=True, help="Extract only orthogroups with one or zero number of copies in all taxa")
+pars.add_argument('--strict', dest="strict", action="store_true", default=False, help="Extract only orthogroups with one or zero number of copies in all taxa")
 args=pars.parse_args()
 
 data = pd.read_csv(args.of_counts, sep="\t", header=0)
@@ -21,9 +21,9 @@ data = data.drop("Total", axis=1)
 data = data.set_index("Orthogroup")
 data = data.transpose()
 
+l = len(data.columns)
 if args.strict:
 	# check if column contains only zero (no ortholog) or one (single copy ortholog):
-	l = len(data.columns)
 	allcols = data.columns
 	#print(data.head())
 	for col in allcols:
