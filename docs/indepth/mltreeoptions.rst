@@ -42,9 +42,9 @@ The simples way would be to apply a single model to the complete concatenated al
 
 The relevant settings are:   
 
-|Line 2: Make sure to include 0 in the values used for the mean bootstrap cutoff. This is necessary when :bash:`phylociraptor modeltest` has not been run.   
-|Line 5: Set the method to :bash:`iqtree-unpartitioned`.   
-|Line 17: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
+| Line 2: Make sure to include 0 in the values used for the mean bootstrap cutoff. This is necessary when :bash:`phylociraptor modeltest` has not been run.   
+| Line 5: Set the method to :bash:`iqtree-unpartitioned`.   
+| Line 17: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
 
 .. note::
 
@@ -118,9 +118,9 @@ Creating an unpartitioned analysis while only using genes with a certain mean bo
 
 The relevant settings are:   
 
-|Line 2: Specify which mean bootstrap values you would like to use. 
-|Line 5: Set the method to :bash:`iqtree-unpartitioned`.   
-|Line 17: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
+| Line 2: Specify which mean bootstrap values you would like to use. 
+| Line 5: Set the method to :bash:`iqtree-unpartitioned`.   
+| Line 17: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
 
 
 .. note::
@@ -163,9 +163,9 @@ Running a partitioned analysis with a fixed model.
 
 The relevant settings are:   
 
-|Line 2: Specify which mean bootstrap values you would like to use. 
-|Line 5: Set the method to :bash:`iqtree`.   
-|Line 15: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
+| Line 2: Specify which mean bootstrap values you would like to use. 
+| Line 5: Set the method to :bash:`iqtree`.   
+| Line 15: Specify the desired substitution model in iqtrees syntax using :bash:`-m`. In this case :bash:`-m C10` for a CAT based mixture model.   
 
 
 .. note::
