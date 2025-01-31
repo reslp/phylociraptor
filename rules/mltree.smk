@@ -9,10 +9,6 @@ aligners = get_aligners()
 trimmers = get_trimmers()		
 tree_methods = get_treemethods()
 allbscuts = get_bootstrap_cutoffs()
-print(aligners)
-print(trimmers)
-print(tree_methods)
-print(allbscuts)
 
 #create new hashes for current stage 
 hashes = collect_hashes("mltree", config, configfi, wd=os.getcwd())
