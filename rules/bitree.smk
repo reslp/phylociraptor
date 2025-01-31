@@ -5,15 +5,17 @@ include: "concatenate.smk"
 
 
 ruleorder: read_params_global > read_params_per
+if os.environ["MODELTEST"] == "no":
+	print(now(), "INFO: Since modeltesting was not run previously will try to use only bootstrap cutoff 0.")
+
+#create new hashes for current stage
+hashes = collect_hashes("bitree", config, configfi, wd=os.getcwd())
 
 aligners = get_aligners()		
 trimmers = get_trimmers()		
 tree_methods = get_treemethods()
-bscuts = get_bootstrap_cutoffs()
 chains = get_bichains()
-
-#create new hashes for current stage 
-hashes = collect_hashes("bitree", config, configfi, wd=os.getcwd())
+bscuts = get_bootstrap_cutoffs()
 
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
@@ -22,8 +24,8 @@ modeltest_hashes = hashes['modeltest']["per"]
 tinference_hashes = hashes['bitree']["per"]
 current_hash = hashes['bitree']["global"]
 previous_hash = hashes['modeltest']["global"]
+previous_alitrim_hash = hashes['filter-align']["global"]
 
-print(hashes["modeltest"])
 
 ############ functions specifically for this step
 def compare_bitree(wildcards):
@@ -125,6 +127,9 @@ rule phylobayes:
 
 def pull(wildcards):
 	lis = []
+	if "NOMODELTEST" in os.environ.keys():
+		bscuts = [0]
+	# decide what has been run and modify accordingly
 	for i in config["bitree"]["method"]:
 		for m in config['modeltest']['method']:
 			for a in aligners:
