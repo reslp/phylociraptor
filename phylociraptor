@@ -132,13 +132,17 @@ def check_required_files(runmode, previous_runmode, args):
 	for f in outfile_dict[runmode]:
 		if currenthash != "":
 			f = f.replace("HASH", currenthash)
-		if not os.path.isfile(f) and runmode != "mltree":
+		if not os.path.isfile(f) and runmode not in ["mltree", "bitree"]:
 			print(now(), "ERROR: Some files are missing preventing this part to run.")
 			print(now(), "Did you run ", previous_runmode, "which is required by this step?")
 			print(now(), "Missing file:", f)
 			sys.exit(1)
 		elif not os.path.isfile(f) and runmode == "mltree":
+			os.environ['NOMODELTEST'] = "no"
 			print(now(), "INFO: phylociraptor modeltest was not run, will use specified model for mltree.")
+		elif not os.path.isfile(f) and runmode == "bitree":
+			os.environ['NOMODELTEST'] = "no"
+			print(now(), "INFO: phylociraptor modeltest was not run, which is also not necessary for bitree.")
 		else:
 			if args.debug:
 				print(now(), "DEBUG: File found:", f)
@@ -265,6 +269,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
+				if line.startswith("ERROR"):
+					yield now() + " " + line
 			else:
 				result = line
 				if result.startswith("Nothing"):
@@ -275,6 +281,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 				#	if len(result.split("")) == 2: # the line with the total number of jobs has two elements
 					if nline <= 30:
 						yield now()+" Total number of tasks for this step: %s\n" % result.split(" ")[-1].strip() 
+				if result.startswith("ERROR"):
+					yield now() + " "  + result
 				elif jobcounts and result == "":
 					jobcounts = False
 				line=""
@@ -302,6 +310,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield "\t\t   Command: %s\n" % line
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
+				if line.startswith("ERROR"):
+					yield now() + " " + line
 			else:
 				result = line
 				if result.startswith("Singularity"):
@@ -322,6 +332,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule"):
 					curr_task += 1
 					yield progressbar(range(njobs),curr_task, "Submitting: ", 100)
+				if line.startswith("ERROR"):
+					yield now() + " " + line
 				line=""
 	else: # serial/local mode
 		if not isutil:
@@ -348,6 +360,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
+				if line.startswith("ERROR"):
+					yield now() + line
 			else: # this is the quiet mode with progressbar
 				#if check_for_errors(result):
 				#	yield check_for_errors(result)
@@ -369,6 +383,8 @@ def execute_command(cmd, verbose, config, isutil=False):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
 					yield now() + " Progress" + line.strip("\n") + "\r"
+				if line.startswith("ERROR"):
+					yield now() + line
 				line=""
 
 def get_additional_snakemake_flags(flags, rerun, unlock):
