@@ -80,6 +80,7 @@ If you run into problems with phylociraptor please follow these steps:
    indepth/output.rst
    indepth/util.rst
    indepth/add_tools.rst
+   indepth/mltreeoptions.rst
 
 .. toctree::
    :caption: Getting help
