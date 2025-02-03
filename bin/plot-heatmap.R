@@ -77,13 +77,14 @@ if (treelistfile == "none") {
 } else {
   cat("Using detailed tree names and reduce to tree list while plotting...\n")
   treelist <- read.csv(treelistfile, sep="\t", header=F)
-print(treelist$V2)
+  print(treelist$V2)
   #remove according to selection
   if (selection != "none") {
 	sel <- as.vector(strsplit(selection, ",")[[1]])
 	cat( "Will select only trees containing: ", paste(sel, " "), "\n")
 	treelist2 <- filter(treelist, grepl(paste(sel, collapse="|"), V2))
   }
+  else { treelist2 <- treelist }
   data <- data[treelist2$V1,]
   data <- data[,treelist2$V1]
   # get new tree names
