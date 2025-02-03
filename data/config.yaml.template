@@ -78,16 +78,19 @@ speciestree:
         astral: ""
 
 mltree:
-    method: ["iqtree"] #["iqtree", "raxml"]
+    method: ["iqtree"] #["iqtree", "raxml", "iqtree-unpartitioned"]
     threads:
         iqtree: 20
         raxml: 20
+        iqtree-unpartitioned: 20
     bootstrap:
         iqtree: 1000
         raxml: 100
+        iqtree-unpartitioned: 1000
     options:
         iqtree: ""
         raxml: ""
+        iqtree-unpartitioned: ""
         
 njtree:
     method: ["quicktree"]

@@ -6,14 +6,14 @@ include: "concatenate.smk"
 
 ruleorder: read_params_global > read_params_per
 
+#create new hashes for current stage
+hashes = collect_hashes("bitree", config, configfi, wd=os.getcwd())
+
 aligners = get_aligners()		
 trimmers = get_trimmers()		
 tree_methods = get_treemethods()
-bscuts = get_bootstrap_cutoffs()
 chains = get_bichains()
-
-#create new hashes for current stage 
-hashes = collect_hashes("bitree", config, configfi, wd=os.getcwd())
+bscuts = get_bootstrap_cutoffs()
 
 filter_orthology_hash = hashes['filter-orthology']["global"]
 aligner_hashes = hashes['align']["per"]
@@ -22,8 +22,8 @@ modeltest_hashes = hashes['modeltest']["per"]
 tinference_hashes = hashes['bitree']["per"]
 current_hash = hashes['bitree']["global"]
 previous_hash = hashes['modeltest']["global"]
+previous_alitrim_hash = hashes['filter-align']["global"]
 
-print(hashes["modeltest"])
 
 ############ functions specifically for this step
 def compare_bitree(wildcards):
@@ -43,13 +43,13 @@ rule read_params_per:
 		"""
 rule read_params_global:
 	input:
-		trigger = compare("results/phylogeny/parameters.mltree."+current_hash+".yaml", configfi),
+		trigger = compare("results/phylogeny/parameters.bitree."+current_hash+".yaml", configfi),
 		previous = previous_params_global
 	output:
-		"results/phylogeny/parameters.mltree."+current_hash+".yaml"
+		"results/phylogeny/parameters.bitree."+current_hash+".yaml"
 	shell:
 		"""
-		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff mltree,method mltree,options mltree,bootstrap
+		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff bitree,method bitree,options bitree,chains
 		cat {input.previous} >> {output}
 		"""
 
@@ -125,6 +125,9 @@ rule phylobayes:
 
 def pull(wildcards):
 	lis = []
+	if "NOMODELTEST" in os.environ.keys():
+		bscuts = [0]
+	# decide what has been run and modify accordingly
 	for i in config["bitree"]["method"]:
 		for m in config['modeltest']['method']:
 			for a in aligners:

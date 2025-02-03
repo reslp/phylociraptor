@@ -53,7 +53,7 @@ def get_aligners():
 	elif isinstance(aligners, list):
 		return aligners
 	else:
-		print("phylociraptor filter-align: The alignment methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
+		print("ERROR in phylociraptor filter-align: The alignment methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
 		sys.exit(1)
 
 def get_trimmers():
@@ -72,7 +72,7 @@ def get_trimmers():
 	elif isinstance(trimmers, list):
 		return trimmers
 	else:
-		print("phylociraptor filter-align: The trimming methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
+		print("ERROR in phylociraptor filter-align: The trimming methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
 		sys.exit(1)
 
 def get_treemethods():
@@ -91,27 +91,38 @@ def get_treemethods():
 	elif isinstance(trees, list):
 		return trees
 	else:
-		print("phylociraptor mltree: The tree methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
+		print("ERROR in phylociraptor mltree: The tree methods need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
 		sys.exit(1)
 
 def get_bootstrap_cutoffs():
 	bscut = config["genetree_filtering"]["bootstrap_cutoff"]
+
+	bscut_list = []
 	if isinstance(bscut, str):
 		if ", " in bscut:
-			return bscut.split(", ")
+			bscut_list = bscut.split(", ")
 		elif " ," in bscut:
-			return bscut.split(" ,")
+			bscut_list = bscut.split(" ,")
 		elif "," in bscut:
-			return bscut.split(",")
+			bscut_list = bscut.split(",")
 		elif " " in bscut:
-			return bscut.split(" ")
+			bscut_list = bscut.split(" ")
 		else:
-			return bscut
+			bscut_list = bscut
 	elif isinstance(bscut, list):
-		return bscut
+		bscut_list = bscut
 	else:
-		print("phylociraptor: The bootstrap cutoffs need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
+		print("ERROR in phylociraptor: The bootstrap cutoffs need to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator between values.")
 		sys.exit(1)
+	if "NOMODELTEST" in os.environ.keys(): #check if modeltest was run or not
+		if "0" in bscut_list or 0 in bscut_list:
+			return bscut_list
+		else:
+			print("ERROR in phylociraptor: Bootstrap cutoff 0 needs to be specified in the config file when modeltest has not been run. Will exit now.")
+			sys.exit(1)	
+	else:
+		return bscut_list
+	
 
 def get_genetree_methods():
 	genetrees = config["filtering"]["bootstrap_cutoff"]
@@ -129,7 +140,7 @@ def get_genetree_methods():
 	elif isinstance(genetrees, list):
 		return genetrees
 	else:
-		print("phylociraptor modeltest: The genetree method needs to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
+		print("ERROR in phylociraptor modeltest: The genetree method needs to be either specified as string or as python list. When this is provided as string use a space( ) or comma (,) as separator. ")
 		sys.exit(1)
 
 def get_bichains():

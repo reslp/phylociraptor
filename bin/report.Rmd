@@ -991,15 +991,10 @@ results/phylogeny/
 ```{python getmltreehash, echo=FALSE}
 mltreestats = []
 for bscutoff in all_hashes["mltree"]["mltree"]["per"]:
-	for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"]:
-		for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"][trimmer]:
-			f = "../results/statistics/mltree/mltree_iqtree_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["iqtree"]["iqtree"][trimmer][aligner] + ".txt"
-			if os.path.exists(f):
-				mltreestats.append(f)
-	if "raxml" in all_hashes["mltree"]["mltree"]["per"][bscutoff].keys():
-		for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"]:
-			for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer]:
-				f = "../results/statistics/mltree/mltree_raxml_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff]["raxml"]["iqtree"][trimmer][aligner] + ".txt"
+	for treemethod in all_hashes["mltree"]["mltree"]["per"][bscutoff].keys():
+		for trimmer in all_hashes["mltree"]["mltree"]["per"][bscutoff][treemethod]["iqtree"]:
+			for aligner in all_hashes["mltree"]["mltree"]["per"][bscutoff][treemethod]["iqtree"][trimmer]:
+				f = "../results/statistics/mltree/mltree_" + treemethod + "_" + aligner + "_" + trimmer + "_" + bscutoff +"_statistics." + all_hashes["mltree"]["mltree"]["per"][bscutoff][treemethod]["iqtree"][trimmer][aligner] + ".txt"
 				if os.path.exists(f):
 					mltreestats.append(f)
 ```
@@ -1022,6 +1017,9 @@ if (length(files) > 0) {
 	i <- 1
 	for (file in files) {
 		dat[[i]] <- read.table(file, sep=" ", header=F)
+		if (grepl("iqtree-unpartitioned", file, fixed = TRUE) == TRUE) {
+			dat[[i]][1] <- "iqtree-unpartitioned"
+		}
 		i <- i + 1
 	}
 	data_combined <- do.call("rbind", dat)
