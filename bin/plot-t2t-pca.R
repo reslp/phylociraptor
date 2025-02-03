@@ -66,10 +66,12 @@ for (treepath in treelist$path) {
 cat(paste0("Found ", length(trees), " trees.\n"))
 newtreenames <- c() 
 for (names in strsplit(treelist$path,"/")){
-  newtreenames <-c(newtreenames, paste0(names[3], "-", strsplit(names[5], ".", fixed=T)[[1]][1], "-", strsplit(names[4], "-")[[1]][3]))
+  if (grepl("unpartitioned", names[3], fixed=TRUE) == TRUE) { # check if some trees come from unpartitioned analyses
+	  treebuilder <- gsub("-", "_", names[3])
+  } else { treebuilder <- names[3] } 
+  newtreenames <-c(newtreenames, paste0(treebuilder, "-", strsplit(names[5], ".", fixed=T)[[1]][1], "-", strsplit(names[4], "-")[[1]][3]))
 }
 treelist$path <- newtreenames
-
 all_tips <- c()
 
 cat("Extracting all tips from all trees...\n")
