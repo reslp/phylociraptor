@@ -241,7 +241,11 @@ generate_colors <- function(ncols) {
  
 get_pdf_height <- function(tree) {
 	size_per_tip = 0.2 # in inches
-	return(round(length(tree$tip.label) * size_per_tip, digits=0))
+	total = round(length(tree$tip.label) * size_per_tip, digits=0)
+	if (total < 3) { # adjust plot size for very small trees to a minimum of 3 inches
+		total <- 3
+	}
+	return(total)
 }
 
 cat("Plotting conflicts...\n")
@@ -368,8 +372,10 @@ AABB
 # get some numbers for plot title:
 nconflicts <- as.character(length(names(conflicts_t[conflicts_t == 0])))
 nquartets <- as.character(length(names(conflicts_t)))
+height = get_pdf_height(tree1)
+cat("Trying to calculate sentive height for tree plot based on the size of the tree. Will use:", as.character(height), "inches.\n")
 cat(paste0("Output PDF: conflicts-", treenames[1], "-", treenames[2], "-", nconflicts, "-quartets.pdf\n")) 
-pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", nconflicts, "-quartets.pdf"), width=10, height=get_pdf_height(tree1))
+pdf(file=paste0("conflicts-", treenames[1],"-",treenames[2],"-", nconflicts, "-quartets.pdf"), width=10, height=height)
   print(t1 + t2 + theme(legend.position="none")  + plot_layout(design = layout) + plot_annotation(title = paste0("An estimation of topological conflict between two trees based on\n", nconflicts, " conficts found in ", nquartets, " analyzed quartets of tips"), caption=paste0("Taxonomic level: ", level,". Random seed: ", seed,". Trees: ",  treenames[1], " (",prefix1,", hash: ", hash1, "), ", treenames[2], " (", prefix2, ", hash: ", hash2, ")\nOutgroup: ", outgroups),  theme = theme(plot.title=element_text(hjust=0.5, size=16))))#+ plot_layout(guides = 'none')# & theme(legend.position='bottom')
 garbage <- dev.off()
   
