@@ -5,8 +5,6 @@ include: "concatenate.smk"
 
 
 ruleorder: read_params_global > read_params_per
-if os.environ["MODELTEST"] == "no":
-	print(now(), "INFO: Since modeltesting was not run previously will try to use only bootstrap cutoff 0.")
 
 #create new hashes for current stage
 hashes = collect_hashes("bitree", config, configfi, wd=os.getcwd())
@@ -45,13 +43,13 @@ rule read_params_per:
 		"""
 rule read_params_global:
 	input:
-		trigger = compare("results/phylogeny/parameters.mltree."+current_hash+".yaml", configfi),
+		trigger = compare("results/phylogeny/parameters.bitree."+current_hash+".yaml", configfi),
 		previous = previous_params_global
 	output:
-		"results/phylogeny/parameters.mltree."+current_hash+".yaml"
+		"results/phylogeny/parameters.bitree."+current_hash+".yaml"
 	shell:
 		"""
-		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff mltree,method mltree,options mltree,bootstrap
+		bin/read_write_yaml.py {input.trigger} {output} seed genetree_filtering,bootstrap_cutoff bitree,method bitree,options bitree,chains
 		cat {input.previous} >> {output}
 		"""
 
