@@ -1012,6 +1012,8 @@ elif args.command == "util":
 			hashes["mltree"] = collect_hashes("mltree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())
 			print(now(), "Calculating analysis hashes for speciestree, this may take a few seconds...")
 			hashes["speciestree"] = collect_hashes("speciestree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())	
+			print(now(), "Calculating analysis hashes for bitree, this may take a few seconds...")
+			hashes["bitree"] = collect_hashes("bitree", parse_config_file(qs_args.configfile), qs_args.configfile, debug=qs_args.debug, wd=os.getcwd())	
 			combinations = []
 			#first calculate all possible combinations:
 			for bs in hashes["mltree"]["mltree"]["per"]:
@@ -1028,13 +1030,17 @@ elif args.command == "util":
 					for trimmer in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"]:
 						for aligner in hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer]:
 							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["speciestree"]["speciestree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/species_tree.tre")
-			## TODO: Add logic for bitrees here to get all combinations!!
-			# now check which files are there in the file system:
+			for bs in hashes["bitree"]["bitree"]["per"]:
+				for treeprog in hashes["bitree"]["bitree"]["per"][bs]:
+					for trimmer in hashes["bitree"]["bitree"]["per"][bs][treeprog]["iqtree"]:
+						for aligner in hashes["bitree"]["bitree"]["per"][bs][treeprog]["iqtree"][trimmer]:
+							combinations.append("results/phylogeny/" + treeprog + "/bootstrap-cutoff-" + bs + "/" + aligner + "-" + trimmer + "." + hashes["bitree"]["bitree"]["per"][bs][treeprog]["iqtree"][trimmer][aligner] + "/phylobayes.con.tre")
 			iqtree_trees = glob.glob("results/phylogeny/iqtree/bootstrap-cutoff-*/*/concat.contree")
+			iqtree_unpartitioned_trees = glob.glob("results/phylogeny/iqtree-unpartitioned/bootstrap-cutoff-*/*/concat.contree")
 			raxml_trees =  glob.glob("results/phylogeny/raxml/bootstrap-cutoff-*/*/raxmlng.raxml.support")
 			astral_trees = glob.glob("results/phylogeny/astral/bootstrap-cutoff-*/*/species_tree.tre")
 			bi_trees = glob.glob("results/phylogeny/phylobayes/bootstrap-cutoff-*/*/phylobayes.con.tre")
-			all_trees = iqtree_trees + raxml_trees + astral_trees + bi_trees
+			all_trees = iqtree_trees + iqtree_unpartitioned_trees + raxml_trees + astral_trees + bi_trees
 			all_trees = [tree for tree in all_trees if tree in combinations] #keep only files which are specified in config file.
 			all_trees = ",".join(all_trees)
 		else:
