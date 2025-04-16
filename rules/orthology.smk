@@ -22,7 +22,7 @@ def get_orthology_mode(wildcards):
 	sp.replace(" ", "_")
 	#first check of mode column exists:
 	if "mode" in list(sample_data.columns): 
-		if config["orthology"]["mode"] == "busco":
+		if config["orthology"]["method"] == "busco":
 			print("(phylociraptor): INFO: Will check for custom provided BUSCO mode given in .csv file for species:", sp)
 			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any(): #check if value was actually provided
 				print("(phylocirpator): No BUSCO mode value was provided for" , sp , "- will use the default:",config["orthology"]["busco_options"]["mode"]) 
@@ -44,7 +44,7 @@ def get_orthology_mode(wildcards):
 					sys.exit(1)
 				else:		
 					return mode 
-		if config["orthology"]["mode"] == "orthofinder":
+		if config["orthology"]["method"] == "orthofinder":
 			if sample_data.loc[sample_data["species"] == sp, "mode"].isnull().values.any():
 				print("(phylocirpator): No value was provided. To use Orthofinder you will need to provide sets of protein sequences and use protein in the mode column of your datafile")
 				print("(phylociraptor): Will exit now...")
