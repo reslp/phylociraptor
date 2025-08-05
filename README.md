@@ -92,7 +92,7 @@ Local computer or solitary server:
 
 - Linux or MacOS operating system
 - globally installed singularity 3.4.1+
-- installed snakemake 7.32.4 (best in an anaconda environment)
+- installed snakemake 6.0.2 (best in an anaconda environment)
 
 or 
 
@@ -100,7 +100,7 @@ or
 
 On a HPC cluster:
 
-- installed snakemake 7.32.4 (best in an anaconda environment)
+- installed snakemake 6.0.2 (best in an anaconda environment)
 - globally installed singularity 3.4.1+
 - SGE, SLURM or TORQUE job scheduling system
 
@@ -111,7 +111,7 @@ If you don't have conda installed, first look [here](https://docs.conda.io/en/la
 
 ```
 $ conda install -n base -c conda-forge mamba
-$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.32.4
+$ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 $ conda activate snakemake
 ```
 

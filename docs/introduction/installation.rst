@@ -15,7 +15,7 @@ Phylociraptor extensively uses software containers and thus has only a minimum n
 
 * Linux or MacOS operating system
 * globally installed singularity 3.4.1+ or apptainer
-* installed snakemake 7.32.4 (eg. in an anaconda environment)
+* installed snakemake 6.0.2 (eg. in an anaconda environment)
 
 On a HPC cluster (when utilizing parallel job execution):
 
@@ -23,7 +23,7 @@ On a HPC cluster (when utilizing parallel job execution):
 
 .. warning::
 
-	We strongly recommend that you use the snakemake version suggested above (7.32.4). Using other versions could lead to complications.
+	We strongly recommend that you use the snakemake version suggested above (6.0.2). Using other versions could lead to complications. Snakemake version 8 is currently not supported.
 
 
 -------------------------
@@ -87,7 +87,7 @@ If you don't have conda installed, first look `here <https://docs.conda.io/en/la
 .. code-block:: bash
 
         $ conda install -n base -c conda-forge mamba
-        $ mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.32.4
+        $ mamba create -c conda-forge -c bioconda -n snakemake snakemake=6.0.2
 	$ conda activate snakemake
 
 

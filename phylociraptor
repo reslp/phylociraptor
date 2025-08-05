@@ -22,10 +22,10 @@ if sys.version_info[0] < 3:
 	raise Exception("Phylocripator requires Python 3. Will exit.")
 	exit(1)
 try:
-	if snakemake.__version__ != "7.32.4":
-		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (7.32.4). This could lead to problems!")
+	if snakemake.__version__ != "6.0.2":
+		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (6.0.2). This could lead to problems! Phylociraptor currently does not work with snakemake v8+")
 except:
-	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v7.32.4.")
+	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
@@ -201,15 +201,16 @@ def check_required_software():
 
 	# perform some checks about aapptainer and singularity
 	spath = shutil.which("singularity")
+	
+	if spath == None: # command was not found
+		print(now(), "ERROR: Singularity/Apptainer not found. This is required for phylociraptor.")
+		sys.exit(1)
 
 	if os.path.islink(spath): #singularity is symlink
 		if "apptainer" in os.readlink(spath): # singularity links to apptainer => assume apptainer
 			which = "apptainer"
 		else: # in all other cases assume singularity
 			which = "singularity"
-	elif spath == None: # command was not found
-		print(now(), "ERROR: Singularity/Apptainer not found.")
-		sys.exit(1)
 	else: # assume singularity
 		which = "singularity"
 
@@ -220,7 +221,7 @@ def check_required_software():
 		except FileNotFoundError:
 			print(now(), "ERROR: Singularity command not found.")
 			sys.exit(1)
-	elif which == "apptainer": # assume that we deal with singularity
+	elif which == "apptainer": # assume that we deal with apptainer
 		try:
 			singularity_version = str(subprocess.check_output(['apptainer', 'version']).decode('ascii').strip())
 			print(now(), "Apptainer version:", singularity_version)
@@ -266,7 +267,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now()+" Task: %s\n" % line.strip().split(" ")[1].rstrip(":")
 				if line.lstrip().startswith("wildcards:"):
-					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("ERROR"):
@@ -275,11 +276,10 @@ def execute_command(cmd, verbose, config, isutil=False):
 				result = line
 				if result.startswith("Nothing"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
-				if result.startswith("total"):
+				if result.startswith("Job counts"):
 					jobcounts = True
-				#elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
-				#	if len(result.split("")) == 2: # the line with the total number of jobs has two elements
-					if nline <= 30:
+				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of tasks for this step: %s\n" % result.split(" ")[-1].strip() 
 				if result.startswith("ERROR"):
 					yield now() + " "  + result
@@ -316,15 +316,15 @@ def execute_command(cmd, verbose, config, isutil=False):
 				result = line
 				if result.startswith("Singularity"):
 					yield result
-				if result.startswith("total"):
+				if result.startswith("Job counts"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output
-					if result.startswith("total"): 
-						yield now()+" Total number of jobs to submit: %s\n" % result.split(" ")[-1].strip()
-						njobs = int(result.split(" ")[-1])
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
+						yield now()+" Total number of jobs to submit: %s\n" % result.split("\t")[1].strip()
+						njobs = int(result.split("\t")[1])
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("Nothing to be done"):
@@ -355,7 +355,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if line.startswith("rule") and not debug:
 					yield now()+" Will run task: %s\n" % line.strip().split(" ")[1].rstrip(":") 
 				if line.lstrip().startswith("wildcards:"):
-					yield "\t\t   Parameters: %s\n" % line.split(":")[1].strip()
+					yield "\t\t   Parameters: %s\n" % line.split(":")[1]
 				if line.startswith("Nothing to be done"):
 					yield now() + " There is nothing to do. To force a rerun use: -f/--force or -F/--FORCE\n"
 				if line.startswith("  |"):
@@ -365,14 +365,14 @@ def execute_command(cmd, verbose, config, isutil=False):
 			else: # this is the quiet mode with progressbar
 				#if check_for_errors(result):
 				#	yield check_for_errors(result)
-				if result.startswith("total"):
+				if result.startswith("Job counts"):
 					jobcounts = True	
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
 				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough
-					if result.startswith("total"): # the line with the total number of jobs has two elements
-						yield now()+" Total number of tasks to run: %s\n" % result.split(" ")[-1].strip()
+					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
+						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
 						njobs = int(result.split(" ")[-1])
 				elif jobcounts and result == "":
 					jobcounts = False
