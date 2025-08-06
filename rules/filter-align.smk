@@ -195,7 +195,7 @@ rule filter_alignments:
 				fi
 				if [[ $(grep "$(basename $file)" results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{params.trimmer_hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt | cut -f 6) -ge {params.min_pars_sites} && $(grep "$(basename $file)" results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{params.trimmer_hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt | cut -f 9 | awk '{{ if ($1 <= {params.max_rcv_score}) {{print "OK"}} }}') == "OK" ]]; then
 					echo -e "$file\tPASS" 2>&1 | tee -a {output.filter_info}
-					ln -s -f {params.wd}/$file {params.wd}/{params.target_dir}/
+					ln -s -f ../../../../$file {params.wd}/{params.target_dir}/
 					continue
 				elif [[ $(grep "$(basename $file)" results/statistics/trim-{wildcards.aligner}-{wildcards.alitrim}.{params.trimmer_hash}/statistics_trimmed_{wildcards.alitrim}_{wildcards.aligner}.txt | cut -f 6) -lt {params.min_pars_sites} ]]; then # case if alignment has too few pars inf sites
 					echo -e "$file\tNOT_INFORMATIVE" 2>&1 | tee -a {output.filter_info}
