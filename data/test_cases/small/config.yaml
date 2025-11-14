@@ -11,7 +11,7 @@ orthology:
     exclude: 
     busco_options:
         set: "fungi_odb9"
-        version: "3.0.2" #possible is "3.0.2" or "5.2.1"
+        version: "5.2.1" #possible is "3.0.2" or "5.2.1"
         mode: "genome"
         augustus_species: aspergillus_nidulans #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
         additional_parameters: ""
@@ -90,6 +90,19 @@ njtree:
         quicktree: 10
     options:
         quicktree: ""
+
+bitree:
+    method: ["phylobayes"]
+    threads:
+        phylobayes: 12
+    chains:
+        phylobayes: 4
+    generations:
+        phylobayes: 10000
+    sampling:
+        phylobayes: 10
+    options:
+        phylobayes: "-cat -gtr"
 
 # specific settings for individual tree reconstruction methods
 #iqtree:
