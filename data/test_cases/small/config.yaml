@@ -10,7 +10,7 @@ orthology:
     threads: 10
     exclude: 
     busco_options:
-        set: "fungi_odb9"
+        set: "fungi_odb10"
         version: "5.2.1" #possible is "3.0.2" or "5.2.1"
         mode: "genome"
         augustus_species: aspergillus_nidulans #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
