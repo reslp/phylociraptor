@@ -71,7 +71,11 @@ if (treelistfile == "none") {
 
   pdf(file=paste0("quartet-similarity-heatmap-", nrow(data), "-trees.pdf"), width=pwidth, height=pheight)
   #colnames(data) <- rownames(data)
-  p <- pheatmap(data, display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"), angle_col=0)
+  if (length(unique(as.list(data))) == 1) { # check if all values in data are identical. In this case handly differently.
+  	p <- pheatmap(data, breaks = c(0,1), display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"), angle_col=0)
+  } else {
+  	p <- pheatmap(data, display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"), angle_col=0)
+  }
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))
   garbage <- dev.off()
 } else {
@@ -108,8 +112,12 @@ if (treelistfile == "none") {
 	  cat("Nothing left to plot. Check your filters / treelist.\n")
 	  quit()
   }
+  if (length(unique(as.list(data))) == 1) { # check if all values in data are identical. In this case handly differently.
+  	p <- pheatmap(data, breaks=c(0, 1), display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
+} else {
   #p <- ggplot(data, aes(First, Second, fill=Similarity)) + geom_tile() + scale_fill_gradient(low = "red", high = "white") + ggtitle("% similarity of pairs of trees") + geom_text(aes(label = format(round(Similarity, roundb), nsmall=2)))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-  p <- pheatmap(data, display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
+  	p <- pheatmap(data, display_numbers=TRUE, number_format = formatstring, treeheight_col=0, treeheight_row=0, main=paste0("Similarity (percentage of identical quartets of tips) of pairs of ", nrow(data), " trees"))
+  }
   pdf(file=paste0("quartet-similarity-heatmap-",nrow(data),"-trees.pdf"), width=pwidth, height=pheight)
   print(p)
   garbage <- dev.off()
