@@ -122,6 +122,8 @@ def download(download_data, genome):
 		return "failed"
 	url = download_data.iloc[0]["ftp_path"]
 	genome = genome.replace(" ", "_")
+	if url[-1] == "/": # account for possible change in ncbi format
+		url = url.strip("/")
 	filename = url.split("/")[-1]
 	download_url_genome = url + "/" + filename + "_genomic.fna.gz"
 	print(now(), "Will try to download genome from:", download_url_genome)
