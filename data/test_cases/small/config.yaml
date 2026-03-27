@@ -10,11 +10,13 @@ orthology:
     threads: 10
     exclude: 
     busco_options:
-        set: "fungi_odb10"
+        set: "fungi-seed-43-genes-20_odb10"
         version: "5.2.1" #possible is "3.0.2" or "5.2.1"
         mode: "genome"
-        augustus_species: aspergillus_nidulans #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
+        augustus_species:  #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
         additional_parameters: ""
+    orthofinder_options:
+        params: ""
 
 # Setting filtering options for orthology and alignments:
 # ---- Orthology results can be filtered based on two settings cutoff and minsp: ----
@@ -36,17 +38,18 @@ genetree_filtering:
 
 # settings related to alignment and trimming
 alignment:
-    method: ["clustalo","mafft","muscle"] #, "clustalo", "muscle"]
+    method: ["clustalo","mafft","muscle", "tcoffee", "prank"] #, "clustalo", "muscle"]
     threads: 2
     options:
         mafft: "--quiet --auto"
         clustalo: ""
         muscle: ""
         tcoffee: ""
+        prank: ""
 
 # possible trimming options: trimal, aliscore
 trimming: 
-    method: ["trimal", "aliscore", "bmge"] 
+    method: ["trimal", "aliscore", "bmge", "clipkit", "untrimmed"] 
     options:
         trimal: "-gappyout"
         aliscore: ""
@@ -77,15 +80,12 @@ mltree:
     threads:
         iqtree: 20
         raxml: 20
-        iqtree-unpartitioned: 20
     bootstrap:
         iqtree: 1000
         raxml: 100
-        iqtree-unpartitioned: 1000
     options:
         iqtree: ""
         raxml: ""
-        iqtree-unpartitioned: ""
         
 njtree:
     method: ["quicktree"]
@@ -97,7 +97,7 @@ njtree:
 bitree:
     method: ["phylobayes"]
     threads:
-        phylobayes: 12
+        phylobayes: 12 
     chains:
         phylobayes: 4
     generations:
@@ -106,26 +106,3 @@ bitree:
         phylobayes: 10
     options:
         phylobayes: "-cat -gtr"
-
-# specific settings for individual tree reconstruction methods
-#iqtree:
-#    threads: 20 #specifies the maximum number of threads for -ntmax. The real number will be determined with -nt AUTO internally.
-#    bootstrap: 1000
-#    model: "MFP"
-#    additional_params: ""
-
-#raxmlng:
-#    threads: 20
-#    bootstrap: 100
-#    additional_params: ""
-
-# phylobayes is currently not working
-bayesian:
-    method: [] #["phylobayes"]
-
-phylobayes:
-    threads: 30
-    model: ""
-    ngens: 100
-    additional_params: "-f"
-    nchains: 4
