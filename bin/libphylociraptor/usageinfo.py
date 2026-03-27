@@ -233,7 +233,10 @@ Utilities:
 	manage-jobs		List and cancel jobs of past cluster submissions.
 	tracecomp		Compare phylobayes output created with bitree.
 	bpcomp			Create phylobayes consensus trees.
+	
+	patch-snakemake		Patches your snakemake 6.0.2 conda env for compatible with Apptainer.
 	-h, --help              Display help.
+
 
 """
 
@@ -250,6 +253,19 @@ Arguments:
 	-o, --outfile		Output file name.
 	--quiet			Suppress (most) on-screen output.
 	--force			Force redownload of NCBI Taxonomy files.
+"""
+
+util_patch_snakemake_help = """
+
+phylociraptor util patch-snakemake - Patch snakemake 6.0.2 for compatibility with Apptainer.
+
+Usage: phylociraptor util patch-snakemake <arguments>
+
+Required Arguments:
+	None
+
+Optional arguments:
+	-h, --help		Display this help message
 """
 
 util_estimate_conflict_help = """

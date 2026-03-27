@@ -222,6 +222,10 @@ def check_required_software():
 			print(now(), "ERROR: Singularity command not found.")
 			sys.exit(1)
 	elif which == "apptainer": # assume that we deal with apptainer
+		print(now(), "----------------------------------------------------------------")
+		print(now(), "You seem to be using Apptainer")
+		print(now(), "WARNING: The recommended snakemake version 6.0.2 may have problems with apptainer. Consider running: phylociraptor util patch-snakemake to avoid problems")
+		print(now(), "----------------------------------------------------------------")
 		try:
 			singularity_version = str(subprocess.check_output(['apptainer', 'version']).decode('ascii').strip())
 			print(now(), "Apptainer version:", singularity_version)
@@ -943,6 +947,53 @@ elif args.command == "util":
 	else:
 		which_util = args.arguments.pop(0)
 	debug = check_debug(True) #for util debugging output is enabled by default
+
+	if which_util == "patch-snakemake":
+		ps_parser = UtilParser(add_help=False)
+		ps_args = ps_parser.parse_args(args.arguments) 
+		if ps_args.help: 
+			print(help_message(util_patch_snakemake_help))
+			sys.exit(0)
+		print("This tool is meant to be used in case Apptainer is used together with snakemake 6.0.2")
+		print("This relates to a bug in snakemake 6.0.2, which is not able to distinguish between Singularity and Apptainer versions correctly.")
+		print("The root case has to do with how Apptainer and Singularity count version numbers.")
+		print("IMPORTANT: This fix only works with snakemake 6.0.2, which is the version used in phylociraptor")
+		yes_no = input("Would you like to continue? (y/n) ")
+		if yes_no.lower() != "y":
+			print("Will terminate")
+			sys.exit(0)
+		# first check sm version:
+
+		try:
+			if snakemake.__version__ != "6.0.2":
+				print("This patch only work with snakemake version 6.0.2. You have (", snakemake.__version__, "). This could lead to problems! Phylociraptor currently does not work with snakemake v8+. Please install the correct snakemake version.")
+				sys.exit(0)
+		except:
+			print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2")
+			sys.exit(0)
+		print("Snakemake version:", snakemake.__version__, " is correct. Will continue...")	
+		print("Will determine location of conda environment file, so that fix is applied to the correct file:")
+		try:
+			conda_prefix = os.environ["CONDA_PREFIX"]
+		except:
+			print("Could not determine CONDA_PREFIX. Is snakemake installed via conda and did you activate the environment?")
+			sys.exit(0)
+		import site, inspect
+		from pathlib import Path
+		#print(site.getsitepackages())	
+		snakemake_path = inspect.getfile(snakemake)
+		snakemake_path = Path(snakemake_path).parent
+		snakemake_path = str(snakemake_path) + "/deployment/singularity.py"
+		if not os.path.isfile(snakemake_path):
+			print("The file which should be patched does not exist:", snakemake_path)
+			sys.exit(0)
+		import shutil
+		print("Found file:", snakemake_path)
+		shutil.copy(snakemake_path, snakemake_path +"_BACKUP")	
+		print("Created backup of original file:", snakemake_path +"_BACKUP")
+		shutil.copy(os.getcwd() + "/bin/.singularity.py_patch", snakemake_path)
+		print("File patched. Snakemake 6.0.2 should now work with Apptainer 1.0+ and Singularity 2.4.1+")
+		
 	if which_util == "get-lineage":
 		gl_parser = UtilParser(add_help=False)
 		gl_parser.add_argument("-d","--datafile", action="store", default="data/data.csv")
