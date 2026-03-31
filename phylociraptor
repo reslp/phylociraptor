@@ -344,6 +344,7 @@ def execute_command(cmd, verbose, config, isutil=False):
 			logging.basicConfig(filename="log/phylociraptor/phylociraptor-log-" + time.strftime("%Y-%m-%d_%H-%M-%S") + ".txt", level=logging.DEBUG,format="%(message)s")	
 			logging.debug("PHYLOCIRAPTOR COMMAND: " + " ".join(sys.argv))
 			logging.debug("EXECUTED COMMAND: " + " ".join(cmd))
+		found = False # some lines in rule can trigger parsing of job numbers for progress bar, this should mitigate
 		for line in io.TextIOWrapper(popen.stdout, encoding="utf-8"):
 			nline += 1
 			logging.debug(line.strip())
@@ -374,10 +375,11 @@ def execute_command(cmd, verbose, config, isutil=False):
 				if result.startswith("Pulling singularity"):
 					container = result.rstrip().split(" ")[-1].strip(".")
 					yield now() + " Please be patient as singularity container " + container + " is downloaded. This can take several minutes.\n"
-				elif jobcounts and result != "" and nline <= 30: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough
+				elif jobcounts and result != "" and nline <= 30 and found == False: #only keep jobcount info from the beginning of the output, typically 30 lines will be enough, plus check if jobcount has been detected already.
 					if len(result.split("\t")) == 2: # the line with the total number of jobs has two elements
 						yield now()+" Total number of tasks to run: %s\n" % result.split("\t")[1].strip()
-						njobs = int(result.split(" ")[-1])
+						njobs = int(result.strip())
+						found = True
 				elif jobcounts and result == "":
 					jobcounts = False
 				if line.startswith("rule"):

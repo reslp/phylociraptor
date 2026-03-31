@@ -245,7 +245,6 @@ if config["orthology"]["method"] == "busco":
 			echo -e "[$(date)]\\tBUSCO set specified: {params.set}" 2>&1 | tee {log}
 			if [ -d {output.busco_set} ]; then rm -rf {output.busco_set}; fi
 			mkdir {output.busco_set}
-	
 			if [ "{params.busco_version}" == "3.0.2" ]
 			then
 				base_url="https://busco.ezlab.org/v3/datasets"
