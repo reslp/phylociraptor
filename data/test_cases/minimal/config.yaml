@@ -10,7 +10,7 @@ orthology:
     threads: 2
     exclude: 
     busco_options:
-        set: "fungi-seed-42-genes-10_odb10" # the name of the BUSCO set to be used
+        set: "fungi_odb10" # the name of the BUSCO set to be used
         version: "5.2.1"
         mode: "genome"
         augustus_species: saccharomyces
