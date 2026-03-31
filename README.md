@@ -203,7 +203,7 @@ Tree inference:
 
 Phylociraptor comes with two test datasets. The first, `minimal` test case is designed to be small enough (6 fungal genomes; 10 random genes) to be run on a consumer computer within about one hour. You can check it out [here](https://github.com/reslp/phylociraptor/tree/master/data/test_cases/minimal).
 
-The `small` test case is a bit larger (20 genomes; 20 genes) and more comprehensive in that it shows the full extent of phylociraptors capabilities. This is the same dataset which is also presented in the phylociraptor manuscript. If you would like to try this out, go [here](https://github.com/reslp/phylociraptor/tree/master/data/test_cases/minimal).
+The `small` test case is a bit larger (20 genomes; 20 genes) and more comprehensive in that it shows the full extent of phylociraptors capabilities. This is the same dataset which is also presented in the phylociraptor manuscript. If you would like to try this out, go [here](https://github.com/reslp/phylociraptor/tree/master/data/test_cases/small).
 
 
 ## Customization
