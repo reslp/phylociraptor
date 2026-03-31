@@ -338,7 +338,7 @@ elif config["orthology"]["method"] == "orthofinder":
 					echo "Mode set to force, will remove old results first: results/orthology/orthofinder/orthofinder-{params.hash}"
 					rm -rf results/orthology/orthofinder/orthofinder-{params.hash}
 					echo "Will start new orthofinder run"
-					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash}
+					orthofinder {params.addorthoparams} -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash} -og
 					touch {output}
 				else
 					exit 1
@@ -346,7 +346,7 @@ elif config["orthology"]["method"] == "orthofinder":
 			else 
 				mkdir -p results/orthology/orthofinder
 				echo "Will start new orthofinder run"
-				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash} {params.addorthoparams}
+				orthofinder -f {params.proteinsets} -t {threads} -o results/orthology/orthofinder/orthofinder-{params.hash} {params.addorthoparams} -og
 				touch {output}
 			fi
 			cd results/orthology/orthofinder/orthofinder-{params.hash}
