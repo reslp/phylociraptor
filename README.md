@@ -12,17 +12,18 @@
 
 Phylociraptor is a computational framework calculating phylogenomic trees for a specified set of species using different alignment, trimming and tree reconstruction methods. It is very scalable and runs on Linux/Unix machines and servers as well as HPC clusters. Phylociraptor automatically downloads genomes available on NCBI and combines them with additional specified genomes provided by the user. It uses BUSCO or OrthoFinder to identify single-copy orthologs which are filtered, aligned, trimmed and subjected to phylogenetic inference using state of the art software. 
 
-**Want to learn more about**  ...
+**Get familiar with phylociraptor by**  ...
 
-... [the phylociraptor workflow](#The-phylociraptor-workflow)  
-... [prerequisistes and dependencies](#Prerequisites)  
-... [installation](#Installing-phylociraptor)  
-... [the incorporated software](#Available-tools)  
-... [the many customization possibilities](#Customization)  
-... [a-posteri analyses of phylogenomic trees](#A-posteriori-analyses)  
-... [how to use phylociraptor with docker](#Using-Docker)  
-... [how to cite phylociraptor](#Citation)  
-... [all the details in the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
+... [learning about the phylociraptor workflow](#The-phylociraptor-workflow)  
+... [investigating prerequisistes and dependencies](#Prerequisites)  
+... [prepare a new installation](#Installing-phylociraptor)  
+... [learning about incorporated software](#Available-tools)  
+... [checking out the many customization possibilities](#Customization)  
+... [reading about a-posteri analyses of phylogenomic trees](#A-posteriori-analyses)  
+... [analyzing test datasets](#Test-datasets)  
+... [learning how to use phylociraptor with docker](#Using-Docker)  
+... [learning how to cite phylociraptor](#Citation)  
+... [diving into all the details in the documentation](https://phylociraptor.readthedocs.io/en/latest/)  
 
 
 ## The phylociraptor workflow
@@ -196,6 +197,13 @@ Tree inference:
 - ASTRAL 5.7.1 (https://github.com/smirarab/ASTRAL)
 - Quicktree 2.5 (https://github.com/khowe/quicktree)
 - Phylobayes-MPI 1.9 (https://github.com/bayesiancook/pbmpi)
+
+
+## Test datasets
+
+Phylociraptor comes with two test datasets. The first, `minimal` test case is designed to be small enough (6 fungal genomes; 10 random genes) to be run on a consumer computer within about one hour. You can check it out [here](https://github.com/reslp/phylociraptor/tree/master/data/test_cases/minimal).
+
+The `small` test case is a bit larger (20 genomes; 20 genes) and more comprehensive in that it shows the full extent of phylociraptors capabilities. This is the same dataset which is also presented in the phylociraptor manuscript. If you would like to try this out, go [here](https://github.com/reslp/phylociraptor/tree/master/data/test_cases/minimal).
 
 
 ## Customization
