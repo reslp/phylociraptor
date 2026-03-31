@@ -19,12 +19,24 @@ The below commands make use of a single computational thread only. If you have m
 
 For some more details about what's happening below, have a look at our tutorial [here](https://phylociraptor.readthedocs.io/en/latest/introduction/minimal.html).
 
-### setup the pipeline:
+### Preparations
 
-This runs using only one thread (`-t local=1) on the same machine. Adjust the number of threads to be used if you want (see above). It should take about 5 minutes.
+First we will copy the two input files (config and data file) into the `data/ directory:
+
+Inside your phylociraptor directory run:
 
 ```
-./phylociraptor setup --config-file data/test_cases/minimal/config.yaml -t local=1 --verbose
+cp data/test_cases/minimal/config.yaml data/
+cp data/test_cases/minimal/minimal.csv data/
+```
+
+### Setup the pipeline
+
+This runs using only one thread (`-t local=1`) on the same machine. Adjust the number of threads to be used if you want (see above). It should take about 5 minutes.
+This command assumes that `data/config.yaml` exists.
+
+```
+./phylociraptor setup -t local=1 --verbose
 ```
 
 ### Subsample the BUSCO set
@@ -41,7 +53,6 @@ This should take only a few seconds.
 To resume with the new, reduced BUSCO set make a copy of the settings file and modify the BUSCO set specified. You can also modify the file manually with a text editor, but here we do it programmatically. Note that this solution works in this case, given the files and BUSCO set as used in the tutorial. Adjust for your own set if needed.
 
 ```
-cp data/test_cases/minimal/config.yaml data/config.yaml 
 sed -i 's/fungi_odb10/fungi-seed-42-genes-10_odb10/' data/config.yaml
 ```
 

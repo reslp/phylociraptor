@@ -1,5 +1,5 @@
 #general settings:
-species: data/test_cases/minimal/minimal.csv
+species: data/minimal.csv
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 4 # Parallelization level
 seed: #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
@@ -10,7 +10,7 @@ orthology:
     threads: 2
     exclude: 
     busco_options:
-        set: "fungi_odb10" # the name of the BUSCO set to be used
+        set: "fungi-seed-42-genes-10_odb10" # the name of the BUSCO set to be used
         version: "5.2.1"
         mode: "genome"
         augustus_species: saccharomyces
@@ -80,12 +80,15 @@ mltree:
     threads:
         iqtree: 2
         raxml: 2
+        iqtree-unpartitioned: 20
     bootstrap:
         iqtree: 1000
         raxml: 100
+        iqtree-unpartitioned: 1000
     options:
         iqtree: "-redo"
         raxml: ""
+        iqtree-unpartitioned: ""
 
 njtree:
     method: ["quicktree"]
