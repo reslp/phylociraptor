@@ -1,5 +1,5 @@
 # general settings:
-species: "data/small.csv"
+species: "data/small_from_genomes.csv"
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 3 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
 seed: 43 #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
@@ -7,10 +7,10 @@ seed: 43 #(optional) random seed number to increase reproducibility of iqtree an
 # settings related to busco
 orthology:
     method: "busco"
-    threads: 10
+    threads: 2
     exclude: 
     busco_options:
-        set: "fungi-seed-43-genes-20_odb10"
+        set: "fungi_odb10"
         version: "5.2.1" #possible is "3.0.2" or "5.2.1"
         mode: "genome"
         augustus_species:  #Together with BUSCO 5 this is optional and will use augustus instead of metaeuk. Mandatory for BUSCO 3 (there is no metaeuk)
@@ -76,15 +76,18 @@ speciestree:
         astral: ""
 
 mltree:
-    method: ["iqtree", "raxml"] #["iqtree", "raxml"]
+    method: ["iqtree"] #["iqtree", "raxml"]
     threads:
         iqtree: 20
+        iqtree-unpartitioned: 20
         raxml: 20
     bootstrap:
         iqtree: 1000
+        iqtree-unpartitioned: 1000
         raxml: 100
     options:
         iqtree: ""
+        iqtree-unpartitioned: ""
         raxml: ""
         
 njtree:
