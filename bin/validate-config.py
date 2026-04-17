@@ -71,9 +71,9 @@ def validate_csv(csv_path):
         print_warn("File appears to be a single line (no line endings detected).")
         warnings += 1
 
-    # Decode for further checks
+    # Decode for further checks, stripping an optional UTF-8 BOM
     try:
-        text = raw.decode("utf-8")
+        text = raw.decode("utf-8-sig")
     except UnicodeDecodeError:
         print_err("File is not valid UTF-8.")
         return errors + 1, warnings
@@ -97,12 +97,16 @@ def validate_csv(csv_path):
         print_warn("Could not detect delimiter (header has no commas, tabs, or semicolons).")
         warnings += 1
 
-    # Parse with csv module
-    reader = csv.DictReader(io.StringIO(text))
-    fieldnames = reader.fieldnames
+    # Parse rows once with csv.reader so malformed row widths can be reported cleanly
+    parsed_rows = list(csv.reader(io.StringIO(text)))
+    if len(parsed_rows) == 0:
+        print_err("No header line detected.")
+        return errors + 1, warnings
+
+    fieldnames = [field.strip() for field in parsed_rows[0]]
 
     # 3) Check header line
-    if fieldnames is None or len(fieldnames) == 0:
+    if len(fieldnames) == 0:
         print_err("No header line detected.")
         return errors + 1, warnings
 
@@ -122,12 +126,23 @@ def validate_csv(csv_path):
     if has_mode:
         print_ok("Optional column 'mode' is present.")
 
+    # Check row widths and then build dict rows with normalized field names
+    expected_columns = len(fieldnames)
+    rows = []
+    for i, row_values in enumerate(parsed_rows[1:], start=2):
+        if len(row_values) != expected_columns:
+            print_err(
+                f"Line {i}: Expected {expected_columns} columns based on header, found {len(row_values)}."
+            )
+            errors += 1
+        padded_row_values = row_values + [""] * max(0, expected_columns - len(row_values))
+        row = dict(zip(fieldnames, padded_row_values[:expected_columns]))
+        rows.append(row)
+
     # 4 & 5) Check data rows
     # Allowed characters: alphanumeric, underscore, space, dot, hyphen, equals, slash (for paths)
     special_char_pattern = re.compile(r"[^A-Za-z0-9_ .\-=\/]")
     valid_modes = {"genome", "transcriptome", "proteome", ""}
-
-    rows = list(csv.DictReader(io.StringIO(text)))
 
     if len(rows) == 0:
         print_err("File has a header but no data rows.")
@@ -139,7 +154,7 @@ def validate_csv(csv_path):
     for i, row in enumerate(rows, start=2):  # line 2 onwards (1-indexed, line 1 = header)
         # Check species column
         if has_species:
-            species_val = row.get("species", "")
+            species_val = (row.get("species", "") or "").strip()
             match = special_char_pattern.search(species_val)
             if match:
                 print_err(f"Line {i}: Column 'species' contains special character "
@@ -148,7 +163,7 @@ def validate_csv(csv_path):
 
         # Check web_local column
         if has_web_local:
-            web_local_val = row.get("web_local", "")
+            web_local_val = (row.get("web_local", "") or "").strip()
             match = special_char_pattern.search(web_local_val)
             if match:
                 print_err(f"Line {i}: Column 'web_local' contains special character "
@@ -157,7 +172,7 @@ def validate_csv(csv_path):
 
         # Check mode column (if present)
         if has_mode:
-            mode_val = row.get("mode", "").strip()
+            mode_val = (row.get("mode", "") or "").strip()
             if mode_val not in valid_modes:
                 print_err(f"Line {i}: Column 'mode' has invalid value '{mode_val}'. "
                           f"Allowed: genome, transcriptome, proteome, or empty.")
