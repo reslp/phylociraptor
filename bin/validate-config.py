@@ -125,6 +125,8 @@ def validate_csv(csv_path):
 
     if has_mode:
         print_ok("Optional column 'mode' is present.")
+    else:
+            print_warn("Optional column 'mode' not present. Will use the default value specified in yaml file under busco_options => mode.")
 
     # Check row widths and then build dict rows with normalized field names
     expected_columns = len(fieldnames)
