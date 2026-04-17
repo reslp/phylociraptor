@@ -27,6 +27,7 @@ exec "$PIXI" run --manifest-path "$SCRIPT_DIR/.dependencies/pixi.toml" python "$
 import sys, os, io
 sys.path.insert(0, os.getcwd()+"/bin")
 from libphylociraptor.usageinfo import *
+import importlib
 from libphylociraptor.outfiles import *
 from libphylociraptor.hashing import *
 from libphylociraptor.check import *
@@ -1438,6 +1439,20 @@ elif args.command == "util":
 			print(cmd)
 		for line in execute_command(cmd, False, None, True):
 			print(line, end="\r")
+	if which_util == "validate-config":
+		vc_parser = UtilParser(add_help=False)
+		vc_parser.add_argument("--config-file", action="store", dest="config_file", default="data/config.yaml")
+		vc_args = vc_parser.parse_args(args.arguments)
+		if vc_args.help:
+			print(help_message(util_validate_config_help))
+			sys.exit(0)
+		# import and run the validator
+		spec = importlib.util.spec_from_file_location("validate_config", os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin", "validate-config.py"))
+		validate_config = importlib.util.module_from_spec(spec)
+		spec.loader.exec_module(validate_config)
+		result = validate_config.main(vc_args.config_file)
+		sys.exit(0 if result == 0 else 1)
+
 	if which_util == "viewtrace":
 		qs_parser = UtilParser(add_help=False)
 		qs_parser.add_argument("-x", "--burnin", action="store", default=None)
