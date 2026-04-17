@@ -2,7 +2,7 @@
 species: "data/data.csv" # file with samples
 email: "your.email@domain.com" #this is used during genome download to communicate with the NCBI database.
 concurrency: 20 # certain steps can be divided into batches to speed up computation. Here you can give the number of batches.
-seed: "1987" #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
+seed: 1987 #(optional) random seed number to increase reproducibility of iqtree and raxml runs. default: none (=random).
  
 # settings related to orthology inference
 orthology:

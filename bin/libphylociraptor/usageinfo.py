@@ -234,7 +234,8 @@ Utilities:
 	tracecomp		Compare phylobayes output created with bitree.
 	bpcomp			Create phylobayes consensus trees.
 	
-	patch-snakemake		Patches your snakemake 6.0.2 conda env for compatible with Apptainer.
+	validate-config		Validate the config.yaml and data CSV files.
+	patch-snakemake		Patches snakemake 6.0.2 for compatibility with Apptainer.
 	-h, --help              Display help.
 
 
@@ -459,4 +460,25 @@ Optional Arguments:
 				(e.g. --chains 1,2,4) (Default: all) 
 
 This uses the bpcomp tool provided by phylobayes.
+"""
+
+util_validate_config_help = """
+phylociraptor util validate-config - Validate the config.yaml and data CSV files.
+
+Checks performed on the data CSV file:
+  - Line endings (must be Unix-style)
+  - Delimiter (must be comma-delimited)
+  - Header line presence
+  - No special characters in 'species' and 'web_local' columns
+  - Valid values in optional 'mode' column
+
+Checks performed on the config.yaml file:
+  - Correct YAML formatting
+  - Correct types for all entries
+
+Usage: phylociraptor util validate-config <arguments>
+
+Optional arguments:
+	--config-file		Path to the config.yaml file. Default: data/config.yaml
+	-h, --help		Display this help message
 """
