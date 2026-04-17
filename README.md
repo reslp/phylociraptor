@@ -107,7 +107,7 @@ On a HPC cluster:
 
 ## Installing phylociraptor
 
-### Automated installion
+### Automated installation
 
 1. Clone the repository:
 
@@ -118,7 +118,7 @@ $ git clone --recursive https://github.com/reslp/phylociraptor.git
 2. Run phylociraptor:
 
 When phylociraptor is first run, it should automatically download and install [pixi](https://pixi.prefix.dev/latest/).
-Pixi automatically install snakemake 6.0.2 for phylociraptor. In future runs phylociraptor should automatically detect that snakemake is installed.
+Pixi then automatically installs snakemake 6.0.2. This is the reused in future runs.
 
 ```
 $ cd phylociraptor
