@@ -93,7 +93,7 @@ Local computer or solitary server:
 
 - Linux or MacOS operating system
 - globally installed singularity 3.4.1+
-- installed snakemake 6.0.2 (best in an anaconda environment)
+- installed snakemake 6.0.2 (installed automatically (via pixi) or provided from an anaconda environment)
 
 or 
 
@@ -106,6 +106,26 @@ On a HPC cluster:
 - SGE, SLURM or TORQUE job scheduling system
 
 ## Installing phylociraptor
+
+### Automated installion
+
+1. Clone the repository:
+
+```
+$ git clone --recursive https://github.com/reslp/phylociraptor.git
+```
+
+2. Run phylociraptor:
+
+When phylociraptor is first run, it should automatically download and install [pixi](https://pixi.prefix.dev/latest/).
+Pixi automatically install snakemake 6.0.2 for phylociraptor. In future runs phylociraptor should automatically detect that snakemake is installed.
+
+```
+$ cd phylociraptor
+$ ./phylociraptor
+```
+
+### Manual installation
 
 1. Create a conda environment with snakemake:
 If you don't have conda installed, first look [here](https://docs.conda.io/en/latest/miniconda.html).
