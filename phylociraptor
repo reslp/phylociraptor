@@ -16,6 +16,13 @@ fi
 # Bootstrap pixi if needed and run inside the managed environment.
 PIXI="$SCRIPT_DIR/.pixi/bin/pixi"
 
+# Avoid pixi warning when the default cache is on a network filesystem.
+# Users can still override this by setting PIXI_CACHE_DIR themselves.
+if [ -z "${PIXI_CACHE_DIR:-}" ]; then
+  PIXI_USER="${USER:-$(id -u)}"
+  export PIXI_CACHE_DIR="${TMPDIR:-/tmp}/pixi-cache-$PIXI_USER"
+fi
+
 if [ ! -x "$PIXI" ]; then
   echo "pixi is not installed. Will do this now..."
   curl -fsSL https://pixi.sh/install.sh | PIXI_HOME="$SCRIPT_DIR/.pixi" PIXI_NO_PATH_UPDATE=1 bash
