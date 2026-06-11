@@ -1,15 +1,8 @@
 import os
 import sys
 import time
+import hashlib
 from .filehandling import *
-try: 
-	import pandas as pd
-	import hashlib
-	import yaml
-except ModuleNotFoundError:
-	print("One or more required python modules could not be found.")
-	print("Usually this is solved by installing snakemake.")
-	sys.exit(1)
 
 def now():
 	return time.strftime("%Y-%m-%d %H:%M") + " -"
@@ -19,7 +12,7 @@ def hello_from_hashing():
 	return "hello again: this was returned from calling a function in the hashing library."
 
 def read_file_from_yaml(read, file, debug=False, wd=""):
-	import pandas as pd
+	import csv
 	if file == None or file == "":
 		if debug:
 			print(now(), "HASHING: File not found! It is none.")
@@ -32,16 +25,19 @@ def read_file_from_yaml(read, file, debug=False, wd=""):
 	if file:
 		if debug:
 			print(now(), "HASHING: reading in file:", file, read)
+		with open(file, newline="") as f:
+			data = list(csv.reader(f))
 		if len(read) > 0:
-			df = pd.read_csv(file)
 			lis = read.split(",")
+			header = data.pop(0)
+			cols = []
 			for i in reversed(range(len(lis))):
-				if not lis[i] in df:
+				if not lis[i] in header:
 					del(lis[i])
-			df = df[lis]
-		else:
-			df = pd.read_csv(file, header=None)
-		return sorted(df.values.tolist())
+			for col in lis:
+				cols.append(header.index(col))
+			data = [[row[i] for i in cols] for row in data]
+		return sorted(data)
 
 
 def check_parameters(d): #this functions will test parameters to make sure all empty strings are set to None. Otherwise different hashes will be calculated
@@ -61,7 +57,6 @@ def check_parameters(d): #this functions will test parameters to make sure all e
 
 def get_hash(previous, string_of_dict_paths=None, yamlfile=None, returndict=False, debug=False, wd=""):
 	import collections
-	import pandas as pd
 	if not string_of_dict_paths and not yamlfile:
 		hash = hashlib.shake_256(str(collections.OrderedDict(previous)).encode()).hexdigest(5)
 		if debug:

@@ -34,30 +34,86 @@ exec "$PIXI" run --manifest-path "$SCRIPT_DIR/.dependencies/pixi.toml" python "$
 import sys, os, io
 sys.path.insert(0, os.getcwd()+"/bin")
 from libphylociraptor.usageinfo import *
+import subprocess
+import argparse
+
+pars = argparse.ArgumentParser(usage=default_help)
+pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
+pars.add_argument('command', action='store', nargs="?")
+pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
+
+args = pars.parse_args()
+
+if args.version == True:
+	commit = str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
+	print("Version:", version)
+	print("Git commit:", commit)
+	sys.exit(0)
+
+if not args.command:
+	print(default_help)
+	sys.exit(0)
+
+command_help = {
+	"setup": setup_help,
+	"orthology": orthology_help,
+	"filter-orthology": forthology_help,
+	"align": align_help,
+	"filter-align": falign_help,
+	"speciestree": sptree_help,
+	"njtree": njtree_help,
+	"mltree": tree_help,
+	"bitree": bitree_help,
+	"modeltest": model_help,
+	"report": report_help,
+	"check": check_help,
+}
+util_command_help = {
+	"patch-snakemake": util_patch_snakemake_help,
+	"get-lineage": util_lineage_help,
+	"estimate-conflict": util_estimate_conflict_help,
+	"plot-tree": util_plot_tree_help,
+	"plot-conflict": util_plot_conflict_help,
+	"plot-heatmap": util_plot_similarity_help,
+	"plot-pca": util_plot_pca_help,
+	"modify-busco": util_modify_busco_help,
+	"manage-jobs": util_manage_jobs_help,
+	"tracecomp": util_tracecomp_help,
+	"bpcomp": util_bpcomp_help,
+	"validate-config": util_validate_config_help,
+	"viewtrace": util_tracecomp_help,
+}
+if args.command in command_help and any(a in ["-h", "--help"] for a in args.arguments):
+	print(command_help[args.command])
+	sys.exit(0)
+if args.command == "util":
+	if len(args.arguments) == 0 or args.arguments[0] in ["-h", "--help"]:
+		print(util_help)
+		sys.exit(0)
+	if any(a in ["-h", "--help"] for a in args.arguments[1:]) and args.arguments[0] in util_command_help:
+		print(util_command_help[args.arguments[0]])
+		sys.exit(0)
+
 import importlib
 from libphylociraptor.outfiles import *
 from libphylociraptor.hashing import *
 from libphylociraptor.check import *
 from libphylociraptor.filehandling import *
-import subprocess
-import argparse
 import glob
 import logging
 import yaml
-try:
-	import snakemake
-except ImportError:
-	print("Snakemake was not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
+def import_snakemake():
+	try:
+		import snakemake
+		return snakemake
+	except ImportError:
+		print("Snakemake was not found. Installation instructions: https://phylociraptor.readthedocs.io/en/latest/introduction/installation.html#create-a-conda-environment-for-snakemake")
+		sys.exit(1)
 
 
 if sys.version_info[0] < 3:
 	raise Exception("Phylocripator requires Python 3. Will exit.")
 	exit(1)
-try:
-	if snakemake.__version__ != "6.0.2":
-		print("WARNING: You are using a different snakemake version (", snakemake.__version__, ") than what is recommended (6.0.2). This could lead to problems! Phylociraptor currently does not work with snakemake v8+")
-except:
-	print("Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2")
 
 njobs = "10000"
 latency_wait = "10" #in seconds
@@ -266,12 +322,16 @@ def check_required_software():
 			sys.exit(1)
 	else: # should be captured already above, but for safety
 			print(now(), "ERROR: Singularity/Apptainer not found.")
-	try:
-		snakemake_version = str(subprocess.check_output(['snakemake', '-v']).decode('ascii').strip())
-		print(now(), "Snakemake version:", snakemake_version)
-	except FileNotFoundError:
+	spath = shutil.which("snakemake")
+	if spath == None: # command was not found
 		print(now(),"ERROR: Snakemake command not found.")
 		sys.exit(1)
+	try:
+		import importlib.metadata
+		snakemake_version = importlib.metadata.version("snakemake")
+		print(now(), "Snakemake version:", snakemake_version)
+	except:
+		print(now(), "Snakemake version could not be determined which is not a good sign and could lead to problems. It is recommended to install snakemake v6.0.2")
 	
 	
 def execute_command(cmd, verbose, config, isutil=False):
@@ -485,27 +545,6 @@ def check_help_and_config(params, helpmsg):
 
 
 	
-pars = argparse.ArgumentParser(usage=help_message(default_help))
-pars.add_argument('-v', '--version', action='store_true', dest='version', required=False)
-pars.add_argument('command', action='store', nargs="?")
-pars.add_argument('arguments', action='store', nargs=argparse.REMAINDER)
-
-args = pars.parse_args()
-
-def get_commit():
-		return str(subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip())
-
-if args.version == True:
-	commit = get_commit()
-	print("Version:", version)
-	print("Git commit:", commit)
-	sys.exit(0)
-
-
-if not args.command:
-	print(default_help)
-	sys.exit(0)
-
 # create own argparse class to include some standard options:
 class PhyloParser(argparse.ArgumentParser):
 	def __init__(self, **kwargs):
@@ -997,6 +1036,7 @@ elif args.command == "util":
 			print("Will terminate")
 			sys.exit(0)
 		# first check sm version:
+		snakemake = import_snakemake()
 
 		try:
 			if snakemake.__version__ != "6.0.2":
