@@ -252,7 +252,7 @@ if config["orthology"]["method"] == "busco":
 				wget -q -c $base_url/{params.set}.tar.gz -O - --no-check-certificate | tar -xz --strip-components 1 -C {output.busco_set}/
 			elif [ "{params.busco_version}" == "5.2.1" ]
 			then
-				base_url="https://busco-data.ezlab.org/v5/data/lineages"
+				base_url="https://busco-data.ezlab.org/v6/data/lineages"
 				current=$(curl -s $base_url/ | grep "{params.set}" | cut -d ">" -f 2 | sed 's/<.*//')
 				echo -e "[$(date)]\\tCurrent version is: $current" 2>&1 | tee -a {log}
 				echo -e "[$(date)]\\tDownloading .." 2>&1 | tee -a {log}
